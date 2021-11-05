@@ -1,4 +1,4 @@
-; Mighty Knights Library
+; Misc library (game specific)
 
 
 ; -----------------------------------------------------------------------------

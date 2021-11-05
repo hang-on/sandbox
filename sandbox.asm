@@ -1,10 +1,10 @@
-; main.asm
+; Sandbox.
 ;.sdsctag 1.0, "Sandbox", "YYY", "hang-on Entertainment"
 ; -----------------------------------------------------------------------------
 ; GLOBAL DEFINITIONS
 ; -----------------------------------------------------------------------------
-.include "sms_constants.asm"
-.include "core.asm"
+.include "lib/sms_constants.asm"
+.include "lib/core.asm"
 
 ; Remove comment to enable unit testing
 ;.equ TEST_MODE
@@ -30,13 +30,13 @@
 .endro
 ;
 ; Hierarchy: Most fundamental first. 
-.include "psglib.inc"
-.include "vdp_lib.asm"
-.include "animations_lib.asm"
-.include "actors_lib.asm"
-.include "mighty_knights_lib.asm"
-.include "sub_workshop.asm"
-.include "sub_tests.asm"        
+.include "lib/psglib.inc"
+.include "lib/vdp_lib.asm"
+.include "lib/animations_lib.asm"
+.include "lib/actors_lib.asm"
+.include "lib/misc_lib.asm"
+.include "lib/sub_workshop.asm"
+.include "lib/sub_tests.asm"        
 ; -----------------------------------------------------------------------------
 .ramsection "System variables" slot 3
 ; -----------------------------------------------------------------------------
@@ -126,9 +126,9 @@
     ld b,BORDER_COLOR
     call set_register
     ;
-    ld a,0
-    ld b,demo_palette_end-demo_palette
-    ld hl,demo_palette
+    ld a,16
+    ld b,SPRITE_PALETTE_SIZE
+    ld hl,sprite_palette
     call load_cram
 
     .ifdef TEST_MODE
@@ -147,7 +147,8 @@
     ;ld bc,VISIBLE_NAME_TABLE_SIZE
     ;call load_vram
 
-    ;call initialize_acm
+    call initialize_acm
+    call initialize_tbm
     
     ;INITIALIZE_ACTOR arthur, 0, 167, 56
     ;.equ PLAYER_ACM_SLOT 0
@@ -169,8 +170,8 @@
     xor a
     ld (vblank_counter),a
     
-    ld a,ENABLED
-    call set_display
+    ;ld a,ENABLED
+    ;call set_display
     
   jp main_loop
     vdp_register_init:
@@ -182,7 +183,7 @@
      ; -------------------------------------------------------------------------
     ; Begin vblank critical code (DRAW).
     call load_sat
-    ;call blast_tiles
+    call blast_tiles
     
     ld hl,critical_routines_finish_at
     call save_vcounter
@@ -201,7 +202,7 @@
 
 
 
-    ;call process_animations
+    call process_animations
 
     ;ld a,PLAYER_ACM_SLOT            ; Let the actor "arthur" be represented
     ;ld hl,arthur                    ; by the animation currently playing in
@@ -214,10 +215,9 @@
 .section "Demo assets" free
 ; -----------------------------------------------------------------------------
 
-  demo_palette:
-    .db $23 $00 $11 $12 $17 $1B $2E $19 $14 $10 $35 $38 $3D $3F $2A $15
-    .db $23 $00 $11 $12 $17 $1B $2E $19 $14 $10 $35 $38 $3D $3F $2A $15
-    demo_palette_end:
+  sprite_palette:
+    .incbin "data/sprite_palette.bin" fsize SPRITE_PALETTE_SIZE
+
 
 
 .ends

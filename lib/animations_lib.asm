@@ -41,7 +41,7 @@
   acm_label dsb ACM_SLOTS*2
 .ends
 
-.equ TBM_SLOTS 8
+.equ TBM_SLOTS 4
 .ramsection "Tile Blaster Matrix (TBM)" slot 3 
   tileblasts_in_que db
   tbm_bank dsb TBM_SLOTS
@@ -472,6 +472,13 @@
       .endr
   .endif
   ret ; We are in the tileblasting subroutine here...
+
+  initialize_tbm:
+    ; Initialize the Tile Blaster Matrix by setting the pending jobs to 0.
+    ld a,0
+    ld hl,tileblasts_in_que
+    ld (hl),a
+  ret
 
   add_tileblast_to_que:
     ; IN: HL = Tileblaster task struct.
