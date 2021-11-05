@@ -1,6 +1,5 @@
 PRJNAME := sandbox
 OUTPUT := binaries/
-SOURCE := source/
 
 $(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm lib/* data/* 
 	@C:\Users\ANSJ\Documents\wla_dx_9.12\wla-z80.exe -o $(PRJNAME).o $(PRJNAME).asm
