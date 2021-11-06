@@ -1,7 +1,7 @@
 PRJNAME := sandbox
 OUTPUT := binaries/
 
-$(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm lib/* data/* 
+$(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm libraries/* data/* 
 	@C:\Users\ANSJ\Documents\wla_dx_9.12\wla-z80.exe -o $(PRJNAME).o $(PRJNAME).asm
 	@echo [objects] > linkfile
 	@echo $(PRJNAME).o >> linkfile
@@ -11,7 +11,3 @@ $(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm lib/* data/*
 data/sprite_tiles.inc: data/img/sprites.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/sprites.png -noremovedupes -8x8 -palsms -fullpalette -savetiles data/sprite_tiles.inc -exit
 	@echo Made sprite_tiles.inc
-
-data/sprite_palette.bin: data/img/sprites.png
-	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/sprites.png -palsms -fullpalette -savepalette data/sprite_palette.bin -exit
-	@echo Made sprite_palette.bin

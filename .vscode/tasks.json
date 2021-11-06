@@ -23,7 +23,7 @@
             "command": "cmd",
             "args": [
                 "/c",
-                "C:\\Users\\ANSJ\\Documents\\Emulicious-with-Java\\Emulicious.bat ${workspaceFolder}/binaries/sandbox.sms"
+                "C:\\Users\\ANSJ\\Documents\\Emulicious-with-Java\\Emulicious.bat ${workspaceFolder}\\binaries\\sandbox.sms",
             ],
         },
     ]

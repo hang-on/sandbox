@@ -3,8 +3,8 @@
 ; -----------------------------------------------------------------------------
 ; GLOBAL DEFINITIONS
 ; -----------------------------------------------------------------------------
-.include "lib/sms_constants.asm"
-.include "lib/core.asm"
+.include "libraries/sms_constants.asm"
+.include "libraries/core.asm"
 
 ; Remove comment to enable unit testing
 ;.equ TEST_MODE
@@ -30,13 +30,10 @@
 .endro
 ;
 ; Hierarchy: Most fundamental first. 
-.include "lib/psglib.inc"
-.include "lib/vdp_lib.asm"
-.include "lib/animations_lib.asm"
-.include "lib/actors_lib.asm"
-.include "lib/misc_lib.asm"
-.include "lib/sub_workshop.asm"
-.include "lib/sub_tests.asm"        
+.include "libraries/psglib.inc"
+.include "libraries/vdp_lib.asm"
+.include "libraries/misc_lib.asm"
+.include "libraries/tiny_games.asm"
 ; -----------------------------------------------------------------------------
 .ramsection "System variables" slot 3
 ; -----------------------------------------------------------------------------
@@ -126,43 +123,20 @@
     ld b,BORDER_COLOR
     call set_register
     ;
-    ld a,16
-    ld b,SPRITE_PALETTE_SIZE
-    ld hl,sprite_palette
+    ld a,0
+    ld b,32
+    ld hl,sweetie16_palette
     call load_cram
 
     .ifdef TEST_MODE
       jp test_bench
     .endif
 
-    ;ld a,2
-    ;ld hl,mockup_background_tiles
-    ;ld de,BACKGROUND_BANK_START
-    ;ld bc,mockup_background_tiles_end - mockup_background_tiles
-    ;call load_vram
-
-    ;ld a,2
-    ;ld hl,mockup_background_tilemap
-    ;ld de,NAME_TABLE_START
-    ;ld bc,VISIBLE_NAME_TABLE_SIZE
-    ;call load_vram
-
-    call initialize_acm
-    call initialize_tbm
-    
-    ;INITIALIZE_ACTOR arthur, 0, 167, 56
-    ;.equ PLAYER_ACM_SLOT 0
-    
-    ;ld a,IDLE
-    ;ld hl,arthur.motor
-    ;ld (hl),a
-    ;ld a,TRUE
-    ;ld (arthur.state_changed),a
-
-    ;ld a,PLAYER_ACM_SLOT
-    ;ld hl,arthur_idle
-    ;call set_animation
-
+    ld a,2
+    ld hl,sprite_tiles
+    ld de,$0000
+    ld bc,sprite_tiles_end - sprite_tiles
+    call load_vram
 
     ei
     halt
@@ -170,8 +144,8 @@
     xor a
     ld (vblank_counter),a
     
-    ;ld a,ENABLED
-    ;call set_display
+    ld a,ENABLED
+    call set_display
     
   jp main_loop
     vdp_register_init:
@@ -183,7 +157,6 @@
      ; -------------------------------------------------------------------------
     ; Begin vblank critical code (DRAW).
     call load_sat
-    call blast_tiles
     
     ld hl,critical_routines_finish_at
     call save_vcounter
@@ -200,13 +173,25 @@
     in a,(INPUT_PORT_2)
     ld (input_ports+1),a
 
+    ld de,$2020
+    ld c,1
+    call add_sprite
+    ld de,$2028
+    ld c,2
+    call add_sprite
+    ld de,$2820
+    ld c,33
+    call add_sprite
+    ld de,$2828
+    ld c,34
+    call add_sprite
+
+    ld a,1
+    ld bc,$1010
+    ld de,$0202
+    call spr
 
 
-    call process_animations
-
-    ;ld a,PLAYER_ACM_SLOT            ; Let the actor "arthur" be represented
-    ;ld hl,arthur                    ; by the animation currently playing in
-    ;call draw_actor                 ; animation control matrix' PLAYER_ACM_SLOT
 
   jp main_loop
 .ends
@@ -215,8 +200,14 @@
 .section "Demo assets" free
 ; -----------------------------------------------------------------------------
 
-  sprite_palette:
-    .incbin "data/sprite_palette.bin" fsize SPRITE_PALETTE_SIZE
+  sweetie16_palette:
+    .db $23 $00 $11 $12 $17 $1B $2E $19 $14 $10 $35 $38 $3D $3F $2A $15
+    .db $23 $00 $11 $12 $17 $1B $2E $19 $14 $10 $35 $38 $3D $3F $2A $15
+
+  sprite_tiles:
+    .include "data/sprite_tiles.inc"
+    sprite_tiles_end:
+
 
 
 

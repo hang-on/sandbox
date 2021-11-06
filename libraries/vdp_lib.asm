@@ -42,10 +42,8 @@
     ; Entry: C = Char.
     ;        D = Y origin.
     ;        E = X origin.
-    ;        IX = Pointer to offset pair Y,X
     ; Exit: None
-    ; Uses: A, DE, HL, IX (Warning: Do not use B or C, as it is used by 
-    ; add_meta_sprite).
+    ; Uses: A, DE, HL
     ;
     ; Test for sprite overflow (more than 64 hardware sprites at once).
     ld a,(sat_buffer_index)
@@ -57,7 +55,6 @@
     call offset_byte_table
     ;
     ld a,d
-    add a,(ix+0)
     ld (hl),a          
     ;
     ; Point DE to sat_buffer_xc[sat_buffer_index].
@@ -66,7 +63,6 @@
     call offset_word_table
     ;
     ld a,e                  ; Get the x-pos.
-    add a,(ix+1)            ; Write it to the buffer.
     ld (hl),a
     inc hl
     ld (hl),c             ; Write the char (it should still be there)
