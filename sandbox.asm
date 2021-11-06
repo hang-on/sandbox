@@ -51,7 +51,8 @@
 ; -----------------------------------------------------------------------------
 .ramsection "Game variables" slot 3
 ; -----------------------------------------------------------------------------
-  ;
+  counter db
+  frame db
 .ends
 
 .org 0
@@ -138,6 +139,11 @@
     ld bc,sprite_tiles_end - sprite_tiles
     call load_vram
 
+    xor a
+    ld (frame),a
+    ld a,8
+    ld (counter),a
+
     ei
     halt
     halt
@@ -173,24 +179,25 @@
     in a,(INPUT_PORT_2)
     ld (input_ports+1),a
 
-    ld de,$2020
-    ld c,1
-    call add_sprite
-    ld de,$2028
-    ld c,2
-    call add_sprite
-    ld de,$2820
-    ld c,33
-    call add_sprite
-    ld de,$2828
-    ld c,34
-    call add_sprite
+    ld a,(counter)
+    dec a
+    jp nz,+
+      ld a,8
+      ld hl,frame
+      inc (hl)
+    +:
+    ld (counter),a
 
-    ld a,1
-    ld bc,$1010
-    ld de,$0202
-    call spr
+    ld a,4
+    ld hl,frame
+    call reset_hl_on_a
 
+    ld a,(frame)
+    ld hl,idle_frame_to_index_table
+    call lookup_a
+
+    ld de,$1010
+    call spr_2x2
 
 
   jp main_loop
@@ -208,6 +215,8 @@
     .include "data/sprite_tiles.inc"
     sprite_tiles_end:
 
+  idle_frame_to_index_table:
+    .db 1 3 5 7
 
 
 

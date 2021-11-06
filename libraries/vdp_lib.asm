@@ -43,8 +43,10 @@
     ;        D = Y origin.
     ;        E = X origin.
     ; Exit: None
-    ; Uses: A, DE, HL
+    ; Uses: A,
     ;
+    push de
+    push hl
     ; Test for sprite overflow (more than 64 hardware sprites at once).
     ld a,(sat_buffer_index)
     cp HARDWARE_SPRITES
@@ -71,6 +73,8 @@
     inc (hl)
     ;
     exit_add_sprite:
+    pop hl
+    pop de
   ret
   ;
   load_sat:
