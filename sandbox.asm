@@ -144,7 +144,7 @@
     ld (frame),a
     ld a,RIGHT
     ld (direction),a
-    ld a,8
+    ld a,4
     ld (anim_counter),a
     ld (anim_counter+1),a
 
@@ -216,8 +216,9 @@
     +:
 
     .equ IDLE_FRAMES_TOTAL _sizeof_idle_frame_to_index_table
+    .equ WALKING_FRAMES_TOTAL _sizeof_walking_frame_to_index_table
     ; Loop the idle animation.
-    ld a,IDLE_FRAMES_TOTAL
+    ld a,WALKING_FRAMES_TOTAL
     ld hl,frame
     call reset_hl_on_a
 
@@ -230,7 +231,7 @@
       ld b,ONE_ROW_OFFSET
     +:
     ld a,(frame)
-    ld hl,idle_frame_to_index_table
+    ld hl,walking_frame_to_index_table
     call lookup_a
     add a,b                           ; Apply offset (0 or ONE_ROW)
     ld de,$1010
@@ -254,6 +255,11 @@
   idle_frame_to_index_table:
     .db 1 3 5 7 
     __:
+
+  walking_frame_to_index_table:
+    .db 1 9 11 13 11 9  
+    __:
+
 
 
 .ends
