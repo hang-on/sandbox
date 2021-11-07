@@ -65,7 +65,6 @@
     ld l,b
   ret
 
-
   tick_counter:
     ; hl = counter + reset value.
     ; set carry on count down.
@@ -79,8 +78,8 @@
       scf
       ret
     +:
-    
     ld (hl),a
+    or a
   ret
 
 .ends

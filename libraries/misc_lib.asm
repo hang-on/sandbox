@@ -35,6 +35,17 @@
     scf             ; Yes, then set carry flag and...
   ret               ; Return with carry flag set.
 
+  is_left_or_right_pressed: ; might be buggy!!
+    ld a,(input_ports)
+    and %00001100   ; Isolate the bits.
+    cpl             ; Invert bits; now 1 = keypress!
+    and %00001100   ; Get rid of garbage 
+    cp 0            ;
+    ret z           ; No, then return with carry flag reset (by the AND).
+    scf             ; Yes, then set carry flag and...
+  ret               ; Return with carry flag set.
+
+
   is_left_pressed:
     ld a,(input_ports)
     and %00000100

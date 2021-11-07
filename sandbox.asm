@@ -190,6 +190,10 @@
     in a,(INPUT_PORT_2)
     ld (input_ports+1),a
 
+    ;debug:
+    ;ld a,%11110111
+    ;ld (input_ports),a
+
     .equ LEFT 1
     .equ RIGHT 0
     ; Set the player's direction depending on controller input (LEFT/RIGHT).
@@ -218,37 +222,33 @@
     jp z,handle_idle_state
     cp WALKING ; is state = walking?
     jp z,handle_walking_state
+    ; Fall through to idle (default).
 
     handle_idle_state:
-      ; ....
-      call is_right_pressed
-      jp c,+
-      call is_left_pressed
-      jp nc,++
-      +:
+      call is_left_or_right_pressed
+      jp nc,+
         ; Directional input - switch from idle to walking.
         ld a,WALKING
         ld (state),a
         xor a
         ld (frame),a
-      ++:
+      +:
       jp _f
 
     handle_walking_state:
-      
-      call is_left_pressed
-      jp nc,+
-      call is_right_pressed
-      jp nc,+
-      ; No directional input - switch to idle.
-        xor a ; 0 = IDLE
+      call is_left_or_right_pressed
+      jp c,+
+        ; Not directional input.
+        ld a,IDLE
         ld (state),a
+        xor a
         ld (frame),a
       +:
       jp _f
 
-    __:
 
+    __: ; End of player state checks. 
+    
 
     ; Count down to next frame.
     ld hl,anim_counter
@@ -257,19 +257,14 @@
       ld hl,frame
       inc (hl)
     +:
-
-    .equ IDLE_FRAMES_TOTAL _sizeof_idle_frame_to_index_table
-    .equ WALKING_FRAMES_TOTAL _sizeof_walking_frame_to_index_table
-    ; Loop the idle animation.
-    ;ld a,IDLE_FRAMES_TOTAL
-    ;ld hl,frame
-    ;call reset_hl_on_a
+    ; Reset/loop animation if last frame expires. 
     ld a,(state)
     ld hl,state_to_frames_total_table
     call lookup_byte
     ld hl,frame
     call reset_hl_on_a
 
+    ; Put the sprite tiles in the SAT buffer. 
     ld a,(state)
     ld hl,state_to_frame_table
     call lookup_word
@@ -287,7 +282,6 @@
       +:
     pop af
     add a,b                           ; Apply offset (0 or ONE_ROW)
-    
     
     ld de,$1010
     call spr_2x2
@@ -308,7 +302,7 @@
     sprite_tiles_end:
 
   idle_frame_to_index_table:
-    .db 1 1 3 3 5 7 7 
+    .db 1 3 5 7 
     __:
 
   walking_frame_to_index_table:
@@ -320,7 +314,8 @@
     __:
 
   state_to_frames_total_table:
-    .db IDLE_FRAMES_TOTAL WALKING_FRAMES_TOTAL
+    .db _sizeof_idle_frame_to_index_table
+    .db _sizeof_walking_frame_to_index_table
 
 
 
