@@ -143,13 +143,14 @@
 
     .equ IDLE 0
     .equ WALKING 1
+    .equ ANIM_COUNTER_RESET 4
     xor a
     ld (frame),a
     ld a,IDLE
     ld (state),a
     ld a,RIGHT
     ld (direction),a
-    ld a,6
+    ld a,ANIM_COUNTER_RESET
     ld (anim_counter),a
     ld (anim_counter+1),a
 
@@ -213,14 +214,25 @@
     +++:
     
     ld a,(state)
-    cp 0 ; is state = idle?
+    cp IDLE ; is state = idle?
     jp z,handle_idle_state
-    cp 1 ; is state = walking?
+    cp WALKING ; is state = walking?
     jp z,handle_walking_state
 
     handle_idle_state:
       ; ....
-      jp __
+      call is_right_pressed
+      jp c,+
+      call is_left_pressed
+      jp nc,++
+      +:
+        ; Directional input - switch from idle to walking.
+        ld a,WALKING
+        ld (state),a
+        xor a
+        ld (frame),a
+      ++:
+      jp _f
 
     handle_walking_state:
       
@@ -229,13 +241,11 @@
       call is_right_pressed
       jp nc,+
       ; No directional input - switch to idle.
-        xor a
+        xor a ; 0 = IDLE
         ld (state),a
         ld (frame),a
-        ld a,8
-        ld (anim_counter),a
-        ld (anim_counter+1),a
-      jp __
+      +:
+      jp _f
 
     __:
 
@@ -251,7 +261,12 @@
     .equ IDLE_FRAMES_TOTAL _sizeof_idle_frame_to_index_table
     .equ WALKING_FRAMES_TOTAL _sizeof_walking_frame_to_index_table
     ; Loop the idle animation.
-    ld a,IDLE_FRAMES_TOTAL
+    ;ld a,IDLE_FRAMES_TOTAL
+    ;ld hl,frame
+    ;call reset_hl_on_a
+    ld a,(state)
+    ld hl,state_to_frames_total_table
+    call lookup_byte
     ld hl,frame
     call reset_hl_on_a
 
@@ -293,7 +308,7 @@
     sprite_tiles_end:
 
   idle_frame_to_index_table:
-    .db 1 3 5 7 
+    .db 1 1 3 3 5 7 7 
     __:
 
   walking_frame_to_index_table:
@@ -303,6 +318,9 @@
   state_to_frame_table:
     .dw idle_frame_to_index_table, walking_frame_to_index_table
     __:
+
+  state_to_frames_total_table:
+    .db IDLE_FRAMES_TOTAL WALKING_FRAMES_TOTAL
 
 
 
