@@ -51,8 +51,9 @@
 ; -----------------------------------------------------------------------------
 .ramsection "Game variables" slot 3
 ; -----------------------------------------------------------------------------
-  counter db
+  anim_counter dw
   frame db
+  direction db
 .ends
 
 .org 0
@@ -141,8 +142,12 @@
 
     xor a
     ld (frame),a
+    ld a,RIGHT
+    ld (direction),a
     ld a,8
-    ld (counter),a
+    ld (anim_counter),a
+    ld (anim_counter+1),a
+
 
     ei
     halt
@@ -179,26 +184,57 @@
     in a,(INPUT_PORT_2)
     ld (input_ports+1),a
 
-    ld a,(counter)
-    dec a
-    jp nz,+
-      ld a,8
+    .equ LEFT 1
+    .equ RIGHT 0
+    ; Set the player's direction depending on controller input (LEFT/RIGHT).
+    ld a,(direction)
+    cp LEFT
+    jp z,+
+    cp RIGHT
+    jp z,++
+    +: ; Player is facing left.
+      call is_right_pressed
+      jp nc,+
+        ld a,RIGHT
+        ld (direction),a
+      +:
+      jp +++
+    ++: ; Player is facing right.
+      call is_left_pressed
+      jp nc,+
+        ld a,LEFT
+        ld (direction),a
+      +:
+    +++:
+    
+    ; Count down to next frame.
+    ld hl,anim_counter
+    call tick_counter
+    jp nc,+
       ld hl,frame
       inc (hl)
     +:
-    ld (counter),a
 
-    ld a,4
+    .equ IDLE_FRAMES_TOTAL _sizeof_idle_frame_to_index_table
+    ; Loop the idle animation.
+    ld a,IDLE_FRAMES_TOTAL
     ld hl,frame
     call reset_hl_on_a
 
+    .equ ONE_ROW_OFFSET 64
+    ; Offset to left-facing tiles if necessary.
+    ld a,(direction)
+    ld b,0
+    cp RIGHT
+    jp z,+
+      ld b,ONE_ROW_OFFSET
+    +:
     ld a,(frame)
     ld hl,idle_frame_to_index_table
     call lookup_a
-
+    add a,b                           ; Apply offset (0 or ONE_ROW)
     ld de,$1010
     call spr_2x2
-
 
   jp main_loop
 .ends
@@ -216,8 +252,8 @@
     sprite_tiles_end:
 
   idle_frame_to_index_table:
-    .db 1 3 5 7
-
+    .db 1 3 5 7 
+    __:
 
 
 .ends

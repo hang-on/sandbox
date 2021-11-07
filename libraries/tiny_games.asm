@@ -50,5 +50,21 @@
     ld a,(hl)
   ret
 
+  tick_counter:
+    ; hl = counter + reset value.
+    ; set carry on count down.
+    ld a,(hl)
+    dec a
+    jp nz,+
+      inc hl
+      ld a,(hl)
+      dec hl
+      ld (hl),a
+      scf
+      ret
+    +:
+    
+    ld (hl),a
+  ret
 
 .ends
