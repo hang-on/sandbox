@@ -190,10 +190,6 @@
     in a,(INPUT_PORT_2)
     ld (input_ports+1),a
 
-    ;debug:
-    ;ld a,%11110111
-    ;ld (input_ports),a
-
     .equ LEFT 1
     .equ RIGHT 0
     ; Set the player's direction depending on controller input (LEFT/RIGHT).
@@ -245,11 +241,8 @@
         ld (frame),a
       +:
       jp _f
-
-
     __: ; End of player state checks. 
     
-
     ; Count down to next frame.
     ld hl,anim_counter
     call tick_counter
@@ -302,7 +295,7 @@
     sprite_tiles_end:
 
   idle_frame_to_index_table:
-    .db 1 3 5 7 
+    .db 1 1 3 3 5 7 7 
     __:
 
   walking_frame_to_index_table:
