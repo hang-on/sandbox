@@ -54,6 +54,7 @@
   anim_counter dw
   frame db
   direction db
+  state db
 .ends
 
 .org 0
@@ -140,11 +141,15 @@
     ld bc,sprite_tiles_end - sprite_tiles
     call load_vram
 
+    .equ IDLE 0
+    .equ WALKING 1
     xor a
     ld (frame),a
+    ld a,IDLE
+    ld (state),a
     ld a,RIGHT
     ld (direction),a
-    ld a,4
+    ld a,6
     ld (anim_counter),a
     ld (anim_counter+1),a
 
@@ -207,6 +212,34 @@
       +:
     +++:
     
+    ld a,(state)
+    cp 0 ; is state = idle?
+    jp z,handle_idle_state
+    cp 1 ; is state = walking?
+    jp z,handle_walking_state
+
+    handle_idle_state:
+      ; ....
+      jp __
+
+    handle_walking_state:
+      
+      call is_left_pressed
+      jp nc,+
+      call is_right_pressed
+      jp nc,+
+      ; No directional input - switch to idle.
+        xor a
+        ld (state),a
+        ld (frame),a
+        ld a,8
+        ld (anim_counter),a
+        ld (anim_counter+1),a
+      jp __
+
+    __:
+
+
     ; Count down to next frame.
     ld hl,anim_counter
     call tick_counter
@@ -218,22 +251,29 @@
     .equ IDLE_FRAMES_TOTAL _sizeof_idle_frame_to_index_table
     .equ WALKING_FRAMES_TOTAL _sizeof_walking_frame_to_index_table
     ; Loop the idle animation.
-    ld a,WALKING_FRAMES_TOTAL
+    ld a,IDLE_FRAMES_TOTAL
     ld hl,frame
     call reset_hl_on_a
 
-    .equ ONE_ROW_OFFSET 64
-    ; Offset to left-facing tiles if necessary.
-    ld a,(direction)
-    ld b,0
-    cp RIGHT
-    jp z,+
-      ld b,ONE_ROW_OFFSET
-    +:
+    ld a,(state)
+    ld hl,state_to_frame_table
+    call lookup_word
     ld a,(frame)
-    ld hl,walking_frame_to_index_table
-    call lookup_a
+    call lookup_byte
+    ld b,0
+    push af
+      .equ ONE_ROW_OFFSET 64
+      ; Offset to left-facing tiles if necessary.
+      ld a,(direction)
+      ld b,0
+      cp RIGHT
+      jp z,+
+        ld b,ONE_ROW_OFFSET
+      +:
+    pop af
     add a,b                           ; Apply offset (0 or ONE_ROW)
+    
+    
     ld de,$1010
     call spr_2x2
 
@@ -258,6 +298,10 @@
 
   walking_frame_to_index_table:
     .db 1 9 11 13 11 9  
+    __:
+
+  state_to_frame_table:
+    .dw idle_frame_to_index_table, walking_frame_to_index_table
     __:
 
 

@@ -41,7 +41,7 @@
     +:
   ret
 
-  lookup_a:
+  lookup_byte:
     ; IN: a = value, hl = look-up table (ptr).
     ; OUT: a = converted value.
     ld d,0
@@ -49,6 +49,22 @@
     add hl,de
     ld a,(hl)
   ret
+
+  lookup_word:
+    ; IN: a = value, hl = look-up table (ptr).
+    ; OUT: hl = converted value (word).
+    add a,a
+    ld d,0
+    ld e,a
+    add hl,de
+    ld a,(hl)
+    ld b,a
+    inc hl
+    ld a,(hl)
+    ld h,a
+    ld l,b
+  ret
+
 
   tick_counter:
     ; hl = counter + reset value.
