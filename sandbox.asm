@@ -276,7 +276,7 @@
     pop af
     add a,b                           ; Apply offset (0 or ONE_ROW)
     
-    ld de,$1010
+    ld de,$4030
     call spr_2x2
 
   jp main_loop
