@@ -55,6 +55,9 @@
   frame db
   direction db
   state db
+
+  test_anim_counter dw
+  test_frame db
 .ends
 
 .org 0
@@ -153,6 +156,13 @@
     ld a,ANIM_COUNTER_RESET
     ld (anim_counter),a
     ld (anim_counter+1),a
+
+    ; test
+    ld a,0
+    ld (test_frame),a
+    ld a,ANIM_COUNTER_RESET
+    ld (test_anim_counter),a
+    ld (test_anim_counter+1),a
 
 
     ei
@@ -279,6 +289,32 @@
     ld de,$4030
     call spr_2x2
 
+    ld hl,test_anim_counter
+    call tick_counter
+        ; Count down to next frame.
+    jp nc,+
+      ld hl,test_frame
+      inc (hl)
+    +:
+    ; Reset/loop animation if last frame expires. 
+    ld hl,test_frame
+    ld a,_sizeof_attacking_frame_to_index_table
+    call reset_hl_on_a
+    
+    ld a,(test_frame)
+    ld hl,attacking_frame_to_index_table
+    call lookup_byte
+    ld de,$8080
+    call spr_2x2
+    ld a,(test_frame)
+    cp 6
+    jp c,+
+      ld c,49
+      ld d,$88
+      ld e,$90
+      call add_sprite
+    +:
+
   jp main_loop
 .ends
 .bank 2 slot 2
@@ -300,6 +336,10 @@
 
   walking_frame_to_index_table:
     .db 1 9 11 13 11 9  
+    __:
+  
+  attacking_frame_to_index_table:
+    .db 1 1 1 1 1 13 15 18
     __:
 
   state_to_frame_table:
