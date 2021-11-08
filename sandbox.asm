@@ -138,7 +138,7 @@
     ld a,2
     ld hl,sprite_tiles
     ld de,$0000
-    ld bc,sprite_tiles_end - sprite_tiles
+    ld bc,_sizeof_sprite_tiles
     call load_vram
 
     .equ IDLE 0
@@ -292,7 +292,7 @@
 
   sprite_tiles:
     .include "data/sprite_tiles.inc"
-    sprite_tiles_end:
+    __:
 
   idle_frame_to_index_table:
     .db 1 1 3 3 5 7 7 
