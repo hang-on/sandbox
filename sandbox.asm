@@ -309,7 +309,7 @@
     ld a,(test_frame)
     cp 6
     jp c,+
-      ld c,49
+      ld c,32
       ld d,$88
       ld e,$90
       call add_sprite
@@ -339,7 +339,7 @@
     __:
   
   attacking_frame_to_index_table:
-    .db 1 1 1 1 1 13 15 18
+    .db 1 1 1 1 1 13 15 17
     __:
 
   state_to_frame_table:
