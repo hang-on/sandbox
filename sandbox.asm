@@ -55,6 +55,7 @@
   frame db
   direction db
   state db
+  attack_counter dw
 
   test_anim_counter dw
   test_frame db
@@ -146,6 +147,7 @@
 
     .equ IDLE 0
     .equ WALKING 1
+    .equ ATTACKING 2
     .equ ANIM_COUNTER_RESET 4
     xor a
     ld (frame),a
@@ -156,6 +158,9 @@
     ld a,ANIM_COUNTER_RESET
     ld (anim_counter),a
     ld (anim_counter+1),a
+    ld a,_sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET
+    ld (attack_counter),a
+    ld (attack_counter+1),a
 
     ; test
     ld a,0
@@ -228,6 +233,8 @@
     jp z,handle_idle_state
     cp WALKING ; is state = walking?
     jp z,handle_walking_state
+    cp ATTACKING
+    jp z,handle_attacking_state
     ; Fall through to idle (default).
 
     handle_idle_state:
@@ -235,9 +242,13 @@
       jp nc,+
         ; Directional input - switch from idle to walking.
         ld a,WALKING
-        ld (state),a
-        xor a
-        ld (frame),a
+        call reset_state_and_frame
+        jp _f
+      +:
+      call is_button_1_pressed
+      jp nc,+
+        ld a,ATTACKING
+        call reset_state_and_frame
       +:
       jp _f
 
@@ -246,11 +257,20 @@
       jp c,+
         ; Not directional input.
         ld a,IDLE
-        ld (state),a
-        xor a
-        ld (frame),a
+        call reset_state_and_frame
       +:
       jp _f
+
+      handle_attacking_state:
+        ; A way to transition from attack to idle?... 
+        ld hl,attack_counter
+        call tick_counter
+        jp nc,+
+          ld a,IDLE
+          call reset_state_and_frame
+        +:
+      jp _f
+
     __: ; End of player state checks. 
     
     ; Count down to next frame.
@@ -288,6 +308,9 @@
     
     ld de,$4030
     call spr_2x2
+    ; FIXME: Here we should check for aux sprites, given state+frame
+    ; Simple - maybe just switch case it...
+
 
     ld hl,test_anim_counter
     call tick_counter
@@ -307,7 +330,7 @@
     ld de,$8080
     call spr_2x2
     ld a,(test_frame)
-    cp 6
+    cp 1
     jp c,+
       ld c,32
       ld d,$88
@@ -339,16 +362,19 @@
     __:
   
   attacking_frame_to_index_table:
-    .db 1 1 1 1 1 13 15 17
+    .db 13 15 17
     __:
 
   state_to_frame_table:
-    .dw idle_frame_to_index_table, walking_frame_to_index_table
+    .dw idle_frame_to_index_table
+    .dw walking_frame_to_index_table
+    .dw attacking_frame_to_index_table
     __:
 
   state_to_frames_total_table:
     .db _sizeof_idle_frame_to_index_table
     .db _sizeof_walking_frame_to_index_table
+    .db _sizeof_attacking_frame_to_index_table
 
 
 

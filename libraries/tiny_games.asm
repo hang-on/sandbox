@@ -82,4 +82,12 @@
     or a
   ret
 
+  reset_state_and_frame:
+    ; IN: a = state
+      ld (state),a
+      xor a
+      ld (frame),a
+
+  ret
+
 .ends
