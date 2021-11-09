@@ -57,8 +57,7 @@
   state db
   attack_counter dw
 
-  test_anim_counter dw
-  test_frame db
+
 .ends
 
 .org 0
@@ -162,14 +161,6 @@
     ld (attack_counter),a
     ld (attack_counter+1),a
 
-    ; test
-    ld a,0
-    ld (test_frame),a
-    ld a,ANIM_COUNTER_RESET
-    ld (test_anim_counter),a
-    ld (test_anim_counter+1),a
-
-
     ei
     halt
     halt
@@ -238,6 +229,11 @@
     ; Fall through to idle (default).
 
     handle_idle_state:
+      call is_button_1_pressed
+      jp nc,+
+        ld a,ATTACKING
+        call reset_state_and_frame
+      +:
       call is_left_or_right_pressed
       jp nc,+
         ; Directional input - switch from idle to walking.
@@ -245,14 +241,14 @@
         call reset_state_and_frame
         jp _f
       +:
+      jp _f
+
+    handle_walking_state:
       call is_button_1_pressed
       jp nc,+
         ld a,ATTACKING
         call reset_state_and_frame
       +:
-      jp _f
-
-    handle_walking_state:
       call is_left_or_right_pressed
       jp c,+
         ; Not directional input.
@@ -310,33 +306,32 @@
     call spr_2x2
     ; FIXME: Here we should check for aux sprites, given state+frame
     ; Simple - maybe just switch case it...
+    ; Maybe not aux sprites in general, but handle the sword entity.
+    ; *********************
+    ld a,(state)
+    cp ATTACKING
+    jp nz,_f
+      ld a,(frame)
+      cp 1
+      jp c,_f
+        ld a,(direction)
+        cp RIGHT
+        jp nz,+
+          ld c,32
+          ld d,$48
+          ld e,$40
+          call add_sprite
+          jp _f
+        +:
+          ld c,64
+          ld d,$48
+          ld e,$28
+          call add_sprite
 
+    __:
 
-    ld hl,test_anim_counter
-    call tick_counter
-        ; Count down to next frame.
-    jp nc,+
-      ld hl,test_frame
-      inc (hl)
-    +:
-    ; Reset/loop animation if last frame expires. 
-    ld hl,test_frame
-    ld a,_sizeof_attacking_frame_to_index_table
-    call reset_hl_on_a
-    
-    ld a,(test_frame)
-    ld hl,attacking_frame_to_index_table
-    call lookup_byte
-    ld de,$8080
-    call spr_2x2
-    ld a,(test_frame)
-    cp 1
-    jp c,+
-      ld c,32
-      ld d,$88
-      ld e,$90
-      call add_sprite
-    +:
+    ; ****************
+
 
   jp main_loop
 .ends
