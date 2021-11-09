@@ -58,7 +58,7 @@
   attack_counter dw
   player_y db
   player_x db
-  jump_counter dw
+  jump_counter db
 
 
 .ends
@@ -155,14 +155,13 @@
     .equ JUMPING 3
     .equ ANIM_COUNTER_RESET 4
     .equ PLAYER_HSPEED 1
-    .equ PLAYER_VSPEED 2
-    .equ JUMP_COUNTER_RESET 5
+    .equ PLAYER_VSPEED 3
     
-    RESET_VARIABLES 0, frame, state, direction
+    RESET_VARIABLES 0, frame, state, direction, jump_counter
     LOAD_BYTES player_y, 120, player_x, 60
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
     RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
-    RESET_BLOCK JUMP_COUNTER_RESET, jump_counter, 2
+    
 
     ei
     halt
@@ -261,6 +260,11 @@
         LOAD_BYTES state, IDLE, frame, 0
         jp _f
       +:
+      call is_button_2_pressed
+      jp nc,+
+        LOAD_BYTES state, JUMPING, frame, 0
+        jp _f
+      +:
       ld a,(direction)
       cp RIGHT
       ld a,PLAYER_HSPEED
@@ -282,19 +286,47 @@
       jp _f
 
       handle_jumping_state:
-        ld hl,jump_counter
-        call tick_counter
-        jp nc,+
-          ; Jump has finished.
-          LOAD_BYTES state, IDLE, frame, 0
-          jp _f
-        +: 
+        ld a,(jump_counter)
+        cp 16 
+        jp nc,+ 
+          ; jump counter between 0-7
           ld a,PLAYER_VSPEED
           neg
           ld b,a
           ld a,(player_y)
           add a,b
           ld (player_y),a
+          jp ++
+        +:
+          ; jump counter at 8+
+          ld a,PLAYER_VSPEED
+          ld b,a
+          ld a,(player_y)
+          add a,b
+          ld (player_y),a
+        ++:
+        ld a,(jump_counter)
+        inc a
+        cp 32
+        jp nz,+
+          LOAD_BYTES state, IDLE, frame, 0, jump_counter, 0
+          jp _f
+        +:
+        ld (jump_counter),a
+        
+        call is_left_or_right_pressed
+        jp nc,+       
+          ld a,(direction)
+          cp RIGHT
+          ld a,PLAYER_HSPEED
+          jp z,+
+            neg
+          +:
+          ld b,a
+          ld a,(player_x)
+          add a,b
+          ld (player_x),a
+        +:
       jp _f
 
     __: ; End of player state checks. 
