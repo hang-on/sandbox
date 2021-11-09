@@ -1,5 +1,25 @@
 ; tiny_games.asm.
 ;
+
+.macro RESET_VARIABLES ARGS VALUE
+  ; Set one or more byte-sized vars in RAM with the specified value.
+  ld a,VALUE
+  .rept NARGS-1
+    .shift
+    ld (\1),a
+  .endr
+.endm
+
+.macro LOAD_BYTES
+  ; IN: Pair of byte-sized variable and value to load
+  .rept (NARGS/2)
+    ld a,\2
+    ld (\1),a
+    .shift
+    .shift
+  .endr
+.endm
+
 .bank 0 slot 0
 .section "Tiny Games Library" free
 
@@ -82,12 +102,5 @@
     or a
   ret
 
-  reset_state_and_frame:
-    ; IN: a = state
-      ld (state),a
-      xor a
-      ld (frame),a
-
-  ret
 
 .ends

@@ -144,16 +144,14 @@
     ld bc,_sizeof_sprite_tiles
     call load_vram
 
+    .equ LEFT 1
+    .equ RIGHT 0
     .equ IDLE 0
     .equ WALKING 1
     .equ ATTACKING 2
     .equ ANIM_COUNTER_RESET 4
-    xor a
-    ld (frame),a
-    ld a,IDLE
-    ld (state),a
-    ld a,RIGHT
-    ld (direction),a
+    
+    RESET_VARIABLES 0, frame, state, direction
     ld a,ANIM_COUNTER_RESET
     ld (anim_counter),a
     ld (anim_counter+1),a
@@ -196,8 +194,6 @@
     in a,(INPUT_PORT_2)
     ld (input_ports+1),a
 
-    .equ LEFT 1
-    .equ RIGHT 0
     ; Set the player's direction depending on controller input (LEFT/RIGHT).
     ld a,(direction)
     cp LEFT
@@ -231,14 +227,12 @@
     handle_idle_state:
       call is_button_1_pressed
       jp nc,+
-        ld a,ATTACKING
-        call reset_state_and_frame
+        LOAD_BYTES state, ATTACKING, frame, 0
       +:
       call is_left_or_right_pressed
       jp nc,+
         ; Directional input - switch from idle to walking.
-        ld a,WALKING
-        call reset_state_and_frame
+        LOAD_BYTES state, WALKING, frame, 0
         jp _f
       +:
       jp _f
@@ -246,14 +240,12 @@
     handle_walking_state:
       call is_button_1_pressed
       jp nc,+
-        ld a,ATTACKING
-        call reset_state_and_frame
+        LOAD_BYTES state, ATTACKING, frame, 0
       +:
       call is_left_or_right_pressed
       jp c,+
         ; Not directional input.
-        ld a,IDLE
-        call reset_state_and_frame
+        LOAD_BYTES state, IDLE, frame, 0
       +:
       jp _f
 
@@ -262,8 +254,7 @@
         ld hl,attack_counter
         call tick_counter
         jp nc,+
-          ld a,IDLE
-          call reset_state_and_frame
+          LOAD_BYTES state, IDLE, frame, 0
         +:
       jp _f
 
@@ -304,10 +295,7 @@
     
     ld de,$4030
     call spr_2x2
-    ; FIXME: Here we should check for aux sprites, given state+frame
-    ; Simple - maybe just switch case it...
-    ; Maybe not aux sprites in general, but handle the sword entity.
-    ; *********************
+
     ld a,(state)
     cp ATTACKING
     jp nz,_f
@@ -329,9 +317,6 @@
           call add_sprite
 
     __:
-
-    ; ****************
-
 
   jp main_loop
 .ends
