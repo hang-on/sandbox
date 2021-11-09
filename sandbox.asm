@@ -152,7 +152,7 @@
     .equ WALKING 1
     .equ ATTACKING 2
     .equ ANIM_COUNTER_RESET 4
-    .equ PLAYER_SPEED 2
+    .equ PLAYER_SPEED 1
     
     RESET_VARIABLES 0, frame, state, direction
     LOAD_BYTES player_y, 120, player_x, 60
@@ -245,13 +245,28 @@
       call is_button_1_pressed
       jp nc,+
         LOAD_BYTES state, ATTACKING, frame, 0
+        jp _f
       +:
       call is_left_or_right_pressed
       jp c,+
         ; Not directional input.
         LOAD_BYTES state, IDLE, frame, 0
+        jp _f
       +:
-      jp _f
+      ld a,(direction)
+      cp RIGHT
+      jp nz,+
+        ; Walking right:
+        ld a,(player_x)
+        add a,PLAYER_SPEED
+        ld (player_x),a
+        jp _f
+      +:
+        ; Walking left
+        ld a,(player_x)
+        sub PLAYER_SPEED
+        ld (player_x),a
+        jp _f
 
       handle_attacking_state:
         ; A way to transition from attack to idle?... 
