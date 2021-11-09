@@ -58,6 +58,7 @@
   attack_counter dw
   player_y db
   player_x db
+  jump_counter dw
 
 
 .ends
@@ -151,18 +152,17 @@
     .equ IDLE 0
     .equ WALKING 1
     .equ ATTACKING 2
+    .equ JUMPING 3
     .equ ANIM_COUNTER_RESET 4
     .equ PLAYER_HSPEED 1
     .equ PLAYER_VSPEED 2
+    .equ JUMP_COUNTER_RESET 5
     
     RESET_VARIABLES 0, frame, state, direction
     LOAD_BYTES player_y, 120, player_x, 60
-    ld a,ANIM_COUNTER_RESET
-    ld (anim_counter),a
-    ld (anim_counter+1),a
-    ld a,_sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET
-    ld (attack_counter),a
-    ld (attack_counter+1),a
+    RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
+    RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
+    RESET_BLOCK JUMP_COUNTER_RESET, jump_counter, 2
 
     ei
     halt
@@ -227,6 +227,8 @@
     jp z,handle_walking_state
     cp ATTACKING
     jp z,handle_attacking_state
+    cp JUMPING
+    jp z,handle_jumping_state
     ; Fall through to idle (default).
 
     handle_idle_state:
@@ -238,6 +240,11 @@
       jp nc,+
         ; Directional input - switch from idle to walking.
         LOAD_BYTES state, WALKING, frame, 0
+        jp _f
+      +:
+      call is_button_2_pressed
+      jp nc,+
+        LOAD_BYTES state, JUMPING, frame, 0
         jp _f
       +:
       jp _f
@@ -267,12 +274,27 @@
       jp _f
 
       handle_attacking_state:
-        ; A way to transition from attack to idle?... 
         ld hl,attack_counter
         call tick_counter
         jp nc,+
           LOAD_BYTES state, IDLE, frame, 0
         +:
+      jp _f
+
+      handle_jumping_state:
+        ld hl,jump_counter
+        call tick_counter
+        jp nc,+
+          ; Jump has finished.
+          LOAD_BYTES state, IDLE, frame, 0
+          jp _f
+        +: 
+          ld a,PLAYER_VSPEED
+          neg
+          ld b,a
+          ld a,(player_y)
+          add a,b
+          ld (player_y),a
       jp _f
 
     __: ; End of player state checks. 
@@ -373,16 +395,22 @@
     .db 13 15 17
     __:
 
+  jumping_frame_to_index_table:
+    .db 1
+    __:
+
   state_to_frame_table:
     .dw idle_frame_to_index_table
     .dw walking_frame_to_index_table
     .dw attacking_frame_to_index_table
+    .dw jumping_frame_to_index_table
     __:
 
   state_to_frames_total_table:
     .db _sizeof_idle_frame_to_index_table
     .db _sizeof_walking_frame_to_index_table
     .db _sizeof_attacking_frame_to_index_table
+    .db _sizeof_jumping_frame_to_index_table
 
 
 

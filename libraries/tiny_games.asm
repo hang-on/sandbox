@@ -10,6 +10,16 @@
   .endr
 .endm
 
+.macro RESET_BLOCK ARGS VALUE, START, SIZE
+  ; Reset af block of RAM of SIZE bytes to VALUE, starting from label START.
+  ld a,VALUE
+  ld hl,START
+  .rept SIZE
+    ld (hl),a
+    inc hl
+  .endr
+.endm
+
 .macro LOAD_BYTES
   ; IN: Pair of byte-sized variable and value to load
   .rept (NARGS/2)

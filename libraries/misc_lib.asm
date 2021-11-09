@@ -25,6 +25,14 @@
     scf
   ret                 ; Return with carry flag set.
 
+  is_button_2_pressed:
+    ld a,(input_ports)
+    and %00100000
+    ret nz            ; Return with carry flag reset
+    scf
+  ret                 ; Return with carry flag set.
+
+
   is_dpad_pressed:
     ld a,(input_ports)
     and %00001111   ; Isolate the dpad bits.
