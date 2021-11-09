@@ -152,7 +152,8 @@
     .equ WALKING 1
     .equ ATTACKING 2
     .equ ANIM_COUNTER_RESET 4
-    .equ PLAYER_SPEED 1
+    .equ PLAYER_HSPEED 1
+    .equ PLAYER_VSPEED 2
     
     RESET_VARIABLES 0, frame, state, direction
     LOAD_BYTES player_y, 120, player_x, 60
@@ -255,18 +256,15 @@
       +:
       ld a,(direction)
       cp RIGHT
-      jp nz,+
-        ; Walking right:
-        ld a,(player_x)
-        add a,PLAYER_SPEED
-        ld (player_x),a
-        jp _f
+      ld a,PLAYER_HSPEED
+      jp z,+
+        neg
       +:
-        ; Walking left
-        ld a,(player_x)
-        sub PLAYER_SPEED
-        ld (player_x),a
-        jp _f
+      ld b,a
+      ld a,(player_x)
+      add a,b
+      ld (player_x),a
+      jp _f
 
       handle_attacking_state:
         ; A way to transition from attack to idle?... 
