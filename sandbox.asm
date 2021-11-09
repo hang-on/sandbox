@@ -56,6 +56,8 @@
   direction db
   state db
   attack_counter dw
+  player_y db
+  player_x db
 
 
 .ends
@@ -150,8 +152,10 @@
     .equ WALKING 1
     .equ ATTACKING 2
     .equ ANIM_COUNTER_RESET 4
+    .equ PLAYER_SPEED 2
     
     RESET_VARIABLES 0, frame, state, direction
+    LOAD_BYTES player_y, 120, player_x, 60
     ld a,ANIM_COUNTER_RESET
     ld (anim_counter),a
     ld (anim_counter+1),a
@@ -290,10 +294,13 @@
       jp z,+
         ld b,ONE_ROW_OFFSET
       +:
+      ld a,(player_y)
+      ld d,a
+      ld a,(player_x)
+      ld e,a
     pop af
     add a,b                           ; Apply offset (0 or ONE_ROW)
     
-    ld de,$4030
     call spr_2x2
 
     ld a,(state)
@@ -306,14 +313,22 @@
         cp RIGHT
         jp nz,+
           ld c,32
-          ld d,$48
-          ld e,$40
+          ld a,(player_y)
+          add a,8
+          ld d,a
+          ld a,(player_x)
+          add a,16
+          ld e,a
           call add_sprite
           jp _f
         +:
           ld c,64
-          ld d,$48
-          ld e,$28
+          ld a,(player_y)
+          add a,8
+          ld d,a
+          ld a,(player_x)
+          sub 8
+          ld e,a
           call add_sprite
 
     __:
