@@ -62,6 +62,8 @@
 
   dummy_y db
   dummy_x db
+  hspeed db
+  vspeed db
 
 
 .ends
@@ -160,11 +162,11 @@
     .equ PLAYER_HSPEED 1
     .equ PLAYER_VSPEED 3
     
-    RESET_VARIABLES 0, frame, state, direction, jump_counter
+    RESET_VARIABLES 0, frame, state, direction, jump_counter, hspeed, vspeed
     LOAD_BYTES player_y, 120, player_x, 60
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
     RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
-    LOAD_BYTES dummy_y, 150, dummy_x, 100
+    LOAD_BYTES dummy_y, 120, dummy_x, 100
 
     ei
     halt
@@ -397,6 +399,29 @@
 
 
     ; --------------------------
+    ; At the beginning of the frame
+    RESET_VARIABLES 0, vspeed, hspeed
+
+
+    ; During state handling, responding to input etc. (UPDATE)
+    
+    
+    ; Dial it in for this frame... 
+    ld a,(vspeed)
+    ld b,a
+    ld a,(dummy_y)
+    add a,b
+    ld (dummy_y),a
+
+    ; Hey, we have dry here!!
+    ld a,(hspeed)
+    ld b,a
+    ld a,(dummy_x)
+    add a,b
+    ld (dummy_x),a
+
+
+
     ld a,(dummy_y)
     ld d,a
     ld a,(dummy_x)
