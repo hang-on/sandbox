@@ -160,7 +160,6 @@
     .equ JUMPING 3
     .equ ANIM_COUNTER_RESET 4
     .equ PLAYER_WALKING_SPEED 1
-    .equ PLAYER_JUMPING_VSPEED 3
     .equ PLAYER_JUMPING_HSPEED 2
     
     RESET_VARIABLES 0, frame, state, direction, jump_counter, hspeed, vspeed
@@ -292,11 +291,8 @@
 
     handle_jumping_state:
       ld a,(jump_counter)
-      cp 16 
-      ld a,PLAYER_JUMPING_VSPEED
-      jp nc,+ 
-        neg                 ; First half of jump - go up!
-      +:
+      ld hl,jump_counter_to_vspeed_table
+      call lookup_byte
       ld (vspeed),a
 
       ld a,(jump_counter)
@@ -457,8 +453,8 @@
     .db _sizeof_jumping_frame_to_index_table
 
   jump_counter_to_vspeed_table:
-    .db -4, -4, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -2, -2, -2 
-    .db 2 2 2 3 3 3 3 3 3 3 3 3 3 3 4 4 
+    .db -5, -4, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -2, -2, -1, -1 
+    .db 1 1 2 2 3 3 3 3 3 3 3 3 3 3 4 5 
 
 
 .ends
