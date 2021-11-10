@@ -160,7 +160,8 @@
     .equ JUMPING 3
     .equ ANIM_COUNTER_RESET 4
     .equ PLAYER_WALKING_SPEED 1
-    .equ PLAYER_JUMPING_SPEED 3
+    .equ PLAYER_JUMPING_VSPEED 3
+    .equ PLAYER_JUMPING_HSPEED 2
     
     RESET_VARIABLES 0, frame, state, direction, jump_counter, hspeed, vspeed
     LOAD_BYTES player_y, 120, player_x, 60
@@ -292,7 +293,7 @@
     handle_jumping_state:
       ld a,(jump_counter)
       cp 16 
-      ld a,PLAYER_JUMPING_SPEED
+      ld a,PLAYER_JUMPING_VSPEED
       jp nc,+ 
         neg                 ; First half of jump - go up!
       +:
@@ -311,7 +312,7 @@
       jp nc,+       
         ld a,(direction)
         cp RIGHT
-        ld a,PLAYER_WALKING_SPEED
+        ld a,PLAYER_JUMPING_HSPEED
         jp z,+
           neg
         +:
@@ -402,29 +403,7 @@
 
     __:
 
-
-    ; --------------------------
-    ; At the beginning of the frame
-
-
-    ; During state handling, responding to input etc. (UPDATE)
-    ld a,PLAYER_WALKING_SPEED
-    ld (hspeed),a
-
-    
-    ; Dial it in for this frame... 
-    ld a,(vspeed)
-    ld b,a
-    ld a,(dummy_y)
-    add a,b
-    ld (dummy_y),a
-
-    ld a,(hspeed)
-    ld b,a
-    ld a,(dummy_x)
-    add a,b
-    ld (dummy_x),a
-
+    ; Put the test dummy on
     ld a,(dummy_y)
     ld d,a
     ld a,(dummy_x)
@@ -432,7 +411,6 @@
     ld a,1
     call spr_2x2
 
-    ;  --------------------------
 
   jp main_loop
 .ends
@@ -478,6 +456,9 @@
     .db _sizeof_attacking_frame_to_index_table
     .db _sizeof_jumping_frame_to_index_table
 
+  jump_counter_to_vspeed_table:
+    .db -4, -4, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -2, -2, -2 
+    .db 2 2 2 3 3 3 3 3 3 3 3 3 3 3 4 4 
 
 
 .ends
