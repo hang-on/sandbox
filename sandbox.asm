@@ -60,6 +60,9 @@
   player_x db
   jump_counter db
 
+  dummy_y db
+  dummy_x db
+
 
 .ends
 
@@ -161,7 +164,7 @@
     LOAD_BYTES player_y, 120, player_x, 60
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
     RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
-    
+    LOAD_BYTES dummy_y, 150, dummy_x, 100
 
     ei
     halt
@@ -277,57 +280,49 @@
       ld (player_x),a
       jp _f
 
-      handle_attacking_state:
-        ld hl,attack_counter
-        call tick_counter
-        jp nc,+
-          LOAD_BYTES state, IDLE, frame, 0
-        +:
-      jp _f
+    handle_attacking_state:
+      ld hl,attack_counter
+      call tick_counter
+      jp nc,+
+        LOAD_BYTES state, IDLE, frame, 0
+      +:
+    jp _f
 
-      handle_jumping_state:
-        ld a,(jump_counter)
-        cp 16 
-        jp nc,+ 
-          ; jump counter between 0-7
-          ld a,PLAYER_VSPEED
+    handle_jumping_state:
+      ld a,(jump_counter)
+      cp 16 
+      ld a,PLAYER_VSPEED
+      jp nc,+ 
+        neg                 ; First half of jump - go up!
+      +:
+      ld b,a
+      ld a,(player_y)
+      add a,b
+      ld (player_y),a
+
+      ld a,(jump_counter)
+      inc a
+      cp 32
+      jp nz,+
+        LOAD_BYTES state, IDLE, frame, 0, jump_counter, 0
+        jp _f
+      +:
+      ld (jump_counter),a
+      
+      call is_left_or_right_pressed
+      jp nc,+       
+        ld a,(direction)
+        cp RIGHT
+        ld a,PLAYER_HSPEED
+        jp z,+
           neg
-          ld b,a
-          ld a,(player_y)
-          add a,b
-          ld (player_y),a
-          jp ++
         +:
-          ; jump counter at 8+
-          ld a,PLAYER_VSPEED
-          ld b,a
-          ld a,(player_y)
-          add a,b
-          ld (player_y),a
-        ++:
-        ld a,(jump_counter)
-        inc a
-        cp 32
-        jp nz,+
-          LOAD_BYTES state, IDLE, frame, 0, jump_counter, 0
-          jp _f
-        +:
-        ld (jump_counter),a
-        
-        call is_left_or_right_pressed
-        jp nc,+       
-          ld a,(direction)
-          cp RIGHT
-          ld a,PLAYER_HSPEED
-          jp z,+
-            neg
-          +:
-          ld b,a
-          ld a,(player_x)
-          add a,b
-          ld (player_x),a
-        +:
-      jp _f
+        ld b,a
+        ld a,(player_x)
+        add a,b
+        ld (player_x),a
+      +:
+    jp _f
 
     __: ; End of player state checks. 
     
@@ -399,6 +394,17 @@
           call add_sprite
 
     __:
+
+
+    ; --------------------------
+    ld a,(dummy_y)
+    ld d,a
+    ld a,(dummy_x)
+    ld e,a
+    ld a,1
+    call spr_2x2
+
+    ;  --------------------------
 
   jp main_loop
 .ends
