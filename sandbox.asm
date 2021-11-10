@@ -404,7 +404,9 @@
 
 
     ; During state handling, responding to input etc. (UPDATE)
-    
+    ld a,PLAYER_HSPEED
+    ld (hspeed),a
+
     
     ; Dial it in for this frame... 
     ld a,(vspeed)
