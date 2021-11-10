@@ -159,8 +159,8 @@
     .equ ATTACKING 2
     .equ JUMPING 3
     .equ ANIM_COUNTER_RESET 4
-    .equ PLAYER_HSPEED 1
-    .equ PLAYER_VSPEED 3
+    .equ PLAYER_WALKING_SPEED 1
+    .equ PLAYER_JUMPING_SPEED 3
     
     RESET_VARIABLES 0, frame, state, direction, jump_counter, hspeed, vspeed
     LOAD_BYTES player_y, 120, player_x, 60
@@ -223,7 +223,9 @@
         ld (direction),a
       +:
     +++:
-    
+
+    RESET_VARIABLES 0, vspeed, hspeed
+
     ld a,(state)
     cp IDLE ; is state = idle?
     jp z,handle_idle_state
@@ -272,14 +274,11 @@
       +:
       ld a,(direction)
       cp RIGHT
-      ld a,PLAYER_HSPEED
+      ld a,PLAYER_WALKING_SPEED
       jp z,+
         neg
       +:
-      ld b,a
-      ld a,(player_x)
-      add a,b
-      ld (player_x),a
+      ld (hspeed),a
       jp _f
 
     handle_attacking_state:
@@ -293,14 +292,11 @@
     handle_jumping_state:
       ld a,(jump_counter)
       cp 16 
-      ld a,PLAYER_VSPEED
+      ld a,PLAYER_JUMPING_SPEED
       jp nc,+ 
         neg                 ; First half of jump - go up!
       +:
-      ld b,a
-      ld a,(player_y)
-      add a,b
-      ld (player_y),a
+      ld (vspeed),a
 
       ld a,(jump_counter)
       inc a
@@ -315,18 +311,27 @@
       jp nc,+       
         ld a,(direction)
         cp RIGHT
-        ld a,PLAYER_HSPEED
+        ld a,PLAYER_WALKING_SPEED
         jp z,+
           neg
         +:
-        ld b,a
-        ld a,(player_x)
-        add a,b
-        ld (player_x),a
+        ld (hspeed),a
       +:
     jp _f
 
     __: ; End of player state checks. 
+
+    ; Apply this frame's h and v speed to the player y,x
+    ld a,(vspeed)
+    ld b,a
+    ld a,(player_y)
+    add a,b
+    ld (player_y),a
+    ld a,(hspeed)
+    ld b,a
+    ld a,(player_x)
+    add a,b
+    ld (player_x),a
     
     ; Count down to next frame.
     ld hl,anim_counter
@@ -400,11 +405,10 @@
 
     ; --------------------------
     ; At the beginning of the frame
-    RESET_VARIABLES 0, vspeed, hspeed
 
 
     ; During state handling, responding to input etc. (UPDATE)
-    ld a,PLAYER_HSPEED
+    ld a,PLAYER_WALKING_SPEED
     ld (hspeed),a
 
     
@@ -415,14 +419,11 @@
     add a,b
     ld (dummy_y),a
 
-    ; Hey, we have dry here!!
     ld a,(hspeed)
     ld b,a
     ld a,(dummy_x)
     add a,b
     ld (dummy_x),a
-
-
 
     ld a,(dummy_y)
     ld d,a
