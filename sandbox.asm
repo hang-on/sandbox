@@ -305,10 +305,14 @@
       ld (jump_counter),a
       
       call is_left_or_right_pressed
-      jp nc,+       
+      jp nc,+ 
+        ld a,(jump_counter)
+        ld hl,jump_counter_to_hspeed_table
+        call lookup_byte
+        ld b,a      
         ld a,(direction)
         cp RIGHT
-        ld a,PLAYER_JUMPING_HSPEED
+        ld a,b
         jp z,+
           neg
         +:
@@ -456,5 +460,8 @@
     .db -5, -4, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -2, -2, -1, -1 
     .db 1 1 2 2 3 3 3 3 3 3 3 3 3 3 4 5 
 
+  jump_counter_to_hspeed_table:
+    .db 4 3 3 2 2 2 2 2 2 2 2 2 2 2 2 2
+    .db 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1    
 
 .ends
