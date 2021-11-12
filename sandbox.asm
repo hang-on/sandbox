@@ -268,6 +268,9 @@
       call is_button_2_pressed
       jp nc,+
         LOAD_BYTES state, JUMPING, frame, 0
+        ld hl,jump_sfx
+        ld c,SFX_CHANNEL2
+        call PSGSFXPlay
         jp _f
       +:
       jp _f
@@ -290,6 +293,9 @@
       call is_button_2_pressed
       jp nc,+
         LOAD_BYTES state, JUMPING, frame, 0
+        ld hl,jump_sfx
+        ld c,SFX_CHANNEL2
+        call PSGSFXPlay
         jp _f
       +:
       ld a,(direction)
@@ -439,7 +445,11 @@
 .section "Sound" free
 ; -----------------------------------------------------------------------------
   slash_sfx:
-  .incbin "data/slash.psg"
+    .incbin "data/slash.psg"
+
+  jump_sfx:
+    .incbin "data/jump.psg"
+
 .ends
 
 .bank 2 slot 2
