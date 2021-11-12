@@ -152,6 +152,20 @@
     ld bc,_sizeof_sprite_tiles
     call load_vram
 
+    ld a,2
+    ld hl,bg_mockup_tiles
+    ld de,BACKGROUND_BANK_START
+    ld bc,_sizeof_bg_mockup_tiles
+    call load_vram
+
+    ld a,2
+    ld hl,bg_mockup_tilemap
+    ld de,NAME_TABLE_START
+    ld bc,_sizeof_bg_mockup_tilemap
+    call load_vram
+
+
+
     .equ LEFT 1
     .equ RIGHT 0
     .equ IDLE 0
@@ -163,10 +177,10 @@
     .equ PLAYER_JUMPING_HSPEED 2
     
     RESET_VARIABLES 0, frame, state, direction, jump_counter, hspeed, vspeed
-    LOAD_BYTES player_y, 120, player_x, 60
+    LOAD_BYTES player_y, 135, player_x, 60
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
     RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
-    LOAD_BYTES dummy_y, 120, dummy_x, 100
+    LOAD_BYTES dummy_y, 135, dummy_x, 200
 
     ei
     halt
@@ -408,7 +422,7 @@
     ld d,a
     ld a,(dummy_x)
     ld e,a
-    ld a,1
+    ld a,65
     call spr_2x2
 
 
@@ -426,6 +440,14 @@
   sprite_tiles:
     .include "data/sprite_tiles.inc"
     __:
+
+  bg_mockup_tiles:
+    .include "data/bg_mockup_tiles.inc"
+    __:
+
+  bg_mockup_tilemap:
+    .include "data/bg_mockup_tilemap.inc"
+  __:
 
   idle_frame_to_index_table:
     .db 1 1 3 3 5 7 7 
