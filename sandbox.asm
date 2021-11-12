@@ -371,8 +371,13 @@
     ld a,(state)
     ld hl,state_to_frames_total_table
     call lookup_byte
-    ld hl,frame
-    call reset_hl_on_a
+    ld b,a
+    ld a,(frame)
+    cp b
+    jp nz,+
+      xor a
+      ld (frame),a
+    +:
 
     ; Put the sprite tiles in the SAT buffer. 
     ld a,(state)
@@ -508,6 +513,6 @@
 
   jump_counter_to_hspeed_table:
     .db 4 3 3 2 2 2 2 2 2 2 2 2 2 2 2 2
-    .db 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1    
+    .db 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1    
 
 .ends

@@ -58,19 +58,6 @@
     call add_sprite
   ret
 
-  reset_hl_on_a:
-    ; hl = byte-sized var, a = reset threshold.
-    ; If value in hl == a, then reset a. 
-    ; Uses a,b
-    ld b,a
-    ld a,(hl)
-    cp b
-    jp nz,+
-      xor a
-      ld (hl),a
-    +:
-  ret
-
   lookup_byte:
     ; IN: a = value, hl = look-up table (ptr).
     ; OUT: a = converted value.

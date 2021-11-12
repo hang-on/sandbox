@@ -11,3 +11,6 @@ $(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm libraries/* data/*
 data/sprite_tiles.inc: data/img/sprites.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/sprites.png -noremovedupes -8x8 -palsms -fullpalette -savetiles data/sprite_tiles.inc -exit
 	@echo Made sprite_tiles.inc
+
+data/%.psg: data/sfx/%.vgm
+	@C:\Users\ANSJ\Documents\PSGlib-nov15\tools\vgm2psg.exe $< $@
