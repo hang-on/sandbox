@@ -255,6 +255,9 @@
       call is_button_1_pressed
       jp nc,+
         LOAD_BYTES state, ATTACKING, frame, 0
+        ld hl,slash_sfx
+        ld c,SFX_CHANNEL3
+        call PSGSFXPlay
       +:
       call is_left_or_right_pressed
       jp nc,+
@@ -273,6 +276,9 @@
       call is_button_1_pressed
       jp nc,+
         LOAD_BYTES state, ATTACKING, frame, 0
+        ld hl,slash_sfx
+        ld c,SFX_CHANNEL3
+        call PSGSFXPlay
         jp _f
       +:
       call is_left_or_right_pressed
@@ -428,6 +434,14 @@
 
   jp main_loop
 .ends
+.bank 1 slot 1
+ ; ----------------------------------------------------------------------------
+.section "Sound" free
+; -----------------------------------------------------------------------------
+  slash_sfx:
+  .incbin "data/slash.psg"
+.ends
+
 .bank 2 slot 2
  ; ----------------------------------------------------------------------------
 .section "Demo assets" free
