@@ -69,8 +69,8 @@
   vspeed db
 
   column_buffer dsb 20
-  column_buffer_index db
-
+  pending_metatiles dsb 10
+  
 
 .ends
 
@@ -181,14 +181,18 @@
     RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
     LOAD_BYTES dummy_y, 135, dummy_x, 200
 
-    ; Test column write
-    ld hl,column_buffer_data
-    ld de,column_buffer
-    ld bc,20
+    RESET_BLOCK $0e, column_buffer, 20
+
+    ld hl,level_1_map
+    ld de,pending_metatiles
+    ld bc,10
     ldir
 
-    ;call load_column_xx
+    call convert_left_half_of_metatile_column
     call load_column_1
+
+    ;call load_column_xx
+    ;call load_column_2
 
 
 
@@ -464,8 +468,57 @@
 .ends
 .bank 1 slot 1
  ; ----------------------------------------------------------------------------
-.section "Sound" free
+.section "Tables" free
 ; -----------------------------------------------------------------------------
+  ; Convert left half of a column of metatiles to tiles in the buffer.
+  convert_left_half_of_metatile_column:
+    .rept 10 INDEX COUNT
+      ld a,(pending_metatiles+COUNT)
+      ld hl,top_left_corner ;
+      call lookup_byte      ; 
+      ld (column_buffer+(COUNT*2)),a
+      ld a,(pending_metatiles+COUNT)
+      ld hl,bottom_left_corner
+      call lookup_byte      
+      ld (column_buffer+(COUNT*2)+1),a
+    .endr
+  ret
+
+  ; Convert right half:
+  convert_right_half_of_metatile_column:
+    .rept 10 INDEX COUNT
+      ld a,(pending_metatiles+COUNT)
+      add a,a ; ID*2
+      inc a
+      ld (column_buffer+COUNT),a
+      ld a,(pending_metatiles+COUNT+1)
+      add a,a ;
+      add a,65
+      ld (column_buffer+COUNT+1),a
+    .endr
+  ret
+
+  top_left_corner:
+  ; ID 0 1 2 3 4 5  6  7  8  9  10 11 12 13 14 15
+   .db 0 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30
+  ; ID 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 
+   .db 64 66 68 70 72 74 76 78 80 82 84 86 88 90 92 94
+  ; ID 32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47 
+   .db 128 130 132 134 136 138 140 142 144 146 148 150 152 154 156 158
+
+  bottom_left_corner:
+    .rept 16 INDEX COUNT
+      ; ID 0-15
+      .db 32+(COUNT*2)
+    .endr 
+    .rept 16 INDEX COUNT
+      ; ID 16-31
+      .db 96+(COUNT*2)
+    .endr 
+    .rept 16 INDEX COUNT
+      ; ID 32-47
+      .db 160+(COUNT*2)
+    .endr 
 
 
   ; Unrolled loops to quickly load a name table column from the buffer.
@@ -485,7 +538,7 @@
       .endr
     ret
   .endm
-  .rept 32 INDEX COLUMN
+  .rept 31 INDEX COLUMN
     COLUMN_LOADER $3880+(COLUMN*2)
   .endr
 
@@ -506,6 +559,10 @@
 
   level_1_tiles:
     .include "data/village_tiles.inc"
+    __:
+  
+  level_1_map:
+    .incbin "data/village_tilemap.bin"
     __:
 
   idle_frame_to_index_table:
