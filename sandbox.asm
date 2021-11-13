@@ -153,17 +153,10 @@
     call load_vram
 
     ld a,2
-    ld hl,bg_mockup_tiles
+    ld hl,level_1_tiles
     ld de,BACKGROUND_BANK_START
-    ld bc,_sizeof_bg_mockup_tiles
+    ld bc,_sizeof_level_1_tiles
     call load_vram
-
-    ld a,2
-    ld hl,bg_mockup_tilemap
-    ld de,NAME_TABLE_START
-    ld bc,_sizeof_bg_mockup_tilemap
-    call load_vram
-
 
 
     .equ LEFT 1
@@ -470,13 +463,9 @@
     .include "data/sprite_tiles.inc"
     __:
 
-  bg_mockup_tiles:
-    .include "data/bg_mockup_tiles.inc"
+  level_1_tiles:
+    .include "data/village_tiles.inc"
     __:
-
-  bg_mockup_tilemap:
-    .include "data/bg_mockup_tilemap.inc"
-  __:
 
   idle_frame_to_index_table:
     .db 1 1 3 3 5 7 7 
