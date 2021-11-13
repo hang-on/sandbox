@@ -65,6 +65,9 @@
   hspeed db
   vspeed db
 
+  column_buffer dsb 20
+  column_buffer_index db
+
 
 .ends
 
@@ -174,6 +177,18 @@
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
     RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
     LOAD_BYTES dummy_y, 135, dummy_x, 200
+
+    ; Test column write
+    ld hl,column_buffer_data
+    ld de,column_buffer
+    ld bc,20
+    ldir
+
+    ;call load_column_xx
+    call load_column_1
+
+
+
 
     ei
     halt
@@ -448,6 +463,23 @@
   jump_sfx:
     .incbin "data/jump.psg"
 
+  ; Unrolled loops to quickly load a name table column from the buffer.
+  .macro COLUMN_LOADER ARGS ADDRESS
+    load_column_\@:
+      .rept 20 INDEX COUNT
+        ld hl,ADDRESS+COUNT*64
+        call setup_vram_write
+        ld a,(column_buffer+COUNT)
+        out (DATA_PORT),a   
+        ld a,%00000001
+        out (DATA_PORT),a
+      .endr
+    ret
+  .endm
+  .rept 32 INDEX COLUMN
+    COLUMN_LOADER $3880+(COLUMN*2)
+  .endr
+
 .ends
 
 .bank 2 slot 2
@@ -503,5 +535,18 @@
   jump_counter_to_hspeed_table:
     .db 4 3 3 2 2 2 2 2 2 2 2 2 2 2 2 2
     .db 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1    
+
+  column_buffer_data:
+    .db $80 $a0
+    .db $82 $a2
+    .db $82 $a2
+    .db $82 $a2
+    .db $82 $a2
+    .db $82 $a2
+    .db $82 $a2
+    .db $82 $a2
+    .db $00 $20
+    .db $40 $60
+
 
 .ends

@@ -1,4 +1,55 @@
 
+     metatile_lut:
+    .rept 90 INDEX COUNT
+      .dw $2000+(COUNT*$40) ; Address of top-left tile
+      .dw $2400+(COUNT*$40) ; Address of bottom-left tile
+      .dw $2020+(COUNT*$40) ; Address of top-right tile
+      .dw $2420+(COUNT*$40) ; Address of bottom-right tile
+    .endr
+    
+  ;load_column_xx:
+    .rept 20 INDEX COUNT
+      ld hl,$3880+COUNT*64
+      call setup_vram_write
+      ld a,(column_buffer+COUNT)
+      out (DATA_PORT),a   
+      ld a,%00000001
+      out (DATA_PORT),a
+    .endr
+
+
+    ; Write first half of meta tile to name table.
+    ld hl,$3802
+    call setup_vram_write
+    ld a,0    
+    out (DATA_PORT),a   
+    ld a,%00000001
+    out (DATA_PORT),a
+    
+    ld hl,$3842
+    call setup_vram_write
+    ld a,32    
+    out (DATA_PORT),a   
+    ld a,%00000001
+    out (DATA_PORT),a
+
+
+    ; Write first half of meta tile to name table.
+    ld hl,$3882
+    call setup_vram_write
+    ld a,$40    
+    out (DATA_PORT),a   
+    ld a,%00000001
+    out (DATA_PORT),a
+    
+    ld hl,$38C2
+    call setup_vram_write
+    ld a,$60   
+    out (DATA_PORT),a   
+    ld a,%00000001
+    out (DATA_PORT),a
+
+
     ld hl,test_anim_counter
     call tick_counter
         ; Count down to next frame.
