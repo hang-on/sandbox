@@ -6,6 +6,9 @@
 .include "libraries/sms_constants.asm"
 .include "libraries/core.asm"
 
+.equ SFX_BANK 3
+.equ MUSIC_BANK 3
+
 ; Remove comment to enable unit testing
 ;.equ TEST_MODE
 .ifdef TEST_MODE
@@ -215,8 +218,14 @@
     ;
     ; -------------------------------------------------------------------------
     ; Begin general updating (UPDATE).
+    ld a,MUSIC_BANK
+    SELECT_BANK_IN_REGISTER_A
     call PSGFrame
+    ld a,SFX_BANK
+    SELECT_BANK_IN_REGISTER_A
     call PSGSFXFrame
+    ld a,2
+    SELECT_BANK_IN_REGISTER_A
     call refresh_sat_handler
 
     ; Set input_ports (word) to mirror current state of ports $dc and $dd.
@@ -457,18 +466,18 @@
  ; ----------------------------------------------------------------------------
 .section "Sound" free
 ; -----------------------------------------------------------------------------
-  slash_sfx:
-    .incbin "data/slash.psg"
 
-  jump_sfx:
-    .incbin "data/jump.psg"
 
   ; Unrolled loops to quickly load a name table column from the buffer.
   .macro COLUMN_LOADER ARGS ADDRESS
     load_column_\@:
       .rept 20 INDEX COUNT
         ld hl,ADDRESS+COUNT*64
-        call setup_vram_write
+        ld a,l
+        out (CONTROL_PORT),a
+        ld a,h
+        or VRAM_WRITE_COMMAND
+        out (CONTROL_PORT),a
         ld a,(column_buffer+COUNT)
         out (DATA_PORT),a   
         ld a,%00000001
@@ -548,5 +557,16 @@
     .db $00 $20
     .db $40 $60
 
+
+.ends
+.bank 3 slot 2
+ ; ----------------------------------------------------------------------------
+.section "Sound effects" free
+; -----------------------------------------------------------------------------
+  slash_sfx:
+    .incbin "data/slash.psg"
+
+  jump_sfx:
+    .incbin "data/jump.psg"
 
 .ends
