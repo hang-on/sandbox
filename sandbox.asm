@@ -68,8 +68,10 @@
   hspeed db
   vspeed db
 
-  column_buffer dsb 20
-  pending_metatiles dsb 10
+  tile_buffer dsb 20
+  metatile_buffer dsb 10
+  map_head dw
+  nametable_head db
   
 
 .ends
@@ -181,15 +183,46 @@
     RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
     LOAD_BYTES dummy_y, 135, dummy_x, 200
 
-    RESET_BLOCK $0e, column_buffer, 20
+    RESET_BLOCK $0e, tile_buffer, 20
 
+    
+    ; Init map head.
     ld hl,level_1_map
-    ld de,pending_metatiles
+    ld a,l
+    ld (map_head),a
+    ld a,h
+    ld (map_head+1),a
+    
+
+    ; Forward map head.
+    ld hl,map_head
+    call get_word
+    ld de,10
+    add hl,de
+    ld a,l
+    ld (map_head),a
+    ld a,h
+    ld (map_head+1),a
+
+    ; Read a column.
+    ld hl,map_head
+    call get_word
+    ld de,metatile_buffer
     ld bc,10
     ldir
 
+
+
+
     call convert_left_half_of_metatile_column
     call load_column_1
+    call convert_right_half_of_metatile_column
+    call load_column_2
+
+    ; Add jump/call table to call the right column function,
+    ; depending on var: active_name_table_column
+    ; also keep where we are in the map: active_map_column
+
 
     ;call load_column_xx
     ;call load_column_2
@@ -473,31 +506,31 @@
   ; Convert left half of a column of metatiles to tiles in the buffer.
   convert_left_half_of_metatile_column:
     .rept 10 INDEX COUNT
-      ld a,(pending_metatiles+COUNT)
+      ld a,(metatile_buffer+COUNT)
       ld hl,top_left_corner ;
       call lookup_byte      ; 
-      ld (column_buffer+(COUNT*2)),a
-      ld a,(pending_metatiles+COUNT)
+      ld (tile_buffer+(COUNT*2)),a
+      ld a,(metatile_buffer+COUNT)
       ld hl,bottom_left_corner
       call lookup_byte      
-      ld (column_buffer+(COUNT*2)+1),a
+      ld (tile_buffer+(COUNT*2)+1),a
     .endr
   ret
 
-  ; Convert right half:
+  ; Convert right half of a column of metatiles to tiles in the buffer.
   convert_right_half_of_metatile_column:
     .rept 10 INDEX COUNT
-      ld a,(pending_metatiles+COUNT)
-      add a,a ; ID*2
-      inc a
-      ld (column_buffer+COUNT),a
-      ld a,(pending_metatiles+COUNT+1)
-      add a,a ;
-      add a,65
-      ld (column_buffer+COUNT+1),a
+      ld a,(metatile_buffer+COUNT)
+      ld hl,top_right_corner ;
+      call lookup_byte      ; 
+      ld (tile_buffer+(COUNT*2)),a
+      ld a,(metatile_buffer+COUNT)
+      ld hl,bottom_right_corner
+      call lookup_byte      
+      ld (tile_buffer+(COUNT*2)+1),a
     .endr
   ret
-
+  
   top_left_corner:
   ; ID 0 1 2 3 4 5  6  7  8  9  10 11 12 13 14 15
    .db 0 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30
@@ -520,6 +553,34 @@
       .db 160+(COUNT*2)
     .endr 
 
+  top_right_corner:
+    .rept 16 INDEX COUNT
+      ; ID 0-15
+      .db 1+(COUNT*2)
+    .endr 
+    .rept 16 INDEX COUNT
+      ; ID 16-31
+      .db 65+(COUNT*2)
+    .endr 
+    .rept 16 INDEX COUNT
+      ; ID 32-47
+      .db 129+(COUNT*2)
+    .endr 
+
+  bottom_right_corner:
+    .rept 16 INDEX COUNT
+      ; ID 0-15
+      .db 33+(COUNT*2)
+    .endr 
+    .rept 16 INDEX COUNT
+      ; ID 16-31
+      .db 97+(COUNT*2)
+    .endr 
+    .rept 16 INDEX COUNT
+      ; ID 32-47
+      .db 161+(COUNT*2)
+    .endr 
+
 
   ; Unrolled loops to quickly load a name table column from the buffer.
   .macro COLUMN_LOADER ARGS ADDRESS
@@ -531,7 +592,7 @@
         ld a,h
         or VRAM_WRITE_COMMAND
         out (CONTROL_PORT),a
-        ld a,(column_buffer+COUNT)
+        ld a,(tile_buffer+COUNT)
         out (DATA_PORT),a   
         ld a,%00000001
         out (DATA_PORT),a
@@ -602,7 +663,7 @@
     .db 4 3 3 2 2 2 2 2 2 2 2 2 2 2 2 2
     .db 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1    
 
-  column_buffer_data:
+  tile_buffer_data:
     .db $80 $a0
     .db $82 $a2
     .db $82 $a2
