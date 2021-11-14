@@ -415,10 +415,10 @@
     __: ; End of player state checks. 
 
     
+    ; Check if screen should scroll instead of right movement.
     ld a,(player_x)
     cp SCROLL_POSITION
     jp c,+
-      
       ; Player is over the scroll position
       ld a,(hspeed)
       bit 7,a             ; Negative value = walking left
@@ -445,6 +445,7 @@
           inc (hl)
     +:
 
+    ; Check if player is about to exit the left sid of the screen.
     ld a,(player_x)
     cp LEFT_LIMIT_POSITION
     jp nc,+
