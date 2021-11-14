@@ -9,6 +9,8 @@
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
 
+.equ SCROLL_POSITION 200
+
 ; Remove comment to enable unit testing
 ;.equ TEST_MODE
 .ifdef TEST_MODE
@@ -255,10 +257,10 @@
     in a,(INPUT_PORT_2)
     ld (input_ports+1),a
 
-    ; Development:
-    ; Add check against map width!
+    ; *********** Development:
+    ; Add check against map width! / scroll-stop flag
     call is_reset_pressed
-    jp nc, +
+    jp nc,+        
       ld a,(hscroll_screen)
       dec a
       ld (hscroll_screen),a
@@ -274,7 +276,10 @@
         call next_metatile_half_to_tile_buffer
         ld hl,column_load_trigger               ; Load on next vblank.
         inc (hl)
-    +:
+  +:
+
+
+
 
 
     ; Set the player's direction depending on controller input (LEFT/RIGHT).
@@ -408,6 +413,7 @@
 
     __: ; End of player state checks. 
 
+  
     ; Apply this frame's h and v speed to the player y,x
     ld a,(vspeed)
     ld b,a
