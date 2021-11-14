@@ -33,7 +33,7 @@ tmx.parseFile(sourcePath, function(err, map) {
 		columns.push(column);
 	}
 	
-	const outputArray = Int8Array.from([...columns.slice().reverse().flat(), 255]);
+	const outputArray = Int8Array.from([...columns.slice().flat(), 255]);
 	fs.writeFile(destPath, Buffer.from(outputArray), (err) => {
 		if (err) throw err;
 	});	

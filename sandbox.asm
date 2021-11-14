@@ -72,6 +72,7 @@
   metatile_buffer dsb 10
   map_head dw
   nametable_head db
+  metatile_halves db    ; Convert left or right half of the metatile to tiles.
   
 
 .ends
@@ -184,21 +185,11 @@
     LOAD_BYTES dummy_y, 135, dummy_x, 200
 
     RESET_BLOCK $0e, tile_buffer, 20
+    LOAD_BYTES metatile_halves, 0, nametable_head, 0
 
     
     ; Init map head.
     ld hl,level_1_map
-    ld a,l
-    ld (map_head),a
-    ld a,h
-    ld (map_head+1),a
-    
-
-    ; Forward map head.
-    ld hl,map_head
-    call get_word
-    ld de,10
-    add hl,de
     ld a,l
     ld (map_head),a
     ld a,h
@@ -210,14 +201,39 @@
     ld de,metatile_buffer
     ld bc,10
     ldir
+    ; Forward map head.
+    ld hl,map_head
+    call get_word
+    ld de,10
+    add hl,de
+    ld a,l
+    ld (map_head),a
+    ld a,h
+    ld (map_head+1),a
 
+    ; Write a column of sprite indexes to the name table.
+    ; 1. Convert either the left or right half of the meta tiles in the 
+    ; metatile buffer to tile indexes, and load them into the tile buffer.
+    ; 2. Copy the tile buffer to the name table column at the name table head.
+    
+    ld a,(metatile_halves)
+    cp 0
+    jp nz,+
+      call convert_left_half_of_metatile_column
+      jp ++
+    +:
+      call convert_right_half_of_metatile_column
+    ++:
+    ld a,(metatile_halves)
+    cpl
+    ld (metatile_halves),a
 
+    call load_column_0
 
-
-    call convert_left_half_of_metatile_column
-    call load_column_1
-    call convert_right_half_of_metatile_column
-    call load_column_2
+    ;call convert_left_half_of_metatile_column
+    ;call load_column_1
+    ;call convert_right_half_of_metatile_column
+    ;call load_column_2
 
     ; Add jump/call table to call the right column function,
     ; depending on var: active_name_table_column
@@ -503,6 +519,43 @@
  ; ----------------------------------------------------------------------------
 .section "Tables" free
 ; -----------------------------------------------------------------------------
+  nametable_head_to_column_loader:
+    ; To be indexed by the variable name_table_head.
+    .dw load_column_0
+    .dw load_column_1
+    .dw load_column_2
+    .dw load_column_3
+    .dw load_column_4
+    .dw load_column_5
+    .dw load_column_6
+    .dw load_column_7
+    .dw load_column_8
+    .dw load_column_9
+    .dw load_column_10
+    .dw load_column_11
+    .dw load_column_12
+    .dw load_column_13
+    .dw load_column_14
+    .dw load_column_15
+    .dw load_column_16
+    .dw load_column_17
+    .dw load_column_18
+    .dw load_column_19
+    .dw load_column_20
+    .dw load_column_21
+    .dw load_column_22
+    .dw load_column_23
+    .dw load_column_24
+    .dw load_column_25
+    .dw load_column_26
+    .dw load_column_27
+    .dw load_column_28
+    .dw load_column_29
+    .dw load_column_30
+    .dw load_column_31
+
+
+
   ; Convert left half of a column of metatiles to tiles in the buffer.
   convert_left_half_of_metatile_column:
     .rept 10 INDEX COUNT
@@ -599,7 +652,7 @@
       .endr
     ret
   .endm
-  .rept 31 INDEX COLUMN
+  .rept 32 INDEX COLUMN
     COLUMN_LOADER $3880+(COLUMN*2)
   .endr
 
