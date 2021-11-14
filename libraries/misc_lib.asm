@@ -5,6 +5,10 @@
 .section "Misc. routines sorted alphabetically" free
 ; -----------------------------------------------------------------------------
 
+  function_at_hl:
+    ; Emulate a call (hl) function.
+    jp (hl)
+
 
   get_word:
     ; In: Pointer in HL. Out: Word pointed to in HL.
@@ -17,6 +21,14 @@
     pop af  
     ld l,a
   ret
+
+  is_reset_pressed:
+    ld a,(input_ports+1)
+    and %00010000
+    ret nz            ; Return with carry flag reset
+    scf
+  ret                 ; Return with carry flag set.
+
 
 
   is_button_1_pressed:

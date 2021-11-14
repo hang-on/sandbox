@@ -73,7 +73,7 @@
   map_head dw
   nametable_head db
   metatile_halves db    ; Convert left or right half of the metatile to tiles.
-  
+  load_nametable_column db ; Flag
 
 .ends
 
@@ -185,7 +185,7 @@
     LOAD_BYTES dummy_y, 135, dummy_x, 200
 
     RESET_BLOCK $0e, tile_buffer, 20
-    LOAD_BYTES metatile_halves, 0, nametable_head, 0
+    LOAD_BYTES metatile_halves, 0, nametable_head, 0, load_nametable_column, FALSE
 
     
     ; Init map head.
@@ -211,39 +211,6 @@
     ld a,h
     ld (map_head+1),a
 
-    ; Write a column of sprite indexes to the name table.
-    ; 1. Convert either the left or right half of the meta tiles in the 
-    ; metatile buffer to tile indexes, and load them into the tile buffer.
-    ; 2. Copy the tile buffer to the name table column at the name table head.
-    
-    ld a,(metatile_halves)
-    cp 0
-    jp nz,+
-      call convert_left_half_of_metatile_column
-      jp ++
-    +:
-      call convert_right_half_of_metatile_column
-    ++:
-    ld a,(metatile_halves)
-    cpl
-    ld (metatile_halves),a
-
-    call load_column_0
-
-    ;call convert_left_half_of_metatile_column
-    ;call load_column_1
-    ;call convert_right_half_of_metatile_column
-    ;call load_column_2
-
-    ; Add jump/call table to call the right column function,
-    ; depending on var: active_name_table_column
-    ; also keep where we are in the map: active_map_column
-
-
-    ;call load_column_xx
-    ;call load_column_2
-
-
 
 
     ei
@@ -265,6 +232,53 @@
      ; -------------------------------------------------------------------------
     ; Begin vblank critical code (DRAW).
     call load_sat
+
+    ld a,(load_nametable_column)
+    cp TRUE
+    jp nz,_f
+      ; Write a column of sprite indexes to the name table.
+      ; 1. Convert either the left or right half of the meta tiles in the 
+      ; metatile buffer to tile indexes, and load them into the tile buffer.
+      ; 2. Copy the tile buffer to the name table column at the name table head.
+      ld a,(metatile_halves)
+      cp 0
+      jp nz,+
+        call convert_left_half_of_metatile_column
+        jp ++
+      +:
+        call convert_right_half_of_metatile_column
+        ; Add here: Read next metatile column into the metatile buffer.
+      ++:
+      ld a,(metatile_halves)
+      cpl
+      ld (metatile_halves),a
+
+      ld a,(nametable_head)
+      ld h,0
+      ld l,a
+      add hl,hl
+      ld de,column_loader_table
+      add hl,de
+      ld a,(hl)
+      inc hl
+      ld h,(hl)
+      ld l,a
+      call function_at_hl
+
+      ; Forward the name table head:
+      ld a,(nametable_head)
+      cp 31
+      jp nz,+
+        xor a
+        jp ++
+      +:
+        inc a
+      ++:
+      ld (nametable_head),a
+      ld a,FALSE
+      ld (load_nametable_column),a
+    __:
+
     
     ld hl,critical_routines_finish_at
     call save_vcounter
@@ -286,6 +300,16 @@
     ld (input_ports),a
     in a,(INPUT_PORT_2)
     ld (input_ports+1),a
+
+    ; Testing:
+    call is_reset_pressed
+    jp nc,+
+      ld a,TRUE
+      ld (load_nametable_column),a
+    +:
+
+    ; ----------------
+
 
     ; Set the player's direction depending on controller input (LEFT/RIGHT).
     ld a,(direction)
@@ -519,7 +543,7 @@
  ; ----------------------------------------------------------------------------
 .section "Tables" free
 ; -----------------------------------------------------------------------------
-  nametable_head_to_column_loader:
+  column_loader_table:
     ; To be indexed by the variable name_table_head.
     .dw load_column_0
     .dw load_column_1
