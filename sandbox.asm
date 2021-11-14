@@ -211,6 +211,8 @@
     ld a,h
     ld (map_head+1),a
 
+    ; Add: Draw screen...
+
 
 
     ei
