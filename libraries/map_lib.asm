@@ -13,7 +13,6 @@
   map_head dw
   nametable_head db
   metatile_halves db          ; Convert left or right half of the metatile to tiles.
-  load_nametable_column db    ; Flag.
 
 .ends
 
@@ -23,7 +22,33 @@
 .section "Map" free
 ; -----------------------------------------------------------------------------   
 
-  convert_next_half_of_metatile_column:
+  initialize_map:
+    ; IN: HL = Pointer to binary map data from Tiled>convert-map.
+     ld a,l
+    ld (map_head),a
+    ld a,h
+    ld (map_head+1),a
+  ret
+
+  map_column_to_metatile_buffer:
+      ; Read a column.
+    ld hl,map_head
+    call get_word
+    ld de,metatile_buffer
+    ld bc,10      ; FIX ME
+    ldir
+    ; Forward map head.
+    ld hl,map_head
+    call get_word
+    ld de,10      ; FIXME
+    add hl,de
+    ld a,l
+    ld (map_head),a
+    ld a,h
+    ld (map_head+1),a
+  ret
+
+  next_metatile_half_to_tile_buffer:
     ld a,(metatile_halves)
     cp 0
     jp nz,+
@@ -39,7 +64,7 @@
   ret
 
 
-  write_next_column:
+  tilebuffer_to_nametable:
     ld a,(nametable_head)
     ld h,0
     ld l,a
@@ -61,8 +86,6 @@
       inc a
     ++:
     ld (nametable_head),a
-    ld a,FALSE
-    ld (load_nametable_column),a
   ret
 
 .ends

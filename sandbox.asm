@@ -173,39 +173,27 @@
     .equ PLAYER_JUMPING_HSPEED 2
     
     RESET_VARIABLES 0, frame, state, direction, jump_counter, hspeed, vspeed
-    LOAD_BYTES player_y, 135, player_x, 60
+    LOAD_BYTES player_y, 127, player_x, 60
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
     RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
-    LOAD_BYTES dummy_y, 135, dummy_x, 200
+    LOAD_BYTES dummy_y, 127, dummy_x, 200
 
     RESET_BLOCK $0e, tile_buffer, 20
-    LOAD_BYTES metatile_halves, 0, nametable_head, 0, load_nametable_column, FALSE
+    LOAD_BYTES metatile_halves, 0, nametable_head, 0
 
     
     ; Init map head.
     ld hl,level_1_map
-    ld a,l
-    ld (map_head),a
-    ld a,h
-    ld (map_head+1),a
+    call initialize_map
 
-    ; Read a column.
-    ld hl,map_head
-    call get_word
-    ld de,metatile_buffer
-    ld bc,10
-    ldir
-    ; Forward map head.
-    ld hl,map_head
-    call get_word
-    ld de,10
-    add hl,de
-    ld a,l
-    ld (map_head),a
-    ld a,h
-    ld (map_head+1),a
-
-    ; Add: Draw screen...
+    .rept 16
+    call map_column_to_metatile_buffer
+    call next_metatile_half_to_tile_buffer
+    call tilebuffer_to_nametable
+    call next_metatile_half_to_tile_buffer
+    call tilebuffer_to_nametable
+    .endr
+    
 
 
 
@@ -251,15 +239,6 @@
     ld (input_ports),a
     in a,(INPUT_PORT_2)
     ld (input_ports+1),a
-
-    ; Testing:
-    call is_reset_pressed
-    jp nc,+
-      ld a,TRUE
-      ld (load_nametable_column),a
-    +:
-
-    ; ----------------
 
 
     ; Set the player's direction depending on controller input (LEFT/RIGHT).
