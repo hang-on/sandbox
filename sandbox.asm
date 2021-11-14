@@ -69,6 +69,10 @@
   hspeed db
   vspeed db
 
+  hscroll_screen db ; 0-255
+  hscroll_column db ; 0-7
+  column_load_trigger db ; flag
+
 .ends
 
 .org 0
@@ -180,12 +184,14 @@
 
     RESET_BLOCK $0e, tile_buffer, 20
     LOAD_BYTES metatile_halves, 0, nametable_head, 0
+    LOAD_BYTES hscroll_screen, 0, hscroll_column, 0, column_load_trigger, 0
+
 
     
     ; Init map head.
     ld hl,level_1_map
     call initialize_map
-
+    ; Draw a full screen 
     ld b,32
     call draw_columns
     
@@ -209,6 +215,11 @@
     ; Begin vblank critical code (DRAW).
     call load_sat
 
+    ; Sync the vdp-scroll with the ram-mirror.
+    ld a,(hscroll_screen)
+    ld b,HORIZONTAL_SCROLL_REGISTER
+    call set_register 
+
 
     
     ld hl,critical_routines_finish_at
@@ -231,6 +242,14 @@
     ld (input_ports),a
     in a,(INPUT_PORT_2)
     ld (input_ports+1),a
+
+    ; Development:
+    call is_reset_pressed
+    jp nc, +
+      ld a,(hscroll_screen)
+      dec a
+      ld (hscroll_screen),a
+    +:
 
 
     ; Set the player's direction depending on controller input (LEFT/RIGHT).
@@ -524,19 +543,7 @@
 
   jump_counter_to_hspeed_table:
     .db 4 3 3 2 2 2 2 2 2 2 2 2 2 2 2 2
-    .db 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1    
-
-  tile_buffer_data:
-    .db $80 $a0
-    .db $82 $a2
-    .db $82 $a2
-    .db $82 $a2
-    .db $82 $a2
-    .db $82 $a2
-    .db $82 $a2
-    .db $82 $a2
-    .db $00 $20
-    .db $40 $60
+    .db 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1
 
 
 .ends

@@ -8,15 +8,12 @@
 ; -----------------------------------------------------------------------------
 .ramsection "Map Variables" slot 3
 ; -----------------------------------------------------------------------------
-  tile_buffer dsb 20
-  metatile_buffer dsb 10
+  tile_buffer dsb MAP_HEIGHT*2
+  metatile_buffer dsb MAP_HEIGHT
   map_head dw
   nametable_head db
   metatile_halves db          ; Convert left or right half of the metatile to tiles.
-
 .ends
-
-
 
 ; -----------------------------------------------------------------------------
 .section "Map" free
@@ -48,12 +45,12 @@
     ld hl,map_head
     call get_word
     ld de,metatile_buffer
-    ld bc,10      ; FIX ME
+    ld bc,MAP_HEIGHT      
     ldir
     ; Forward map head.
     ld hl,map_head
     call get_word
-    ld de,10      ; FIXME
+    ld de,MAP_HEIGHT      
     add hl,de
     ld a,l
     ld (map_head),a
@@ -145,7 +142,7 @@
 
   ; Convert left half of a column of metatiles to tiles in the buffer.
   convert_left_half_of_metatile_column:
-    .rept 10 INDEX COUNT
+    .rept MAP_HEIGHT INDEX COUNT
       ld a,(metatile_buffer+COUNT)
       ld hl,top_left_corner ;
       call lookup_byte      ; 
@@ -159,7 +156,7 @@
 
   ; Convert right half of a column of metatiles to tiles in the buffer.
   convert_right_half_of_metatile_column:
-    .rept 10 INDEX COUNT
+    .rept MAP_HEIGHT INDEX COUNT
       ld a,(metatile_buffer+COUNT)
       ld hl,top_right_corner ;
       call lookup_byte      ; 
@@ -224,7 +221,7 @@
   ; Unrolled loops to quickly load a name table column from the buffer.
   .macro COLUMN_LOADER ARGS ADDRESS
     load_column_\@:
-      .rept 20 INDEX COUNT
+      .rept MAP_HEIGHT*2 INDEX COUNT
         ld hl,ADDRESS+COUNT*64
         ld a,l
         out (CONTROL_PORT),a
@@ -239,6 +236,7 @@
     ret
   .endm
   .rept 32 INDEX COLUMN
+    ; A loader function for each column on the nametable.
     COLUMN_LOADER $3880+(COLUMN*2)
   .endr
 

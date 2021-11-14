@@ -12,7 +12,7 @@ const mustBeTrue = (value, message) => {
 
 const validateMap = map => {
   mustBeTrue(map.orientation === 'orthogonal', 'This is not an orthogonal map.');
-  mustBeTrue(map.width === 16, 'The width must be 16.');
+  //mustBeTrue(map.width === 16, 'The width must be 16.');
   mustBeTrue(map.layers, 'There must be layers.');
   mustBeTrue(map.layers.length > 0, 'There must be at least one layer.');
 }
