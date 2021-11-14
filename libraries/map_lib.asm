@@ -28,7 +28,20 @@
     ld (map_head),a
     ld a,h
     ld (map_head+1),a
+    call map_column_to_metatile_buffer
   ret
+
+  draw_columns:
+    ; IN: B = Number of nametable columns to draw.
+    ; Fast and unsafe!
+    -:
+      push bc
+        call next_metatile_half_to_tile_buffer
+        call tilebuffer_to_nametable
+      pop bc
+    djnz -
+  ret
+
 
   map_column_to_metatile_buffer:
       ; Read a column.
@@ -56,7 +69,7 @@
       jp ++
     +:
       call convert_right_half_of_metatile_column
-      ; Add here: Read next metatile column into the metatile buffer.
+      call map_column_to_metatile_buffer          ; Ready next metatile column.
     ++:
     ld a,(metatile_halves)
     cpl
@@ -65,6 +78,7 @@
 
 
   tilebuffer_to_nametable:
+    ; Fast and unsafe. Run when interrupts = disabled + display = disabled.
     ld a,(nametable_head)
     ld h,0
     ld l,a

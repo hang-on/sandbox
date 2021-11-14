@@ -186,17 +186,9 @@
     ld hl,level_1_map
     call initialize_map
 
-    .rept 16
-    call map_column_to_metatile_buffer
-    call next_metatile_half_to_tile_buffer
-    call tilebuffer_to_nametable
-    call next_metatile_half_to_tile_buffer
-    call tilebuffer_to_nametable
-    .endr
+    ld b,32
+    call draw_columns
     
-
-
-
     ei
     halt
     halt
