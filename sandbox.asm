@@ -180,7 +180,7 @@
     LOAD_BYTES player_y, 127, player_x, 60
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
     RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
-    LOAD_BYTES dummy_y, 127, dummy_x, 200
+    LOAD_BYTES dummy_y, 200, dummy_x, 200
 
     RESET_BLOCK $0e, tile_buffer, 20
     LOAD_BYTES metatile_halves, 0, nametable_head, 0
@@ -194,6 +194,10 @@
     ; Draw a full screen 
     ld b,32
     call draw_columns
+
+    ; Fill the blanked column.
+    call next_metatile_half_to_tile_buffer
+    call tilebuffer_to_nametable
     
     ei
     halt
@@ -214,6 +218,14 @@
      ; -------------------------------------------------------------------------
     ; Begin vblank critical code (DRAW).
     call load_sat
+
+    ld a,(column_load_trigger)
+    cp 0
+    jp z,+
+      xor a
+      ld (column_load_trigger),a
+      call tilebuffer_to_nametable
+    +:
 
     ; Sync the vdp-scroll with the ram-mirror.
     ld a,(hscroll_screen)
@@ -244,11 +256,24 @@
     ld (input_ports+1),a
 
     ; Development:
+    ; Add check against map width!
     call is_reset_pressed
     jp nc, +
       ld a,(hscroll_screen)
       dec a
       ld (hscroll_screen),a
+      
+      ld a,(hscroll_column)
+      inc a
+      ld (hscroll_column),a
+      cp 8
+      jp nz,+
+        xor a
+        ld (hscroll_column),a
+        ; Load new column
+        call next_metatile_half_to_tile_buffer
+        ld hl,column_load_trigger               ; Load on next vblank.
+        inc (hl)
     +:
 
 
