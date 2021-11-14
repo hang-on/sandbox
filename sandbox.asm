@@ -9,7 +9,8 @@
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
 
-.equ SCROLL_POSITION 200
+.equ SCROLL_POSITION 180
+.equ LEFT_LIMIT_POSITION 10
 
 ; Remove comment to enable unit testing
 ;.equ TEST_MODE
@@ -262,11 +263,11 @@
     call is_reset_pressed
     jp nc,+        
       ld a,(hscroll_screen)
-      dec a
+      dec a                     ; This must be hspeed!
       ld (hscroll_screen),a
       
       ld a,(hscroll_column)
-      inc a
+      inc a                     ; This must be hspeed!
       ld (hscroll_column),a
       cp 8
       jp nz,+
@@ -276,7 +277,7 @@
         call next_metatile_half_to_tile_buffer
         ld hl,column_load_trigger               ; Load on next vblank.
         inc (hl)
-  +:
+     +:
 
 
 
@@ -412,6 +413,49 @@
     jp _f
 
     __: ; End of player state checks. 
+
+    
+    ld a,(player_x)
+    cp SCROLL_POSITION
+    jp c,+
+      
+      ; Player is over the scroll position
+      ld a,(hspeed)
+      bit 7,a             ; Negative value = walking left
+      jp nz,+ 
+      cp 0                ; Zero = no horizontal motion.
+      jp z,+
+        xor a
+        ld (hspeed),a
+        ; Scroll instead
+        ld a,(hscroll_screen)
+        dec a                     
+        ld (hscroll_screen),a
+        
+        ld a,(hscroll_column)
+        inc a                     
+        ld (hscroll_column),a
+        cp 8
+        jp nz,+
+          xor a
+          ld (hscroll_column),a
+          ; Load new column
+          call next_metatile_half_to_tile_buffer
+          ld hl,column_load_trigger               ; Load on next vblank.
+          inc (hl)
+    +:
+
+    ld a,(player_x)
+    cp LEFT_LIMIT_POSITION
+    jp nc,+
+      ld a,(hspeed)
+      bit 7,a             ; Positive value = walking right
+      jp z,+ 
+      cp 0                ; Zero = no horizontal motion.
+      jp z,+
+        xor a
+        ld (hspeed),a
+    +:
 
   
     ; Apply this frame's h and v speed to the player y,x
