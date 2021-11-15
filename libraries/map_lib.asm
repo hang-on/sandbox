@@ -4,7 +4,7 @@
 ; Note: This lib needs access to quite some tables. Best placed in bank 1.
 ; TODO: Refactor this lib around a MAP_TABLES_BANK constant.
 ; -----------------------------------------------------------------------------
-.equ MAP_WIDTH 16         ; Width in metatiles.
+.equ MAP_WIDTH 64         ; Width in metatiles. ; FIXME: Map width based on level!
 .equ MAP_HEIGHT 10        ; Height in metatiles.
 ; -----------------------------------------------------------------------------
 .ramsection "Map Variables" slot 3
@@ -22,7 +22,7 @@
 
   initialize_map:
     ; IN: HL = Pointer to binary map data from Tiled>convert-map.
-     ld a,l
+    ld a,l
     ld (map_head),a
     ld a,h
     ld (map_head+1),a

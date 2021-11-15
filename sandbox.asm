@@ -79,6 +79,7 @@
   hscroll_column db ; 0-7
   column_load_trigger db ; flag
   scroll_enabled db
+
   
 
 .ends
@@ -194,7 +195,7 @@
     LOAD_BYTES metatile_halves, 0, nametable_head, 0
     LOAD_BYTES hscroll_screen, 0, hscroll_column, 0, column_load_trigger, 0
     LOAD_BYTES vblank_finish_high, 0, vblank_finish_low, 255
-    LOAD_BYTES scroll_enabled, FALSE
+    LOAD_BYTES scroll_enabled, TRUE
 
 
     
@@ -470,6 +471,16 @@
             inc (hl)
     +:
 
+    ; End of map check.
+    ld hl,map_head
+    call get_word
+    ld de,level_1_map_end; FIXME - this needs to be dynamic!
+    sbc hl,de
+    jp c,+
+      ld a,FALSE
+      ld (scroll_enabled),a
+    +:
+
     ; Check if player is about to exit the left side of the screen.
     ld a,(player_x)
     cp LEFT_LIMIT_POSITION
@@ -620,7 +631,7 @@
   
   level_1_map:
     .incbin "data/village_tilemap.bin"
-    __:
+    level_1_map_end:
 
   idle_frame_to_index_table:
     .db 1 1 3 3 5 7 7 
