@@ -227,8 +227,6 @@
       out (DATA_PORT),a
     djnz -
 
-
-
     ; Level data:
     ld hl,level_1_map+_sizeof_level_1_map
     ld a,l
@@ -237,9 +235,6 @@
     ld (hl),a
     inc hl
     ld (hl),b
-
-
-
     
     ; Init map head.
     ld hl,level_1_map
