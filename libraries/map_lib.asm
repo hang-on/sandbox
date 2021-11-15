@@ -2,6 +2,7 @@
 ; -----------------------------------------------------------------------------
 ; Map
 ; Note: This lib needs access to quite some tables. Best placed in bank 1.
+; TODO: Refactor this lib around a MAP_TABLES_BANK constant.
 ; -----------------------------------------------------------------------------
 .equ MAP_WIDTH 16         ; Width in metatiles.
 .equ MAP_HEIGHT 10        ; Height in metatiles.

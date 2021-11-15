@@ -11,6 +11,8 @@
 
 .equ SCROLL_POSITION 180
 .equ LEFT_LIMIT_POSITION 10
+.equ RIGHT_LIMIT_POSITION 240
+
 
 ; Remove comment to enable unit testing
 ;.equ TEST_MODE
@@ -52,7 +54,8 @@
   pause_flag db
   input_ports dw
   ;  
-  critical_routines_finish_at db
+  vblank_finish_low db
+  vblank_finish_high db
 .ends
 
 ; -----------------------------------------------------------------------------
@@ -75,6 +78,8 @@
   hscroll_screen db ; 0-255
   hscroll_column db ; 0-7
   column_load_trigger db ; flag
+  scroll_enabled db
+  
 
 .ends
 
@@ -188,6 +193,8 @@
     RESET_BLOCK $0e, tile_buffer, 20
     LOAD_BYTES metatile_halves, 0, nametable_head, 0
     LOAD_BYTES hscroll_screen, 0, hscroll_column, 0, column_load_trigger, 0
+    LOAD_BYTES vblank_finish_high, 0, vblank_finish_low, 255
+    LOAD_BYTES scroll_enabled, FALSE
 
 
     
@@ -235,10 +242,26 @@
     ld b,HORIZONTAL_SCROLL_REGISTER
     call set_register 
 
-
+    ; Quick and dirty vblank profiling.
+    in a,V_COUNTER_PORT
+    ld b,a
+    ld a,(vblank_finish_low)
+    cp b
+    jp c,+
+      ; New lowest.
+      ld a,b
+      ld (vblank_finish_low),a
+      jp ++
+    +:
+      ld a,(vblank_finish_high)
+      cp b
+      jp nc,++
+        ; New highest. A high value of $DA means vblank finishes between 218-223.
+        ld a,b
+        ld (vblank_finish_high),a
+    ++:
     
-    ld hl,critical_routines_finish_at
-    call save_vcounter
+ 
     ;
     ; -------------------------------------------------------------------------
     ; Begin general updating (UPDATE).
@@ -414,38 +437,40 @@
 
     __: ; End of player state checks. 
 
-    
-    ; Check if screen should scroll instead of right movement.
-    ld a,(player_x)
-    cp SCROLL_POSITION
-    jp c,+
-      ; Player is over the scroll position
-      ld a,(hspeed)
-      bit 7,a             ; Negative value = walking left
-      jp nz,+ 
-      cp 0                ; Zero = no horizontal motion.
-      jp z,+
-        xor a
-        ld (hspeed),a
-        ; Scroll instead
-        ld a,(hscroll_screen)
-        dec a                     
-        ld (hscroll_screen),a
-        
-        ld a,(hscroll_column)
-        inc a                     
-        ld (hscroll_column),a
-        cp 8
-        jp nz,+
+    ld a,(scroll_enabled)
+    cp TRUE
+    jp nz,+    
+      ; Check if screen should scroll instead of right movement.
+      ld a,(player_x)
+      cp SCROLL_POSITION
+      jp c,+
+        ; Player is over the scroll position
+        ld a,(hspeed)
+        bit 7,a             ; Negative value = walking left
+        jp nz,+ 
+        cp 0                ; Zero = no horizontal motion.
+        jp z,+
           xor a
+          ld (hspeed),a
+          ; Scroll instead
+          ld a,(hscroll_screen)
+          dec a                     
+          ld (hscroll_screen),a
+          
+          ld a,(hscroll_column)
+          inc a                     
           ld (hscroll_column),a
-          ; Load new column
-          call next_metatile_half_to_tile_buffer
-          ld hl,column_load_trigger               ; Load on next vblank.
-          inc (hl)
+          cp 8
+          jp nz,+
+            xor a
+            ld (hscroll_column),a
+            ; Load new column
+            call next_metatile_half_to_tile_buffer
+            ld hl,column_load_trigger               ; Load on next vblank.
+            inc (hl)
     +:
 
-    ; Check if player is about to exit the left sid of the screen.
+    ; Check if player is about to exit the left side of the screen.
     ld a,(player_x)
     cp LEFT_LIMIT_POSITION
     jp nc,+
@@ -458,7 +483,20 @@
         ld (hspeed),a
     +:
 
-  
+    ; Check if player is about to exit the right side of the screen.
+    ld a,(player_x)
+    cp RIGHT_LIMIT_POSITION
+    jp c,+
+      ld a,(hspeed)
+      bit 7,a             ; Negative value = walking left
+      jp nz,+ 
+      cp 0                ; Zero = no horizontal motion.
+      jp z,+
+        xor a
+        ld (hspeed),a
+    +:
+
+
     ; Apply this frame's h and v speed to the player y,x
     ld a,(vspeed)
     ld b,a
