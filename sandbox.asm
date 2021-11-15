@@ -79,6 +79,7 @@
   hscroll_column db ; 0-7
   column_load_trigger db ; flag
   scroll_enabled db
+  end_of_map_data dw
 
   
 
@@ -196,6 +197,16 @@
     LOAD_BYTES hscroll_screen, 0, hscroll_column, 0, column_load_trigger, 0
     LOAD_BYTES vblank_finish_high, 0, vblank_finish_low, 255
     LOAD_BYTES scroll_enabled, TRUE
+
+    ; Level data:
+    ld hl,level_1_map+_sizeof_level_1_map
+    ld a,l
+    ld b,h
+    ld hl,end_of_map_data
+    ld (hl),a
+    inc hl
+    ld (hl),b
+
 
 
     
@@ -472,9 +483,11 @@
     +:
 
     ; End of map check.
+    ld hl,end_of_map_data
+    call get_word
+    ex de,hl
     ld hl,map_head
     call get_word
-    ld de,level_1_map_end; FIXME - this needs to be dynamic!
     sbc hl,de
     jp c,+
       ld a,FALSE
