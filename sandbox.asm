@@ -198,6 +198,15 @@
     LOAD_BYTES vblank_finish_high, 0, vblank_finish_low, 255
     LOAD_BYTES scroll_enabled, TRUE
 
+    ; Make solid block special tile in SAT
+    ld a,2
+    ld bc,CHARACTER_SIZE
+    ld hl,solid_block
+    ld de,$3f40
+    call load_vram
+
+
+
     ; Level data:
     ld hl,level_1_map+_sizeof_level_1_map
     ld a,l
@@ -629,6 +638,11 @@
  ; ----------------------------------------------------------------------------
 .section "Demo assets" free
 ; -----------------------------------------------------------------------------
+  solid_block:
+    ; Filled with color 1 in the palette:
+    .db $FF $00 $00 $00 $FF $00 $00 $00 $FF $00 $00 $00 $FF $00 $00 $00 $FF $00 $00 $00 $FF $00 $00 $00 $FF $00 $00 $00 $FF $00 $00 $00
+
+
 
   sweetie16_palette:
     .db $23 $00 $11 $12 $17 $1B $2E $19 $14 $10 $35 $38 $3D $3F $2A $15
