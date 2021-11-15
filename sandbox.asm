@@ -198,12 +198,34 @@
     LOAD_BYTES vblank_finish_high, 0, vblank_finish_low, 255
     LOAD_BYTES scroll_enabled, TRUE
 
-    ; Make solid block special tile in SAT
+    ; Make solid block special tile in SAT.
     ld a,2
     ld bc,CHARACTER_SIZE
     ld hl,solid_block
-    ld de,$3f40
+    ld de,START_OF_UNUSED_SAT_AREA
     call load_vram
+
+    ; Clear the top two rows with that special tile.
+    ld hl,NAME_TABLE_START
+    call setup_vram_write
+    ld b,32*2
+    -:
+      ld a,$fa ; Tilebank index of special tile.
+      out (DATA_PORT),a
+      ld a,%00000001
+      out (DATA_PORT),a
+    djnz -
+
+    ; Clear the bottom two rows with that special tile.
+    ld hl,NAME_TABLE_START+(32*22*2)
+    call setup_vram_write
+    ld b,32*2
+    -:
+      ld a,$fa ; Tilebank index of special tile.
+      out (DATA_PORT),a
+      ld a,%00000001
+      out (DATA_PORT),a
+    djnz -
 
 
 
@@ -229,6 +251,7 @@
     ; Fill the blanked column.
     call next_metatile_half_to_tile_buffer
     call tilebuffer_to_nametable
+
     
     ei
     halt
