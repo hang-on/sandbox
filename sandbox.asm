@@ -182,6 +182,8 @@
     .equ WALKING 1
     .equ ATTACKING 2
     .equ JUMPING 3
+    .equ JUMP_ATTACKING 4
+
     .equ ANIM_COUNTER_RESET 4
     .equ PLAYER_WALKING_SPEED 1
     .equ PLAYER_JUMPING_HSPEED 2
@@ -196,7 +198,7 @@
     LOAD_BYTES metatile_halves, 0, nametable_head, 0
     LOAD_BYTES hscroll_screen, 0, hscroll_column, 0, column_load_trigger, 0
     LOAD_BYTES vblank_finish_high, 0, vblank_finish_low, 255
-    LOAD_BYTES scroll_enabled, TRUE
+    LOAD_BYTES scroll_enabled, FALSE
 
     ; Make solid block special tile in SAT.
     ld a,2
@@ -377,6 +379,8 @@
     jp z,handle_attacking_state
     cp JUMPING
     jp z,handle_jumping_state
+    cp JUMP_ATTACKING
+    jp z,handle_jump_attacking_state
     ; Fall through to idle (default).
 
     handle_idle_state:
@@ -472,6 +476,46 @@
         +:
         ld (hspeed),a
       +:
+
+      call is_button_1_pressed
+      jp nc,+
+        LOAD_BYTES state, JUMP_ATTACKING, frame, 0
+        ld hl,slash_sfx
+        ld c,SFX_CHANNEL3
+        call PSGSFXPlay
+      +:
+    jp _f
+
+    handle_jump_attacking_state:
+      ld a,(jump_counter)
+      ld hl,jump_counter_to_vspeed_table
+      call lookup_byte
+      ld (vspeed),a
+
+      ld a,(jump_counter)
+      inc a
+      cp 32
+      jp nz,+
+        LOAD_BYTES state, IDLE, frame, 0, jump_counter, 0
+        jp _f
+      +:
+      ld (jump_counter),a
+      
+      call is_left_or_right_pressed
+      jp nc,+ 
+        ld a,(jump_counter)
+        ld hl,jump_counter_to_hspeed_table
+        call lookup_byte
+        ld b,a      
+        ld a,(direction)
+        cp RIGHT
+        ld a,b
+        jp z,+
+          neg
+        +:
+        ld (hspeed),a
+      +:
+
     jp _f
 
     __: ; End of player state checks. 
@@ -604,9 +648,14 @@
     
     call spr_2x2
 
+    ; Add the sword sprite on the relevant player states.
     ld a,(state)
     cp ATTACKING
-    jp nz,_f
+    jp z,+
+    cp JUMP_ATTACKING
+    jp z,+
+    jp _f
+    +:
       ld a,(frame)
       cp 1
       jp c,_f
@@ -694,11 +743,16 @@
     .db 1
     __:
 
+  jump_attacking_frame_to_index_table:
+    .db 13 15 17
+    __:
+
   state_to_frame_table:
     .dw idle_frame_to_index_table
     .dw walking_frame_to_index_table
     .dw attacking_frame_to_index_table
     .dw jumping_frame_to_index_table
+    .dw jump_attacking_frame_to_index_table
     __:
 
   state_to_frames_total_table:
@@ -706,6 +760,7 @@
     .db _sizeof_walking_frame_to_index_table
     .db _sizeof_attacking_frame_to_index_table
     .db _sizeof_jumping_frame_to_index_table
+    .db _sizeof_jump_attacking_frame_to_index_table
 
   jump_counter_to_vspeed_table:
     .db -5, -4, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -2, -2, -1, -1 
