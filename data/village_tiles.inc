@@ -303,7 +303,7 @@
 ; Tile index $097
 .db $FF $00 $38 $C7 $FF $00 $00 $FF $39 $C6 $C6 $FF $01 $FE $FE $FF $01 $FE $FE $FF $01 $FE $FE $FF $01 $FE $FE $FF $01 $FE $FE $FF
 ; Tile index $098
-.db $FF $00 $1C $E3 $FF $00 $00 $FF $1C $E3 $E3 $FF $00 $FF $FF $FF $00 $FF $FF $FF $00 $FF $FF $FF $00 $FF $FF $FF $00 $FF $FF $FF
+.db $FF $00 $3C $C3 $FF $00 $00 $FF $3C $C3 $C3 $FF $00 $FF $FF $FF $00 $FF $FF $FF $00 $FF $FF $FF $00 $FF $FF $FF $00 $FF $FF $FF
 ; Tile index $099
 .db $EE $00 $11 $EE $EE $00 $11 $EE $2E $CE $D1 $E0 $20 $C0 $DF $E0 $2E $C0 $D1 $EE $2E $C0 $D1 $EE $2E $C0 $D1 $EE $2E $CE $D1 $E0
 ; Tile index $09A
