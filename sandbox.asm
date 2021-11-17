@@ -62,6 +62,7 @@
 ; -----------------------------------------------------------------------------
   vblank_finish_low db
   vblank_finish_high db
+  set_red_border db
 
   anim_counter dw
   frame db
@@ -297,6 +298,22 @@
     ld a,(hscroll_screen)
     ld b,HORIZONTAL_SCROLL_REGISTER
     call set_register 
+
+    ; For debugging.
+    ld a,(set_red_border)
+    cp TRUE
+    jp nz,+
+      ld a,4
+      ld b,BORDER_COLOR
+      call set_register
+      ld a,FALSE
+      ld (set_red_border),a
+      jp ++
+    +:
+      ld a,1
+      ld b,BORDER_COLOR
+      call set_register
+    ++:
 
     ; Quick and dirty vblank profiling.
     in a,V_COUNTER_PORT
@@ -765,6 +782,13 @@
       ld a,MINION_ATTACKING_FRAME_1
     ++:
     call spr_2x2
+
+    ; Test of border color as debug indicator.
+    call is_reset_pressed
+    jp nc,+
+      ld a,TRUE
+      ld (set_red_border),a
+    +:
 
 
   jp main_loop
