@@ -355,6 +355,7 @@
     ld (input_ports+1),a
 
     ; Add check against map width! / scroll-stop flag
+    ; FIXME - this HAS been solved, below 
     call is_reset_pressed
     jp nc,+        
       ld a,(hscroll_screen)
