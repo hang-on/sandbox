@@ -54,13 +54,15 @@
   pause_flag db
   input_ports dw
   ;  
-  vblank_finish_low db
-  vblank_finish_high db
+
 .ends
 
 ; -----------------------------------------------------------------------------
 .ramsection "Game variables" slot 3
 ; -----------------------------------------------------------------------------
+  vblank_finish_low db
+  vblank_finish_high db
+
   anim_counter dw
   frame db
   direction db
@@ -72,6 +74,10 @@
 
   dummy_y db
   dummy_x db
+  dummy_anim_counter dw
+  dummy_frame db
+
+
   hspeed db
   vspeed db
 
@@ -81,6 +87,8 @@
   scroll_enabled db
   end_of_map_data dw
 
+  button_1_released db
+  button_2_released db
   
 
 .ends
@@ -192,13 +200,20 @@
     LOAD_BYTES player_y, 127, player_x, 60
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
     RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
-    LOAD_BYTES dummy_y, 200, dummy_x, 200
 
     RESET_BLOCK $0e, tile_buffer, 20
     LOAD_BYTES metatile_halves, 0, nametable_head, 0
     LOAD_BYTES hscroll_screen, 0, hscroll_column, 0, column_load_trigger, 0
     LOAD_BYTES vblank_finish_high, 0, vblank_finish_low, 255
     LOAD_BYTES scroll_enabled, FALSE
+
+    LOAD_BYTES button_1_released, FALSE, button_2_released, FALSE
+
+    .equ MINION_ATTACKING_FRAME_0 $86
+    .equ MINION_ATTACKING_FRAME_1 $88
+    .equ MINION_ATTACKING_FRAMES 2
+    LOAD_BYTES dummy_y, 127, dummy_x, 200
+    RESET_BLOCK 7, dummy_anim_counter, 2
 
     ; Make solid block special tile in SAT.
     ld a,2
@@ -322,16 +337,15 @@
     in a,(INPUT_PORT_2)
     ld (input_ports+1),a
 
-    ; *********** Development:
     ; Add check against map width! / scroll-stop flag
     call is_reset_pressed
     jp nc,+        
       ld a,(hscroll_screen)
-      dec a                     ; This must be hspeed!
+      dec a                     
       ld (hscroll_screen),a
       
       ld a,(hscroll_column)
-      inc a                     ; This must be hspeed!
+      inc a                     
       ld (hscroll_column),a
       cp 8
       jp nz,+
@@ -342,9 +356,6 @@
         ld hl,column_load_trigger               ; Load on next vblank.
         inc (hl)
      +:
-
-
-
 
 
     ; Set the player's direction depending on controller input (LEFT/RIGHT).
@@ -381,15 +392,22 @@
     jp z,handle_jumping_state
     cp JUMP_ATTACKING
     jp z,handle_jump_attacking_state
-    ; Fall through to idle (default).
+    ; Fall through to error
+    -:
+      nop ; STATE ERROR
+    jp -
 
-    handle_idle_state:
+    handle_idle_state:      
       call is_button_1_pressed
       jp nc,+
-        LOAD_BYTES state, ATTACKING, frame, 0
-        ld hl,slash_sfx
-        ld c,SFX_CHANNEL3
-        call PSGSFXPlay
+        ld a,(button_1_released)
+        cp TRUE
+        jp nz,+
+          LOAD_BYTES state, ATTACKING, frame, 0
+          ld hl,slash_sfx
+          ld c,SFX_CHANNEL3
+          call PSGSFXPlay
+          jp _f
       +:
       call is_left_or_right_pressed
       jp nc,+
@@ -399,21 +417,27 @@
       +:
       call is_button_2_pressed
       jp nc,+
-        LOAD_BYTES state, JUMPING, frame, 0
-        ld hl,jump_sfx
-        ld c,SFX_CHANNEL2
-        call PSGSFXPlay
-        jp _f
+        ld a,(button_2_released)
+        cp TRUE
+        jp nz,+
+          LOAD_BYTES state, JUMPING, frame, 0
+          ld hl,jump_sfx
+          ld c,SFX_CHANNEL2
+          call PSGSFXPlay
+          jp _f
       +:
       jp _f
 
     handle_walking_state:
       call is_button_1_pressed
       jp nc,+
-        LOAD_BYTES state, ATTACKING, frame, 0
-        ld hl,slash_sfx
-        ld c,SFX_CHANNEL3
-        call PSGSFXPlay
+        ld a,(button_1_released)
+        cp TRUE
+        jp nz,+
+          LOAD_BYTES state, ATTACKING, frame, 0
+          ld hl,slash_sfx
+          ld c,SFX_CHANNEL3
+          call PSGSFXPlay
         jp _f
       +:
       call is_left_or_right_pressed
@@ -424,10 +448,13 @@
       +:
       call is_button_2_pressed
       jp nc,+
-        LOAD_BYTES state, JUMPING, frame, 0
-        ld hl,jump_sfx
-        ld c,SFX_CHANNEL2
-        call PSGSFXPlay
+        ld a,(button_2_released)
+        cp TRUE
+        jp nz,+
+          LOAD_BYTES state, JUMPING, frame, 0
+          ld hl,jump_sfx
+          ld c,SFX_CHANNEL2
+          call PSGSFXPlay
         jp _f
       +:
       ld a,(direction)
@@ -479,10 +506,13 @@
 
       call is_button_1_pressed
       jp nc,+
-        LOAD_BYTES state, JUMP_ATTACKING, frame, 0
-        ld hl,slash_sfx
-        ld c,SFX_CHANNEL3
-        call PSGSFXPlay
+        ld a,(button_1_released)
+        cp TRUE
+        jp nz,+
+          LOAD_BYTES state, JUMP_ATTACKING, frame, 0
+          ld hl,slash_sfx
+          ld c,SFX_CHANNEL3
+          call PSGSFXPlay
       +:
     jp _f
 
@@ -501,6 +531,12 @@
       +:
       ld (jump_counter),a
       
+      ld hl,attack_counter
+      call tick_counter
+      jp nc,+
+        LOAD_BYTES state, JUMPING, frame, 0
+      +:
+
       call is_left_or_right_pressed
       jp nc,+ 
         ld a,(jump_counter)
@@ -519,6 +555,22 @@
     jp _f
 
     __: ; End of player state checks. 
+
+    ; State of buttons 1 and 2 to differentiate keydown/keypress.
+    ld a,FALSE
+    ld (button_1_released),a
+    ld (button_2_released),a
+    call is_button_1_pressed
+    jp c,+
+      ld a,TRUE
+      ld (button_1_released),a
+    +:
+    call is_button_2_pressed
+    jp c,+
+      ld a,TRUE
+      ld (button_2_released),a
+    +:
+
 
     ld a,(scroll_enabled)
     cp TRUE
@@ -683,12 +735,35 @@
 
     __:
 
-    ; Put the test dummy on
+    ; Dummy handling:
+    ld hl,dummy_x
+    dec (hl)
+    ; Count down to next frame.
+    ld hl,dummy_anim_counter
+    call tick_counter
+    jp nc,++
+      ld a,(dummy_frame)
+      inc a
+      cp MINION_ATTACKING_FRAMES
+      jp nz,+
+        xor a
+      +:
+      ld (dummy_frame),a
+
+    ++:
+    ; Put the test dummy on (test of minion).    
     ld a,(dummy_y)
     ld d,a
     ld a,(dummy_x)
     ld e,a
-    ld a,65
+    ld a,(dummy_frame)
+    cp 0
+    jp nz,+
+      ld a,MINION_ATTACKING_FRAME_0
+      jp ++
+    +:
+      ld a,MINION_ATTACKING_FRAME_1
+    ++:
     call spr_2x2
 
 
