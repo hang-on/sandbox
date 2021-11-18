@@ -1,10 +1,9 @@
-; Sandbox.
-;.sdsctag 1.0, "Sandbox", "YYY", "hang-on Entertainment"
+; Sandbox - working title for a new take on "Mighty Knights".
+;.sdsctag 1.0, "Title", "Description", "hang-on Entertainment"
 ; -----------------------------------------------------------------------------
 ; GLOBAL DEFINITIONS
 ; -----------------------------------------------------------------------------
 .include "libraries/sms_constants.asm"
-.include "libraries/core.asm"
 
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
@@ -13,12 +12,6 @@
 .equ LEFT_LIMIT_POSITION 10
 .equ RIGHT_LIMIT_POSITION 240
 
-
-; Remove comment to enable unit testing
-;.equ TEST_MODE
-.ifdef TEST_MODE
-  .equ USE_TEST_KERNEL
-.endif
 
 ; -----------------------------------------------------------------------------
 .memorymap
@@ -41,8 +34,11 @@
 .include "libraries/tiny_games.asm"
 .include "libraries/psglib.inc"
 .include "libraries/vdp_lib.asm"
-;.include "libraries/misc_lib.asm"
 .include "libraries/map_lib.asm"
+.include "libraries/input_lib.asm"
+.include "libraries/mighty_knights_lib.asm"
+
+
 
 ; -----------------------------------------------------------------------------
 .ramsection "System variables" slot 3
@@ -53,7 +49,6 @@
   vblank_counter db
   hline_counter db
   pause_flag db
-  input_ports dw
   ;  
 
 .ends
@@ -89,8 +84,8 @@
   scroll_enabled db
   end_of_map_data dw
 
-  button_1_released db
-  button_2_released db
+  accept_button_1_input db
+  accept_button_2_input db
   
 
 .ends
@@ -209,7 +204,7 @@
     LOAD_BYTES vblank_finish_high, 0, vblank_finish_low, 255
     LOAD_BYTES scroll_enabled, FALSE
 
-    LOAD_BYTES button_1_released, FALSE, button_2_released, FALSE
+    LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
 
     .equ MINION_ATTACKING_FRAME_0 $86
     .equ MINION_ATTACKING_FRAME_1 $88
@@ -348,33 +343,7 @@
     ld a,2
     SELECT_BANK_IN_REGISTER_A
     call refresh_sat_handler
-
-    ; Set input_ports (word) to mirror current state of ports $dc and $dd.
-    in a,(INPUT_PORT_1)
-    ld (input_ports),a
-    in a,(INPUT_PORT_2)
-    ld (input_ports+1),a
-
-    ; Add check against map width! / scroll-stop flag
-    ; FIXME - this HAS been solved, below 
-    call is_reset_pressed
-    jp nc,+        
-      ld a,(hscroll_screen)
-      dec a                     
-      ld (hscroll_screen),a
-      
-      ld a,(hscroll_column)
-      inc a                     
-      ld (hscroll_column),a
-      cp 8
-      jp nz,+
-        xor a
-        ld (hscroll_column),a
-        ; Load new column
-        call next_metatile_half_to_tile_buffer
-        ld hl,column_load_trigger               ; Load on next vblank.
-        inc (hl)
-     +:
+    call refresh_input_ports
 
 
     ; Set the player's direction depending on controller input (LEFT/RIGHT).
@@ -419,13 +388,10 @@
     handle_idle_state:      
       call is_button_1_pressed
       jp nc,+
-        ld a,(button_1_released)
+        ld a,(accept_button_1_input)
         cp TRUE
         jp nz,+
-          LOAD_BYTES state, ATTACKING, frame, 0
-          ld hl,slash_sfx
-          ld c,SFX_CHANNEL3
-          call PSGSFXPlay
+          TRANSITION_PLAYER_STATE ATTACKING, slash_sfx
           jp _f
       +:
       call is_left_or_right_pressed
@@ -436,13 +402,10 @@
       +:
       call is_button_2_pressed
       jp nc,+
-        ld a,(button_2_released)
+        ld a,(accept_button_2_input)
         cp TRUE
         jp nz,+
-          LOAD_BYTES state, JUMPING, frame, 0
-          ld hl,jump_sfx
-          ld c,SFX_CHANNEL2
-          call PSGSFXPlay
+          TRANSITION_PLAYER_STATE JUMPING, jump_sfx
           jp _f
       +:
       jp _f
@@ -450,7 +413,7 @@
     handle_walking_state:
       call is_button_1_pressed
       jp nc,+
-        ld a,(button_1_released)
+        ld a,(accept_button_1_input)
         cp TRUE
         jp nz,+
           LOAD_BYTES state, ATTACKING, frame, 0
@@ -467,7 +430,7 @@
       +:
       call is_button_2_pressed
       jp nc,+
-        ld a,(button_2_released)
+        ld a,(accept_button_2_input)
         cp TRUE
         jp nz,+
           LOAD_BYTES state, JUMPING, frame, 0
@@ -525,7 +488,7 @@
 
       call is_button_1_pressed
       jp nc,+
-        ld a,(button_1_released)
+        ld a,(accept_button_1_input)
         cp TRUE
         jp nz,+
           LOAD_BYTES state, JUMP_ATTACKING, frame, 0
@@ -577,17 +540,17 @@
 
     ; State of buttons 1 and 2 to differentiate keydown/keypress.
     ld a,FALSE
-    ld (button_1_released),a
-    ld (button_2_released),a
+    ld (accept_button_1_input),a
+    ld (accept_button_2_input),a
     call is_button_1_pressed
     jp c,+
       ld a,TRUE
-      ld (button_1_released),a
+      ld (accept_button_1_input),a
     +:
     call is_button_2_pressed
     jp c,+
       ld a,TRUE
-      ld (button_2_released),a
+      ld (accept_button_2_input),a
     +:
 
 

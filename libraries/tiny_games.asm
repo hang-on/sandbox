@@ -1,7 +1,56 @@
 ; tiny_games.asm.
-;
+; General library of definitions, macros and functions.
 
+.equ ENABLED $ff
+.equ DISABLED 0
+.equ TRUE $ff
+.equ FALSE 0
+
+; -----------------------------------------------------------------------------
+.macro FILL_MEMORY args value
+; -----------------------------------------------------------------------------
+;  Fills work RAM ($C001 to $DFF0) with the specified value.
+  ld    hl, $C001
+  ld    de, $C002
+  ld    bc, $1FEE
+  ld    (hl), value
+  ldir
+.endm
+; -----------------------------------------------------------------------------
+.macro RESTORE_REGISTERS
+; -----------------------------------------------------------------------------
+  ; Restore all registers, except IX and IY
+  pop iy
+  pop ix
+  pop hl
+  pop de
+  pop bc
+  pop af
+.endm
+; -----------------------------------------------------------------------------
+.macro SAVE_REGISTERS
+; -----------------------------------------------------------------------------
+  ; Save all registers, except IX and IY
+  push af
+  push bc
+  push de
+  push hl
+  push ix
+  push iy
+.endm
+; -----------------------------------------------------------------------------
+.macro SELECT_BANK_IN_REGISTER_A
+; -----------------------------------------------------------------------------
+  ; Select a bank for slot 2, - put value in register A.
+  .ifdef USE_TEST_KERNEL
+    ld (test_kernel_bank),a
+  .else
+    ld (SLOT_2_CONTROL),a
+  .endif
+.endm
+; -----------------------------------------------------------------------------
 .macro RESET_VARIABLES ARGS VALUE
+; -----------------------------------------------------------------------------
   ; Set one or more byte-sized vars in RAM with the specified value.
   ld a,VALUE
   .rept NARGS-1
@@ -9,8 +58,9 @@
     ld (\1),a
   .endr
 .endm
-
+; -----------------------------------------------------------------------------
 .macro RESET_BLOCK ARGS VALUE, START, SIZE
+; -----------------------------------------------------------------------------
   ; Reset af block of RAM of SIZE bytes to VALUE, starting from label START.
   ld a,VALUE
   ld hl,START
@@ -19,8 +69,10 @@
     inc hl
   .endr
 .endm
-
+; -----------------------------------------------------------------------------
 .macro LOAD_BYTES
+; -----------------------------------------------------------------------------
+  ; Load byte-sized variables with matching values. Useful for initializing. 
   ; IN: Pair of byte-sized variable and value to load
   .rept (NARGS/2)
     ld a,\2
@@ -38,65 +90,6 @@
   function_at_hl:
     ; Emulate a call (hl) function.
     jp (hl)
-
-
-  is_reset_pressed:
-    ld a,(input_ports+1)
-    and %00010000
-    ret nz            ; Return with carry flag reset
-    scf
-  ret                 ; Return with carry flag set.
-
-  is_button_1_pressed:
-    ld a,(input_ports)
-    and %00010000
-    ret nz            ; Return with carry flag reset
-    scf
-  ret                 ; Return with carry flag set.
-
-  is_button_2_pressed:
-    ld a,(input_ports)
-    and %00100000
-    ret nz            ; Return with carry flag reset
-    scf
-  ret                 ; Return with carry flag set.
-
-
-  is_dpad_pressed:
-    ld a,(input_ports)
-    and %00001111   ; Isolate the dpad bits.
-    cpl             ; Invert bits; now 1 = keypress!
-    and %00001111   ; Get rid of garbage from cpl in last four bits.
-    cp 0            ; Now, is any dpad key preseed?
-    ret z           ; No, then return with carry flag reset (by the AND).
-    scf             ; Yes, then set carry flag and...
-  ret               ; Return with carry flag set.
-
-  is_left_or_right_pressed: ; might be buggy!!
-    ld a,(input_ports)
-    and %00001100   ; Isolate the bits.
-    cpl             ; Invert bits; now 1 = keypress!
-    and %00001100   ; Get rid of garbage 
-    cp 0            ;
-    ret z           ; No, then return with carry flag reset (by the AND).
-    scf             ; Yes, then set carry flag and...
-  ret               ; Return with carry flag set.
-
-
-  is_left_pressed:
-    ld a,(input_ports)
-    and %00000100
-    ret nz          ; Return with carry flag reset
-    scf
-  ret               ; Return with carry flag set.
-
-  is_right_pressed:
-    ld a,(input_ports)
-    and %00001000
-    ret nz          ; Return with carry flag reset
-    scf
-  ret               ; Return with carry flag set.
-
 
   lookup_byte:
     ; IN: a = value, hl = look-up table (ptr).

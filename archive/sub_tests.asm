@@ -1,4 +1,12 @@
 
+; Put this in the main code somewhere at the start:
+; Remove comment to enable unit testing
+;.equ TEST_MODE
+.ifdef TEST_MODE
+  .equ USE_TEST_KERNEL
+.endif
+
+
 
 .macro ASSERT_A_EQUALS
   cp \1
