@@ -391,7 +391,7 @@
         ld a,(accept_button_1_input)
         cp TRUE
         jp nz,+
-          TRANSITION_PLAYER_STATE ATTACKING, slash_sfx, SFX_CHANNEL3
+          TRANSITION_PLAYER_STATE ATTACKING, slash_sfx
           jp _f
       +:
       call is_left_or_right_pressed
@@ -405,7 +405,7 @@
         ld a,(accept_button_2_input)
         cp TRUE
         jp nz,+
-          TRANSITION_PLAYER_STATE JUMPING, jump_sfx, SFX_CHANNEL2
+          TRANSITION_PLAYER_STATE JUMPING, jump_sfx
           jp _f
       +:
       jp _f
@@ -416,7 +416,7 @@
         ld a,(accept_button_1_input)
         cp TRUE
         jp nz,+
-          TRANSITION_PLAYER_STATE ATTACKING, slash_sfx, SFX_CHANNEL3
+          TRANSITION_PLAYER_STATE ATTACKING, slash_sfx
         jp _f
       +:
       call is_left_or_right_pressed
@@ -430,7 +430,7 @@
         ld a,(accept_button_2_input)
         cp TRUE
         jp nz,+
-          TRANSITION_PLAYER_STATE JUMPING, jump_sfx, SFX_CHANNEL2
+          TRANSITION_PLAYER_STATE JUMPING, jump_sfx
           jp _f
       +:
       ld a,(direction)
@@ -486,7 +486,7 @@
         ld a,(accept_button_1_input)
         cp TRUE
         jp nz,+
-          TRANSITION_PLAYER_STATE JUMP_ATTACKING, slash_sfx, SFX_CHANNEL3
+          TRANSITION_PLAYER_STATE JUMP_ATTACKING, slash_sfx
       +:
     jp _f
 
