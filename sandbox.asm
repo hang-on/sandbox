@@ -732,13 +732,19 @@
     __:
 
     ; Testing:
-    call is_reset_pressed
-    jp nc,+
-      ;ld a,TRUE
-      ;ld (set_red_border),a
-      ld a,HURTING
-      ld (dummy_state),a
-      RESET_BLOCK DUMMY_HURT_COUNTER, dummy_anim_counter, 2
+    ld a,(dummy_state)
+    cp HURTING
+    jp z,+
+      call is_reset_pressed
+      jp nc,+
+        ;ld a,TRUE
+        ;ld (set_red_border),a
+        ld a,HURTING
+        ld (dummy_state),a
+        RESET_BLOCK DUMMY_HURT_COUNTER, dummy_anim_counter, 2
+        ld hl,dummy_x
+        inc (hl)
+        inc (hl)
     +:
 
 
