@@ -18,5 +18,54 @@
 .section "Mighty Knights Library" free
 ; -----------------------------------------------------------------------------
 
+  move_dummy:
+
+    ld hl,dummy_x
+    dec (hl)
+    ; Count down to next frame.
+    ld hl,dummy_anim_counter
+    call tick_counter
+    jp nc,++
+      ld a,(dummy_frame)
+      inc a
+      cp DUMMY_MOVING_FRAMES
+      jp nz,+
+        xor a
+      +:
+      ld (dummy_frame),a
+    ++:
+
+    ld a,(dummy_y)
+    ld d,a
+    ld a,(dummy_x)
+    ld e,a
+    ld a,(dummy_frame)
+    cp 0
+    jp nz,+
+      ld a,DUMMY_MOVING_FRAME_0
+      jp ++
+    +:
+      ld a,DUMMY_MOVING_FRAME_1
+    ++:
+    call spr_2x2
+  ret
+
+  hurt_dummy:
+    ld hl,dummy_anim_counter
+    call tick_counter
+    jp nc,+
+      ld a,MOVING
+      ld (dummy_state),a
+      RESET_BLOCK DUMMY_MOVE_COUNTER, dummy_anim_counter, 2
+    +:
+
+    ld a,(dummy_y)
+    ld d,a
+    ld a,(dummy_x)
+    ld e,a
+    ld a,$8a
+    call spr_2x2
+  
+  ret
 
 .ends

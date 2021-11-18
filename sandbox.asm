@@ -73,6 +73,7 @@
   dummy_x db
   dummy_anim_counter dw
   dummy_frame db
+  dummy_state db
 
 
   hspeed db
@@ -188,7 +189,7 @@
     .equ ATTACKING 2
     .equ JUMPING 3
     .equ JUMP_ATTACKING 4
-
+    
     .equ ANIM_COUNTER_RESET 4
     .equ PLAYER_WALKING_SPEED 1
     .equ PLAYER_JUMPING_HSPEED 2
@@ -206,11 +207,17 @@
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
 
-    .equ MINION_ATTACKING_FRAME_0 $86
-    .equ MINION_ATTACKING_FRAME_1 $88
-    .equ MINION_ATTACKING_FRAMES 2
+    .equ DUMMY_MOVING_FRAME_0 $86
+    .equ DUMMY_MOVING_FRAME_1 $88
+    .equ DUMMY_MOVING_FRAMES 2
+    .equ DUMMY_MOVE_COUNTER 7
+    .equ DUMMY_HURT_COUNTER 15
+    .equ MOVING 10
+    .equ HURTING 11
+    
     LOAD_BYTES dummy_y, 127, dummy_x, 200
-    RESET_BLOCK 7, dummy_anim_counter, 2
+    RESET_BLOCK DUMMY_MOVE_COUNTER, dummy_anim_counter, 2
+    LOAD_BYTES dummy_state, MOVING
 
     ; Make solid block special tile in SAT.
     ld a,2
@@ -709,41 +716,29 @@
     __:
 
     ; Dummy handling:
-    ld hl,dummy_x
-    dec (hl)
-    ; Count down to next frame.
-    ld hl,dummy_anim_counter
-    call tick_counter
-    jp nc,++
-      ld a,(dummy_frame)
-      inc a
-      cp MINION_ATTACKING_FRAMES
-      jp nz,+
-        xor a
-      +:
-      ld (dummy_frame),a
-
-    ++:
+    
     ; Put the test dummy on (test of minion).    
-    ld a,(dummy_y)
-    ld d,a
-    ld a,(dummy_x)
-    ld e,a
-    ld a,(dummy_frame)
-    cp 0
+    ld a,(dummy_state)
+    cp MOVING
     jp nz,+
-      ld a,MINION_ATTACKING_FRAME_0
-      jp ++
+      call move_dummy
+      jp _f
     +:
-      ld a,MINION_ATTACKING_FRAME_1
-    ++:
-    call spr_2x2
+    cp HURTING
+    jp nz,+
+      call hurt_dummy
+      jp _f
+    +:
+    __:
 
-    ; Test of border color as debug indicator.
+    ; Testing:
     call is_reset_pressed
     jp nc,+
-      ld a,TRUE
-      ld (set_red_border),a
+      ;ld a,TRUE
+      ;ld (set_red_border),a
+      ld a,HURTING
+      ld (dummy_state),a
+      RESET_BLOCK DUMMY_HURT_COUNTER, dummy_anim_counter, 2
     +:
 
 
