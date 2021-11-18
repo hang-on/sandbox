@@ -19,6 +19,15 @@
 ; -----------------------------------------------------------------------------
 
   move_dummy:
+    call is_reset_pressed
+    jp nc,+
+      ld a,HURTING
+      ld (dummy_state),a
+      RESET_BLOCK DUMMY_HURT_COUNTER, dummy_anim_counter, 2
+      ld hl,dummy_x
+      inc (hl)
+      inc (hl)
+    +:
 
     ld hl,dummy_x
     dec (hl)
@@ -54,11 +63,15 @@
     ld hl,dummy_anim_counter
     call tick_counter
     jp nc,+
-      ld a,MOVING
+      ld a,DEACTIVATED
       ld (dummy_state),a
-      RESET_BLOCK DUMMY_MOVE_COUNTER, dummy_anim_counter, 2
     +:
-
+    ld a,(odd_frame)
+    cp TRUE
+    jp nz,+
+      ld hl,dummy_y
+      inc (hl)
+    +:
     ld a,(dummy_y)
     ld d,a
     ld a,(dummy_x)

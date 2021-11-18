@@ -59,6 +59,7 @@
   vblank_finish_low db
   vblank_finish_high db
   set_red_border db
+  odd_frame db
 
   anim_counter dw
   frame db
@@ -204,6 +205,7 @@
     LOAD_BYTES hscroll_screen, 0, hscroll_column, 0, column_load_trigger, 0
     LOAD_BYTES vblank_finish_high, 0, vblank_finish_low, 255
     LOAD_BYTES scroll_enabled, FALSE
+    LOAD_BYTES odd_frame, TRUE
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
 
@@ -214,8 +216,11 @@
     .equ DUMMY_HURT_COUNTER 15
     .equ MOVING 10
     .equ HURTING 11
+    .equ DEACTIVATED 0
+    .equ DUMMY_RESPAWN_Y 127
+    .equ DUMMY_RESPAWN_X 250
     
-    LOAD_BYTES dummy_y, 127, dummy_x, 200
+    LOAD_BYTES dummy_y, DUMMY_RESPAWN_Y, dummy_x, DUMMY_RESPAWN_X
     RESET_BLOCK DUMMY_MOVE_COUNTER, dummy_anim_counter, 2
     LOAD_BYTES dummy_state, MOVING
 
@@ -351,6 +356,10 @@
     SELECT_BANK_IN_REGISTER_A
     call refresh_sat_handler
     call refresh_input_ports
+
+    ld a,(odd_frame)                ; Get value, either TRUE or FALSE.
+    cpl                             ; Invert (TRUE -> FALSE, FALSE -> TRUE).
+    ld (odd_frame),a                ; Store value.
 
 
     ; Set the player's direction depending on controller input (LEFT/RIGHT).
@@ -717,7 +726,23 @@
 
     ; Dummy handling:
     
-    ; Put the test dummy on (test of minion).    
+    ; Respawn deactivated dummy on player 2 button 1 press.
+    call is_player_2_button_1_pressed
+    jp nc,+
+      ld a,(dummy_state)
+      cp DEACTIVATED
+      jp nz,+
+        ; Spawn new dummy.
+        ld a,MOVING
+        ld (dummy_state),a
+        RESET_BLOCK DUMMY_MOVE_COUNTER, dummy_anim_counter, 2
+        ld a,DUMMY_RESPAWN_Y
+        ld (dummy_y),a
+        ld a,DUMMY_RESPAWN_X
+        ld (dummy_x),a
+    +:
+
+    ; Dummy state handling.    
     ld a,(dummy_state)
     cp MOVING
     jp nz,+
@@ -731,21 +756,6 @@
     +:
     __:
 
-    ; Testing:
-    ld a,(dummy_state)
-    cp HURTING
-    jp z,+
-      call is_reset_pressed
-      jp nc,+
-        ;ld a,TRUE
-        ;ld (set_red_border),a
-        ld a,HURTING
-        ld (dummy_state),a
-        RESET_BLOCK DUMMY_HURT_COUNTER, dummy_anim_counter, 2
-        ld hl,dummy_x
-        inc (hl)
-        inc (hl)
-    +:
 
 
   jp main_loop

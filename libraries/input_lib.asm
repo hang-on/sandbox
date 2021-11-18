@@ -69,6 +69,15 @@
     scf
   ret               ; Return with carry flag set.
 
+
+  is_player_2_button_1_pressed:
+    ld a,(input_ports+1)
+    and %00000100
+    ret nz            ; Return with carry flag reset
+    scf
+  ret                 ; Return with carry flag set.
+
+
   refresh_input_ports:
     ; Set input_ports (word) to mirror current state of ports $dc and $dd.
     in a,(INPUT_PORT_1)
