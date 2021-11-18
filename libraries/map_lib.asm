@@ -42,14 +42,12 @@
 
   map_column_to_metatile_buffer:
       ; Read a column.
-    ld hl,map_head
-    call get_word
+    ld hl,(map_head)
     ld de,metatile_buffer
     ld bc,MAP_HEIGHT      
     ldir
     ; Forward map head.
-    ld hl,map_head
-    call get_word
+    ld hl,(map_head)
     ld de,MAP_HEIGHT      
     add hl,de
     ld a,l

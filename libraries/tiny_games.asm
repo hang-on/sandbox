@@ -31,34 +31,72 @@
 .endm
 
 .bank 0 slot 0
+; -----------------------------------------------------------------------------
 .section "Tiny Games Library" free
+; -----------------------------------------------------------------------------
+
+  function_at_hl:
+    ; Emulate a call (hl) function.
+    jp (hl)
 
 
+  is_reset_pressed:
+    ld a,(input_ports+1)
+    and %00010000
+    ret nz            ; Return with carry flag reset
+    scf
+  ret                 ; Return with carry flag set.
 
-  spr_2x2:
-    ; spr id x y 
-    ; IN: A = id, index in the sprite tile bank.
-    ;     D = y, E = x (screen position - upper left corner).
-    ld c,a
-    call add_sprite
-    ld a,8
-    add e
-    ld e,a
-    inc c
-    call add_sprite
-    ld a,32
-    add c
-    ld c,a
-    ld a,8
-    add d
-    ld d,a
-    call add_sprite
-    dec c
-    ld a,e
-    sub 8
-    ld e,a
-    call add_sprite
-  ret
+  is_button_1_pressed:
+    ld a,(input_ports)
+    and %00010000
+    ret nz            ; Return with carry flag reset
+    scf
+  ret                 ; Return with carry flag set.
+
+  is_button_2_pressed:
+    ld a,(input_ports)
+    and %00100000
+    ret nz            ; Return with carry flag reset
+    scf
+  ret                 ; Return with carry flag set.
+
+
+  is_dpad_pressed:
+    ld a,(input_ports)
+    and %00001111   ; Isolate the dpad bits.
+    cpl             ; Invert bits; now 1 = keypress!
+    and %00001111   ; Get rid of garbage from cpl in last four bits.
+    cp 0            ; Now, is any dpad key preseed?
+    ret z           ; No, then return with carry flag reset (by the AND).
+    scf             ; Yes, then set carry flag and...
+  ret               ; Return with carry flag set.
+
+  is_left_or_right_pressed: ; might be buggy!!
+    ld a,(input_ports)
+    and %00001100   ; Isolate the bits.
+    cpl             ; Invert bits; now 1 = keypress!
+    and %00001100   ; Get rid of garbage 
+    cp 0            ;
+    ret z           ; No, then return with carry flag reset (by the AND).
+    scf             ; Yes, then set carry flag and...
+  ret               ; Return with carry flag set.
+
+
+  is_left_pressed:
+    ld a,(input_ports)
+    and %00000100
+    ret nz          ; Return with carry flag reset
+    scf
+  ret               ; Return with carry flag set.
+
+  is_right_pressed:
+    ld a,(input_ports)
+    and %00001000
+    ret nz          ; Return with carry flag reset
+    scf
+  ret               ; Return with carry flag set.
+
 
   lookup_byte:
     ; IN: a = value, hl = look-up table (ptr).
@@ -84,7 +122,67 @@
     ld l,b
   ret
 
+  offset_byte_table:
+    ; Offset base address (in HL) of a table of bytes or words. 
+    ; Entry: A  = Offset to apply.
+    ;        HL = Pointer to table of values (bytes or words).  
+    ; Exit:  HL = Offset table address.
+    ; Uses:  A, HL
+    add a,l
+    ld l,a
+    ld a,0
+    adc a,h
+    ld h,a
+  ret
+  
 
+  offset_word_table:
+    add a,a              
+    add a,l
+    ld l,a
+    ld a,0
+    adc a,h
+    ld h,a
+  ret
+
+  offset_custom_table:
+    ; IN: A = Table index, HL = Base address of table, 
+    ;     B = Size of table item.
+    ; OUT: HL = Address of item at specified index.
+    cp 0
+    ret z    
+    ld d,0
+    ld e,b
+    ld b,a
+    -:
+      add hl,de
+    djnz -
+  ret
+
+  spr_2x2:
+    ; spr id x y 
+    ; IN: A = id, index in the sprite tile bank.
+    ;     D = y, E = x (screen position - upper left corner).
+    ld c,a
+    call add_sprite
+    ld a,8
+    add e
+    ld e,a
+    inc c
+    call add_sprite
+    ld a,32
+    add c
+    ld c,a
+    ld a,8
+    add d
+    ld d,a
+    call add_sprite
+    dec c
+    ld a,e
+    sub 8
+    ld e,a
+    call add_sprite
+  ret
 
 
   tick_counter:

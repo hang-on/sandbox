@@ -38,11 +38,12 @@
 .endro
 ;
 ; Hierarchy: Most fundamental first. 
+.include "libraries/tiny_games.asm"
 .include "libraries/psglib.inc"
 .include "libraries/vdp_lib.asm"
-.include "libraries/misc_lib.asm"
+;.include "libraries/misc_lib.asm"
 .include "libraries/map_lib.asm"
-.include "libraries/tiny_games.asm"
+
 ; -----------------------------------------------------------------------------
 .ramsection "System variables" slot 3
 ; -----------------------------------------------------------------------------
@@ -624,11 +625,9 @@
     +:
 
     ; End of map check.
-    ld hl,end_of_map_data
-    call get_word
+    ld hl,(end_of_map_data)
     ex de,hl
-    ld hl,map_head
-    call get_word
+    ld hl,(end_of_map_data)
     sbc hl,de
     jp c,+
       ld a,FALSE
