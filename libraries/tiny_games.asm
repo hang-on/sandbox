@@ -88,21 +88,25 @@
 
 
   tick_counter:
-    ; hl = counter + reset value.
-    ; set carry on count down.
-    ld a,(hl)
-    dec a
-    jp nz,+
-      inc hl
-      ld a,(hl)
-      dec hl
-      ld (hl),a
-      scf
-      ret
-    +:
-    ld (hl),a
-    or a
-  ret
+    ; Decrement a counter (byte) in ram. Reset the counter when it reaches 0, 
+    ; and return with carry flag set. Counter format in RAM (word): cc rr, 
+    ; where cc is the current counter value and rr is the reset value.
+    ; IN: HL = Pointer to counter + reset value.
+    ; OUT: Value in counter is decremented or reset, carry set or reset.
+    ; Uses: A, HL.
+    ld a,(hl)                 ; Get counter.
+    dec a                     ; Decrement it ("tick it").
+    jp nz,+                   ; Is it 0 now?
+      inc hl                  ; If so, point to reset value.
+      ld a,(hl)               ; Load it into A.
+      dec hl                  ; Point to counter value
+      ld (hl),a               ; Load reset value into counter value.
+      scf                     ; Set carry flag.
+      ret                     ; Return with carry set.
+    +:              
+    ld (hl),a                 ; Else, load the decremented value into counter.
+    or a                      ; Reset carry flag.
+  ret                         ; Return with carry reset.
 
 
 .ends
