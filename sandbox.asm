@@ -391,7 +391,7 @@
         ld a,(accept_button_1_input)
         cp TRUE
         jp nz,+
-          TRANSITION_PLAYER_STATE ATTACKING, slash_sfx
+          TRANSITION_PLAYER_STATE ATTACKING, slash_sfx, SFX_CHANNEL3
           jp _f
       +:
       call is_left_or_right_pressed
@@ -405,7 +405,7 @@
         ld a,(accept_button_2_input)
         cp TRUE
         jp nz,+
-          TRANSITION_PLAYER_STATE JUMPING, jump_sfx
+          TRANSITION_PLAYER_STATE JUMPING, jump_sfx, SFX_CHANNEL2
           jp _f
       +:
       jp _f
@@ -416,16 +416,13 @@
         ld a,(accept_button_1_input)
         cp TRUE
         jp nz,+
-          LOAD_BYTES state, ATTACKING, frame, 0
-          ld hl,slash_sfx
-          ld c,SFX_CHANNEL3
-          call PSGSFXPlay
+          TRANSITION_PLAYER_STATE ATTACKING, slash_sfx, SFX_CHANNEL3
         jp _f
       +:
       call is_left_or_right_pressed
       jp c,+
         ; Not directional input.
-        LOAD_BYTES state, IDLE, frame, 0
+        TRANSITION_PLAYER_STATE IDLE
         jp _f
       +:
       call is_button_2_pressed
@@ -433,11 +430,8 @@
         ld a,(accept_button_2_input)
         cp TRUE
         jp nz,+
-          LOAD_BYTES state, JUMPING, frame, 0
-          ld hl,jump_sfx
-          ld c,SFX_CHANNEL2
-          call PSGSFXPlay
-        jp _f
+          TRANSITION_PLAYER_STATE JUMPING, jump_sfx, SFX_CHANNEL2
+          jp _f
       +:
       ld a,(direction)
       cp RIGHT
@@ -452,7 +446,7 @@
       ld hl,attack_counter
       call tick_counter
       jp nc,+
-        LOAD_BYTES state, IDLE, frame, 0
+        TRANSITION_PLAYER_STATE IDLE
       +:
     jp _f
 
@@ -466,7 +460,8 @@
       inc a
       cp 32
       jp nz,+
-        LOAD_BYTES state, IDLE, frame, 0, jump_counter, 0
+        TRANSITION_PLAYER_STATE IDLE
+        LOAD_BYTES jump_counter, 0
         jp _f
       +:
       ld (jump_counter),a
@@ -491,10 +486,7 @@
         ld a,(accept_button_1_input)
         cp TRUE
         jp nz,+
-          LOAD_BYTES state, JUMP_ATTACKING, frame, 0
-          ld hl,slash_sfx
-          ld c,SFX_CHANNEL3
-          call PSGSFXPlay
+          TRANSITION_PLAYER_STATE JUMP_ATTACKING, slash_sfx, SFX_CHANNEL3
       +:
     jp _f
 
@@ -508,7 +500,8 @@
       inc a
       cp 32
       jp nz,+
-        LOAD_BYTES state, IDLE, frame, 0, jump_counter, 0
+        TRANSITION_PLAYER_STATE IDLE        
+        LOAD_BYTES jump_counter, 0
         jp _f
       +:
       ld (jump_counter),a
@@ -516,7 +509,7 @@
       ld hl,attack_counter
       call tick_counter
       jp nc,+
-        LOAD_BYTES state, JUMPING, frame, 0
+        TRANSITION_PLAYER_STATE JUMPING
       +:
 
       call is_left_or_right_pressed
