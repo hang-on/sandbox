@@ -71,7 +71,6 @@
     ld (metatile_halves),a
   ret
 
-
   tilebuffer_to_nametable:
     ; Fast and unsafe. Run when interrupts = disabled + display = disabled.
     ld a,(nametable_head)
@@ -227,8 +226,15 @@
         or VRAM_WRITE_COMMAND
         out (CONTROL_PORT),a
         ld a,(tile_buffer+COUNT)
-        out (DATA_PORT),a   
-        ld a,%00000001
+        out (DATA_PORT),a              
+        ; Set priority bit on tile id = 0 (grass tile).
+        ;or a
+        ;jp nz,+ 
+          ;ld a,%00010001
+          ;jp ++
+        +:
+          ld a,%00000001
+        ++:
         out (DATA_PORT),a
       .endr
     ret

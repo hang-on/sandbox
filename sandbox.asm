@@ -7,6 +7,7 @@
 
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
+.equ TILE_TABLES_BANK 1
 
 .equ SCROLL_POSITION 180
 .equ LEFT_LIMIT_POSITION 10
@@ -272,7 +273,6 @@
     ; Fill the blanked column.
     call next_metatile_half_to_tile_buffer
     call tilebuffer_to_nametable
-
     
     ei
     halt

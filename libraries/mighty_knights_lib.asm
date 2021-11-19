@@ -66,12 +66,6 @@
       ld a,DEACTIVATED
       ld (dummy_state),a
     +:
-    ld a,(odd_frame)
-    cp TRUE
-    jp nz,+
-      ld hl,dummy_y
-      inc (hl)
-    +:
     ld a,(dummy_y)
     ld d,a
     ld a,(dummy_x)
