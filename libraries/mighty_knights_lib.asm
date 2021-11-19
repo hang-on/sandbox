@@ -18,6 +18,45 @@
 .section "Mighty Knights Library" free
 ; -----------------------------------------------------------------------------
 
+  detect_collision:
+    ; IN: IX = y,x,height,width rect 1
+    ;     IY = y,x,height,width rect2
+
+    ; Horizontal checks:
+    ; rect1.x < rect2.x + rect2.width
+    ld a,(iy+1)
+    add a,(iy+3)
+    ld b,a
+    ld a,(ix+1)
+    cp b
+    ret nc
+    ; rect1.x + rect1.width > rect2.x
+    ld a,(ix+1)
+    add a,(ix+3)
+    ld b,a
+    ld a,(iy+1)
+    cp b
+    ret nc
+    ; Vertical checks:
+    ; rect1.y < rect2.y + rect2.height
+    ld a,(iy+0)
+    add a,(iy+2)
+    ld b,a
+    ld a,(ix+0)
+    cp b
+    ret nc
+    ; rect1.y + rect1.height > rect2.y
+    ld a,(ix+0)
+    add a,(ix+2)
+    ld b,a
+    ld a,(iy+0)
+    cp b
+    ret nc
+
+  ret ; Return with carry set.
+
+
+
   move_dummy:
     call is_reset_pressed
     jp nc,+
@@ -28,6 +67,31 @@
       inc (hl)
       inc (hl)
     +:
+
+    ; Detect collsion
+    ld a,(state)
+    cp ATTACKING
+    jp z,+
+    cp JUMP_ATTACKING
+    jp z,+
+      jp ++
+    +:
+      ld ix,killbox_y
+      ld iy,dummy_y
+      call detect_collision
+      jp nc,++
+        ; Collsion detected
+        ld a,HURTING
+        ld (dummy_state),a
+        RESET_BLOCK DUMMY_HURT_COUNTER, dummy_anim_counter, 2
+        ld hl,dummy_x
+        inc (hl)
+        inc (hl)
+    ++:
+
+
+
+
 
     ld hl,dummy_x
     dec (hl)

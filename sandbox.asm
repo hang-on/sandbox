@@ -7,7 +7,6 @@
 
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
-.equ TILE_TABLES_BANK 1
 
 .equ SCROLL_POSITION 180
 .equ LEFT_LIMIT_POSITION 10
@@ -67,16 +66,30 @@
   direction db
   state db
   attack_counter dw
+  
+  ; Note - this order is expected!
   player_y db
   player_x db
+  player_height db
+  player_width db
+  ; ------------
+  
   jump_counter db
 
   dummy_y db
   dummy_x db
+  dummy_height db
+  dummy_width db
   dummy_anim_counter dw
   dummy_frame db
   dummy_state db
 
+  ; Note - this order is expected!
+  killbox_y db
+  killbox_x db
+  killbox_height db
+  killbox_width db
+  ; ----------------
 
   hspeed db
   vspeed db
@@ -198,8 +211,16 @@
     
     RESET_VARIABLES 0, frame, state, direction, jump_counter, hspeed, vspeed
     LOAD_BYTES player_y, 127, player_x, 60
+    LOAD_BYTES player_height, 16, player_width, 15
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
     RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
+
+    .equ SWORD_HEIGHT 4
+    .equ SWORD_WIDTH 4
+    LOAD_BYTES killbox_y, 0, killbox_x, 0
+    LOAD_BYTES killbox_height, SWORD_HEIGHT, killbox_width, SWORD_WIDTH
+
+
 
     RESET_BLOCK $0e, tile_buffer, 20
     LOAD_BYTES metatile_halves, 0, nametable_head, 0
@@ -222,8 +243,11 @@
     .equ DUMMY_RESPAWN_X 250
     
     LOAD_BYTES dummy_y, DUMMY_RESPAWN_Y, dummy_x, DUMMY_RESPAWN_X
+    LOAD_BYTES dummy_height, 16, dummy_width, 14
     RESET_BLOCK DUMMY_MOVE_COUNTER, dummy_anim_counter, 2
     LOAD_BYTES dummy_state, MOVING
+
+
 
     ; Make solid block special tile in SAT.
     ld a,2
@@ -707,9 +731,11 @@
           ld a,(player_y)
           add a,8
           ld d,a
+          ld (killbox_y),a
           ld a,(player_x)
           add a,16
           ld e,a
+          ld (killbox_x),a
           call add_sprite
           jp _f
         +:
@@ -717,12 +743,20 @@
           ld a,(player_y)
           add a,8
           ld d,a
+          ld (killbox_y),a
           ld a,(player_x)
           sub 8
           ld e,a
+          ld a,(killbox_width)
+          ld b,a
+          ld a,(player_x)
+          sub b
+          ld (killbox_x),a
           call add_sprite
-
     __:
+
+
+
 
     ; Dummy handling:
     
