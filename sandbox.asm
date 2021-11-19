@@ -12,6 +12,13 @@
 .equ LEFT_LIMIT_POSITION 10
 .equ RIGHT_LIMIT_POSITION 240
 
+.struct actor
+  y db
+  x db
+  height db
+  width db
+.endst
+
 
 ; -----------------------------------------------------------------------------
 .memorymap
