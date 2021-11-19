@@ -1,6 +1,61 @@
 ; Mighty knights
 
+.equ SFX_BANK 3
+.equ MUSIC_BANK 3
 
+.equ SCROLL_POSITION 180
+.equ LEFT_LIMIT_POSITION 10
+.equ RIGHT_LIMIT_POSITION 240
+
+.equ LEFT 1
+.equ RIGHT 0
+.equ IDLE 0
+.equ WALKING 1
+.equ ATTACKING 2
+.equ JUMPING 3
+.equ JUMP_ATTACKING 4
+
+.equ ANIM_COUNTER_RESET 4
+.equ PLAYER_WALKING_SPEED 1
+.equ PLAYER_JUMPING_HSPEED 2
+
+.equ DUMMY_MOVING_FRAME_0 $86
+.equ DUMMY_MOVING_FRAME_1 $88
+.equ DUMMY_MOVING_FRAMES 2
+.equ DUMMY_MOVE_COUNTER 7
+.equ DUMMY_HURT_COUNTER 15
+.equ MOVING 10
+.equ HURTING 11
+.equ DEACTIVATED 0
+.equ DUMMY_RESPAWN_Y 127
+.equ DUMMY_RESPAWN_X 250
+
+.equ MINION_MAX 3
+.equ MINION_HEIGHT 16
+.equ MINION_WIDTH 14
+
+.equ FLOOR_LEVEL 127
+
+
+
+.struct actor
+  y db
+  x db
+  height db
+  width db
+.endst
+
+
+.macro INIT_ACTOR ARGS Y, X, HEIGHT, WIDTH
+  ; Initialize an actor.
+  ld (hl),Y
+  inc hl
+  ld (hl),X
+  inc hl
+  ld (hl),HEIGHT
+  inc hl
+  ld (hl),WIDTH
+.endm
 
 
 .macro TRANSITION_PLAYER_STATE ARGS NEWSTATE, SFX

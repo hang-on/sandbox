@@ -5,20 +5,6 @@
 ; -----------------------------------------------------------------------------
 .include "libraries/sms_constants.asm"
 
-.equ SFX_BANK 3
-.equ MUSIC_BANK 3
-
-.equ SCROLL_POSITION 180
-.equ LEFT_LIMIT_POSITION 10
-.equ RIGHT_LIMIT_POSITION 240
-
-.struct actor
-  y db
-  x db
-  height db
-  width db
-.endst
-
 
 ; -----------------------------------------------------------------------------
 .memorymap
@@ -90,6 +76,9 @@
   dummy_anim_counter dw
   dummy_frame db
   dummy_state db
+
+  minion INSTANCEOF actor MINION_MAX
+  minion_states dsb MINION_MAX
 
   ; Note - this order is expected!
   killbox_y db
@@ -204,17 +193,6 @@
     call load_vram
 
 
-    .equ LEFT 1
-    .equ RIGHT 0
-    .equ IDLE 0
-    .equ WALKING 1
-    .equ ATTACKING 2
-    .equ JUMPING 3
-    .equ JUMP_ATTACKING 4
-    
-    .equ ANIM_COUNTER_RESET 4
-    .equ PLAYER_WALKING_SPEED 1
-    .equ PLAYER_JUMPING_HSPEED 2
     
     RESET_VARIABLES 0, frame, state, direction, jump_counter, hspeed, vspeed
     LOAD_BYTES player_y, 127, player_x, 60
@@ -238,23 +216,18 @@
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
 
-    .equ DUMMY_MOVING_FRAME_0 $86
-    .equ DUMMY_MOVING_FRAME_1 $88
-    .equ DUMMY_MOVING_FRAMES 2
-    .equ DUMMY_MOVE_COUNTER 7
-    .equ DUMMY_HURT_COUNTER 15
-    .equ MOVING 10
-    .equ HURTING 11
-    .equ DEACTIVATED 0
-    .equ DUMMY_RESPAWN_Y 127
-    .equ DUMMY_RESPAWN_X 250
     
     LOAD_BYTES dummy_y, DUMMY_RESPAWN_Y, dummy_x, DUMMY_RESPAWN_X
     LOAD_BYTES dummy_height, 16, dummy_width, 14
     RESET_BLOCK DUMMY_MOVE_COUNTER, dummy_anim_counter, 2
     LOAD_BYTES dummy_state, MOVING
 
-
+    ; Initialize the minions
+    .rept MINION_MAX INDEX COUNT
+      ld hl,minion.1+COUNT*4
+      INIT_ACTOR FLOOR_LEVEL, 250, MINION_HEIGHT, MINION_WIDTH
+    .endr
+    RESET_BLOCK DEACTIVATED, minion_states, MINION_MAX
 
     ; Make solid block special tile in SAT.
     ld a,2
