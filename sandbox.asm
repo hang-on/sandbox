@@ -94,14 +94,6 @@
   ; ------------
   jump_counter db
 
-  dummy_y db
-  dummy_x db
-  dummy_height db
-  dummy_width db
-  dummy_anim_counter dw
-  dummy_frame db
-  dummy_state db
-
   ; Note - this order is expected!
   killbox_y db
   killbox_x db
@@ -227,7 +219,7 @@
     LOAD_BYTES metatile_halves, 0, nametable_head, 0
     LOAD_BYTES hscroll_screen, 0, hscroll_column, 0, column_load_trigger, 0
     LOAD_BYTES vblank_finish_high, 0, vblank_finish_low, 255
-    LOAD_BYTES scroll_enabled, FALSE
+    LOAD_BYTES scroll_enabled, TRUE
     LOAD_BYTES odd_frame, TRUE
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
@@ -597,7 +589,7 @@
     ; End of map check.
     ld hl,(end_of_map_data)
     ex de,hl
-    ld hl,(end_of_map_data)
+    ld hl,(map_head)
     sbc hl,de
     jp c,+
       ld a,FALSE
