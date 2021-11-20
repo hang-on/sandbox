@@ -87,6 +87,33 @@
 .section "Tiny Games Library" free
 ; -----------------------------------------------------------------------------
 
+  get_random_number:
+    ; SMS-Power!
+    ; Returns an 8-bit pseudo-random number in a
+    push hl
+      ld hl,(rnd_seed)
+      ld a,h         ; get high byte
+      rrca           ; rotate right by 2
+      rrca
+      xor h          ; xor with original
+      rrca           ; rotate right by 1
+      xor l          ; xor with low byte
+      rrca           ; rotate right by 4
+      rrca
+      rrca
+      rrca
+      xor l          ; xor again
+      rra            ; rotate right by 1 through carry
+      adc hl,hl      ; add RandomNumberGeneratorWord to itself
+      jr nz,+
+        ld hl,$733c  ; if last xor resulted in zero then re-seed.
+      +:
+      ld a,r         ; r = refresh register = semi-random number
+      xor l          ; xor with l which is fairly random
+      ld (rnd_seed),hl
+    pop hl
+  ret              ; return random number in a
+
   function_at_hl:
     ; Emulate a call (hl) function.
     jp (hl)

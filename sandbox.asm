@@ -6,6 +6,49 @@
 .include "libraries/sms_constants.asm"
 
 
+.equ SFX_BANK 3
+.equ MUSIC_BANK 3
+
+.equ SCROLL_POSITION 180
+.equ LEFT_LIMIT_POSITION 10
+.equ RIGHT_LIMIT_POSITION 240
+
+.equ LEFT 1
+.equ RIGHT 0
+; 
+.equ IDLE 0
+.equ WALKING 1
+.equ ATTACKING 2
+.equ JUMPING 3
+.equ JUMP_ATTACKING 4
+
+.equ ANIM_COUNTER_RESET 4
+.equ PLAYER_WALKING_SPEED 1
+.equ PLAYER_JUMPING_HSPEED 2
+
+.equ SWORD_HEIGHT 4
+.equ SWORD_WIDTH 4
+
+.equ DUMMY_MOVING_FRAME_0 $86
+.equ DUMMY_MOVING_FRAME_1 $88
+.equ DUMMY_MOVING_FRAMES 2
+.equ DUMMY_MOVE_COUNTER 7
+.equ DUMMY_HURT_COUNTER 15
+.equ DUMMY_RESPAWN_Y 127
+.equ DUMMY_RESPAWN_X 250
+
+.equ DEACTIVATED 0
+.equ MOVING 10
+.equ HURTING 11
+.equ STOPPED 12
+
+.equ MINION_MAX 3
+.equ MINION_HEIGHT 16
+.equ MINION_WIDTH 14
+.equ ENEMY_SPAWNPOINT_RIGHT 250
+
+.equ FLOOR_LEVEL 127
+
 ; -----------------------------------------------------------------------------
 .memorymap
 ; -----------------------------------------------------------------------------
@@ -51,8 +94,9 @@
 ; -----------------------------------------------------------------------------
   vblank_finish_low db
   vblank_finish_high db
-  set_red_border db
   odd_frame db
+  rnd_seed dw
+
 
   anim_counter dw
   frame db
@@ -66,7 +110,6 @@
   player_height db
   player_width db
   ; ------------
-  
   jump_counter db
 
   dummy_y db
@@ -78,7 +121,10 @@
   dummy_state db
 
   minion INSTANCEOF actor MINION_MAX
-  minion_states dsb MINION_MAX
+  minion_state dsb MINION_MAX
+  minion_counter dsb MINION_MAX
+  minion_frame dsb MINION_MAX
+  minion_spawn_counter dw
 
   ; Note - this order is expected!
   killbox_y db
@@ -192,20 +238,14 @@
     ld bc,_sizeof_level_1_tiles
     call load_vram
 
-
-    
-    RESET_VARIABLES 0, frame, state, direction, jump_counter, hspeed, vspeed
-    LOAD_BYTES player_y, 127, player_x, 60
+    RESET_VARIABLES 0, frame, direction, jump_counter, hspeed, vspeed
+    LOAD_BYTES player_y, 127, player_x, 60, state, IDLE
     LOAD_BYTES player_height, 16, player_width, 15
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
     RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
 
-    .equ SWORD_HEIGHT 4
-    .equ SWORD_WIDTH 4
     LOAD_BYTES killbox_y, 0, killbox_x, 0
     LOAD_BYTES killbox_height, SWORD_HEIGHT, killbox_width, SWORD_WIDTH
-
-
 
     RESET_BLOCK $0e, tile_buffer, 20
     LOAD_BYTES metatile_halves, 0, nametable_head, 0
@@ -216,18 +256,19 @@
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
 
-    
     LOAD_BYTES dummy_y, DUMMY_RESPAWN_Y, dummy_x, DUMMY_RESPAWN_X
     LOAD_BYTES dummy_height, 16, dummy_width, 14
     RESET_BLOCK DUMMY_MOVE_COUNTER, dummy_anim_counter, 2
-    LOAD_BYTES dummy_state, MOVING
+    LOAD_BYTES dummy_state, DEACTIVATED
 
     ; Initialize the minions
     .rept MINION_MAX INDEX COUNT
       ld hl,minion.1+COUNT*4
       INIT_ACTOR FLOOR_LEVEL, 250, MINION_HEIGHT, MINION_WIDTH
     .endr
-    RESET_BLOCK DEACTIVATED, minion_states, MINION_MAX
+    RESET_BLOCK DEACTIVATED, minion_state, MINION_MAX
+    RESET_BLOCK 50, minion_spawn_counter, 2
+    RESET_BLOCK DUMMY_MOVE_COUNTER, minion_counter, 2
 
     ; Make solid block special tile in SAT.
     ld a,2
@@ -294,8 +335,8 @@
   ; ---------------------------------------------------------------------------
   main_loop:
     call wait_for_vblank
-     ; -------------------------------------------------------------------------
-    ; Begin vblank critical code (DRAW).
+    
+    ; Begin vblank critical code (DRAW) ---------------------------------------
     call load_sat
 
     ld a,(column_load_trigger)
@@ -311,44 +352,26 @@
     ld b,HORIZONTAL_SCROLL_REGISTER
     call set_register 
 
-    ; For debugging.
-    ld a,(set_red_border)
-    cp TRUE
-    jp nz,+
-      ld a,4
-      ld b,BORDER_COLOR
-      call set_register
-      ld a,FALSE
-      ld (set_red_border),a
-      jp ++
-    +:
-      ld a,1
-      ld b,BORDER_COLOR
-      call set_register
-    ++:
-
     ; Quick and dirty vblank profiling.
-    in a,V_COUNTER_PORT
-    ld b,a
-    ld a,(vblank_finish_low)
-    cp b
-    jp c,+
-      ; New lowest.
-      ld a,b
-      ld (vblank_finish_low),a
-      jp ++
-    +:
-      ld a,(vblank_finish_high)
-      cp b
-      jp nc,++
-        ; New highest. A high value of $DA means vblank finishes between 218-223.
-        ld a,b
-        ld (vblank_finish_high),a
-    ++:
-    
+    ; Note: A high value of $DA means vblank finishes between 218-223.
+    in a,V_COUNTER_PORT                 ; Get the counter. 
+    ld b,a                              ; Store in B.
+    ld a,(vblank_finish_low)            ; Get the current lowest value.
+    cp b                                ; Compare to counter value.
+    jp c,+                              ; Is counter > lowest value? 
+      ld a,b                            ; No, we got a new lowest. Get counter.
+      ld (vblank_finish_low),a          ; Store in ram.
+      jp ++                             ; Skip next part.
+    +:                                  ; Not new lowest - maybe new highest?
+      ld a,(vblank_finish_high)         ; Get the current highest value. 
+      cp b                              ; Compare to counter value.
+      jp nc,++                          ; Is counter > highest value?
+        ld a,b                          ; Yes = new highest! Get counter.
+        ld (vblank_finish_high),a       ; Store in ram.
+    ++:                                 ;
  
-    ;
-    ; -------------------------------------------------------------------------
+    ; End of critical vblank routines. ----------------------------------------
+ 
     ; Begin general updating (UPDATE).
     ld a,MUSIC_BANK
     SELECT_BANK_IN_REGISTER_A
@@ -356,8 +379,10 @@
     ld a,SFX_BANK
     SELECT_BANK_IN_REGISTER_A
     call PSGSFXFrame
+    
     ld a,2
     SELECT_BANK_IN_REGISTER_A
+    
     call refresh_sat_handler
     call refresh_input_ports
 
@@ -365,6 +390,13 @@
     cpl                             ; Invert (TRUE -> FALSE, FALSE -> TRUE).
     ld (odd_frame),a                ; Store value.
 
+
+    ; Seed the random number generator with the reset button.
+    call is_reset_pressed
+    jp nc,+
+      ld a,(vblank_counter)
+      ld (hl),a
+    +:
 
     ; Set the player's direction depending on controller input (LEFT/RIGHT).
     ld a,(direction)
@@ -739,10 +771,10 @@
 
 
     ; Dummy handling:
-    
     ; Respawn deactivated dummy on player 2 button 1 press.
-    call is_player_2_button_1_pressed
-    jp nc,+
+    ;call is_player_2_button_1_pressed
+    ;jp nc,+
+    jp + ; Deactive while developing the minions
       ld a,(dummy_state)
       cp DEACTIVATED
       jp nz,+
@@ -755,7 +787,6 @@
         ld a,DUMMY_RESPAWN_X
         ld (dummy_x),a
     +:
-
     ; Dummy state handling.    
     ld a,(dummy_state)
     cp MOVING
@@ -769,6 +800,33 @@
       jp _f
     +:
     __:
+
+    ; Spawn minion on countdown.
+    ld hl,minion_spawn_counter
+    call tick_counter
+    jp nc,+
+      ; Counter is up - spawn minion.
+      ld ix,minion
+      ld a,MOVING
+      ld (minion_state),a
+      ld a,FLOOR_LEVEL
+      ld (ix+0),a
+      ld a,ENEMY_SPAWNPOINT_RIGHT
+      ld (ix+1),a
+    +:
+    ; Minion state handling.
+    ld a,(minion_state)
+    cp MOVING
+    jp nz,+
+      call move_minion
+      jp _f
+    +:
+
+    __:
+
+
+
+    +:
 
 
 
