@@ -12,6 +12,7 @@
 .equ SCROLL_POSITION 180
 .equ LEFT_LIMIT_POSITION 10
 .equ RIGHT_LIMIT_POSITION 240
+.equ FLOOR_LEVEL 127
 
 .equ LEFT 1
 .equ RIGHT 0
@@ -29,25 +30,6 @@
 .equ SWORD_HEIGHT 4
 .equ SWORD_WIDTH 4
 
-.equ DUMMY_MOVING_FRAME_0 $86
-.equ DUMMY_MOVING_FRAME_1 $88
-.equ DUMMY_MOVING_FRAMES 2
-.equ DUMMY_MOVE_COUNTER 7
-.equ DUMMY_HURT_COUNTER 15
-.equ DUMMY_RESPAWN_Y 127
-.equ DUMMY_RESPAWN_X 250
-
-.equ DEACTIVATED 0
-.equ MOVING 10
-.equ HURTING 11
-.equ STOPPED 12
-
-.equ MINION_MAX 3
-.equ MINION_HEIGHT 16
-.equ MINION_WIDTH 14
-.equ ENEMY_SPAWNPOINT_RIGHT 250
-
-.equ FLOOR_LEVEL 127
 
 ; -----------------------------------------------------------------------------
 .memorymap
@@ -119,12 +101,6 @@
   dummy_anim_counter dw
   dummy_frame db
   dummy_state db
-
-  minion INSTANCEOF actor MINION_MAX
-  minion_state dsb MINION_MAX
-  minion_counter dsb MINION_MAX
-  minion_frame dsb MINION_MAX
-  minion_spawn_counter dw
 
   ; Note - this order is expected!
   killbox_y db
@@ -255,20 +231,6 @@
     LOAD_BYTES odd_frame, TRUE
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
-
-    LOAD_BYTES dummy_y, DUMMY_RESPAWN_Y, dummy_x, DUMMY_RESPAWN_X
-    LOAD_BYTES dummy_height, 16, dummy_width, 14
-    RESET_BLOCK DUMMY_MOVE_COUNTER, dummy_anim_counter, 2
-    LOAD_BYTES dummy_state, DEACTIVATED
-
-    ; Initialize the minions
-    .rept MINION_MAX INDEX COUNT
-      ld hl,minion.1+COUNT*4
-      INIT_ACTOR FLOOR_LEVEL, 250, MINION_HEIGHT, MINION_WIDTH
-    .endr
-    RESET_BLOCK DEACTIVATED, minion_state, MINION_MAX
-    RESET_BLOCK 50, minion_spawn_counter, 2
-    RESET_BLOCK DUMMY_MOVE_COUNTER, minion_counter, 2
 
     ; Make solid block special tile in SAT.
     ld a,2
@@ -766,68 +728,6 @@
           ld (killbox_x),a
           call add_sprite
     __:
-
-
-
-
-    ; Dummy handling:
-    ; Respawn deactivated dummy on player 2 button 1 press.
-    ;call is_player_2_button_1_pressed
-    ;jp nc,+
-    jp + ; Deactive while developing the minions
-      ld a,(dummy_state)
-      cp DEACTIVATED
-      jp nz,+
-        ; Spawn new dummy.
-        ld a,MOVING
-        ld (dummy_state),a
-        RESET_BLOCK DUMMY_MOVE_COUNTER, dummy_anim_counter, 2
-        ld a,DUMMY_RESPAWN_Y
-        ld (dummy_y),a
-        ld a,DUMMY_RESPAWN_X
-        ld (dummy_x),a
-    +:
-    ; Dummy state handling.    
-    ld a,(dummy_state)
-    cp MOVING
-    jp nz,+
-      call move_dummy
-      jp _f
-    +:
-    cp HURTING
-    jp nz,+
-      call hurt_dummy
-      jp _f
-    +:
-    __:
-
-    ; Spawn minion on countdown.
-    ld hl,minion_spawn_counter
-    call tick_counter
-    jp nc,+
-      ; Counter is up - spawn minion.
-      ld ix,minion
-      ld a,MOVING
-      ld (minion_state),a
-      ld a,FLOOR_LEVEL
-      ld (ix+0),a
-      ld a,ENEMY_SPAWNPOINT_RIGHT
-      ld (ix+1),a
-    +:
-    ; Minion state handling.
-    ld a,(minion_state)
-    cp MOVING
-    jp nz,+
-      call move_minion
-      jp _f
-    +:
-
-    __:
-
-
-
-    +:
-
 
 
   jp main_loop
