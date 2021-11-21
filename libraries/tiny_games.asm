@@ -118,6 +118,17 @@
     ; Emulate a call (hl) function.
     jp (hl)
 
+  get_word:
+    ; Get the 16-bit value (word) at the address pointed to by HL.
+    ; In: Pointer in HL.
+    ; Out: Word pointed to in HL.
+    ; Uses: DE, HL.
+    ld e,(hl)
+    inc hl
+    ld d,(hl)
+    ex de,hl
+  ret
+
   lookup_byte:
     ; IN: a = value, hl = look-up table (ptr).
     ; OUT: a = converted value.
@@ -141,6 +152,7 @@
     ld h,a
     ld l,b
   ret
+
 
   offset_byte_table:
     ; Offset base address (in HL) of a table of bytes or words. 

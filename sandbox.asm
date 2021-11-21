@@ -5,6 +5,13 @@
 ; -----------------------------------------------------------------------------
 .include "libraries/sms_constants.asm"
 
+; Remove comment to enable unit testing
+.equ TEST_MODE
+.ifdef TEST_MODE
+  .equ USE_TEST_KERNEL
+.endif
+
+
 
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
@@ -55,8 +62,8 @@
 .include "libraries/map_lib.asm"
 .include "libraries/input_lib.asm"
 .include "libraries/mighty_knights_lib.asm"
-
-
+.include "sub_workshop.asm"
+.include "sub_tests.asm"        
 
 ; -----------------------------------------------------------------------------
 .ramsection "System variables" slot 3
@@ -93,6 +100,8 @@
   player_width db
   ; ------------
   jump_counter db
+  hspeed db
+  vspeed db
 
   ; Note - this order is expected!
   killbox_y db
@@ -101,8 +110,6 @@
   killbox_width db
   ; ----------------
 
-  hspeed db
-  vspeed db
 
   hscroll_screen db ; 0-255
   hscroll_column db ; 0-7
@@ -223,7 +230,7 @@
     LOAD_BYTES odd_frame, TRUE
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
-
+    
     ; Make solid block special tile in SAT.
     ld a,2
     ld bc,CHARACTER_SIZE
