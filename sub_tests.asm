@@ -99,19 +99,23 @@
   fake_sat_y dsb 64
   fake_sat_xc dsb 128
 .ends
+; -----------------------------------------------------------------------------
+; Macros:
+;
+.
 
 .bank 0 slot 0
 ; -----------------------------------------------------------------------------
 .section "Test data" free
   ; Put data here.
-  my_looping_bytestream:
-    .db 0, 8, 1, 2, 3, 4, 5, 6, 7, 8
+  data_0:
+    .db 0, 7, 1, 2, 3, 4, 5, 6, 7, 8
 
-  my_looping_bytestream_2:
-    .db 1, 8, 1, 2, 3, 4, 5, 6, 7, 8
+  data_1:
+    .db 1, 7, 1, 2, 3, 4, 5, 6, 7, 8
 
-  my_looping_bytestream_3:
-    .db 9, 8, 1, 2, 3, 4, 5, 6, 7, 8
+  data_3:
+    .db 7, 7, 1, 2, 3, 4, 5, 6, 7, 8
 
 
 .ends
@@ -121,20 +125,45 @@
   test_bench:
     ; These are the tests:
     
-    ; Test bytestream 1:
+    ld hl,data_0
+    ld de,my_looping_bytestream
+    call init_looping_bytestream
     ld hl,my_looping_bytestream
     call get_next_byte
     ASSERT_A_EQUALS 1
 
-    ; Test bytestream 2:
-    ld hl,my_looping_bytestream_2
+    ld hl,data_0
+    ld de,my_looping_bytestream
+    call init_looping_bytestream
+    ld hl,my_looping_bytestream
+    call get_next_byte
+    ld hl,my_looping_bytestream
     call get_next_byte
     ASSERT_A_EQUALS 2
 
-    ; Test bytestream 3:
-    ;ld hl,my_looping_bytestream_3
-    ;call get_next_byte
-    ;ASSERT_A_EQUALS 1
+    ld hl,data_1
+    ld de,my_looping_bytestream
+    call init_looping_bytestream
+    ld hl,my_looping_bytestream
+    call get_next_byte
+    ASSERT_A_EQUALS 2
+
+    ld hl,data_3
+    ld de,my_looping_bytestream
+    call init_looping_bytestream
+    ld hl,my_looping_bytestream
+    call get_next_byte
+    ASSERT_A_EQUALS 8
+
+    ld hl,data_3
+    ld de,my_looping_bytestream
+    call init_looping_bytestream
+    ld hl,my_looping_bytestream
+    call get_next_byte
+    ld hl,my_looping_bytestream
+    call get_next_byte    
+    ASSERT_A_EQUALS 1
+
 
 
   ; ------- end of tests --------------------------------------------------------
@@ -153,4 +182,6 @@
   -:
     nop
   jp -
+ 
+
 .ends
