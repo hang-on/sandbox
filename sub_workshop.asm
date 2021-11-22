@@ -38,15 +38,13 @@
       ld a,(hl) 
       inc hl
       ld b,(hl)
+      dec hl
       cp b
-      ld a,c
       jp nz,+
         xor a
-        dec hl
         ld (hl),a
         jp ++   
       +:
-        dec hl
         inc (hl)
       ++:
     pop af
