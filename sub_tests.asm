@@ -109,7 +109,14 @@
 .section "Test data" free
   ; Put data here.
 
-
+    minion_test_data_5:
+      .db MINION_IDLE
+      .db 0 0 0 0 0 0 0 0 0
+      .db MINION_DEACTIVATED
+      .db 0 0 0 0 0 0 0 0 0
+      .db MINION_DEACTIVATED
+      .db 0 0 0 0 0 0 0 0 0
+    __:
 
 .ends
 
@@ -118,6 +125,50 @@
   test_bench:
     ; These are the tests:
     
+    ;Test Init
+    ld hl,minion_init_data
+    call initialize_minions
+    ld ix,minions
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_DEACTIVATED
+    
+    ;Test Init_2
+    ld hl,minion_init_data
+    call initialize_minions
+    ld ix,minions.3.state
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_DEACTIVATED
+
+    ;Test Init_3
+    ld hl,minion_init_data
+    call initialize_minions
+    ld ix,minions.3.state
+    ld a,(ix+minion.y)
+    ASSERT_A_EQUALS 0
+
+    ; Test 4: spawn minion in slot 
+    ld hl,minion_init_data
+    call initialize_minions
+    call spawn_minion
+    ld ix,minions.1
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_IDLE
+
+    ;Test 5: Init 
+    ld hl,minion_test_data_5
+    call initialize_minions
+    ld ix,minions
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_IDLE
+
+    ;Test 6: Spawn 
+    ld hl,minion_test_data_5
+    call initialize_minions
+    call spawn_minion
+    ld ix,minions.2
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_IDLE
+
 
   ; ------- end of tests --------------------------------------------------------
   exit_with_succes:

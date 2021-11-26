@@ -6,7 +6,7 @@
 .include "libraries/sms_constants.asm"
 
 ; Remove comment to enable unit testing
-;.equ TEST_MODE
+.equ TEST_MODE
 .ifdef TEST_MODE
   .equ USE_TEST_KERNEL
 .endif
@@ -36,7 +36,6 @@
 
 .equ SWORD_HEIGHT 4
 .equ SWORD_WIDTH 4
-
 
 ; -----------------------------------------------------------------------------
 .memorymap
@@ -120,6 +119,7 @@
   accept_button_1_input db
   accept_button_2_input db
   
+
 
 .ends
 
@@ -230,7 +230,7 @@
     LOAD_BYTES odd_frame, TRUE
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
-    
+
     ; Make solid block special tile in SAT.
     ld a,2
     ld bc,CHARACTER_SIZE
@@ -728,7 +728,6 @@
           call add_sprite
     __:
 
-
   jp main_loop
 .ends
 .bank 1 slot 1
@@ -742,6 +741,7 @@
  ; ----------------------------------------------------------------------------
 .section "Demo assets" free
 ; -----------------------------------------------------------------------------
+
   solid_block:
     ; Filled with color 1 in the palette:
     .db $FF $00 $00 $00 $FF $00 $00 $00 $FF $00 $00 $00 $FF $00 $00 $00 $FF $00 $00 $00 $FF $00 $00 $00 $FF $00 $00 $00 $FF $00 $00 $00
