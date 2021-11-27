@@ -90,6 +90,10 @@
   get_random_number:
     ; SMS-Power!
     ; Returns an 8-bit pseudo-random number in a
+    .ifdef TEST_MODE
+      ld a,(random_number)
+      ret
+    .endif
     push hl
       ld hl,(rnd_seed)
       ld a,h         ; get high byte

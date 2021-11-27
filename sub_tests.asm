@@ -16,6 +16,11 @@
   .endr
 .endm
 
+.macro SET_RANDOM_NUMBER
+  ld a,\1
+  ld (random_number),a
+.endm
+
 .macro ASSERT_A_EQUALS
   cp \1
   jp nz,exit_with_failure
@@ -88,6 +93,16 @@
   .endr
 .endm
 
+.macro ASSERT_CARRY_SET 
+  jp nc,exit_with_failure
+  nop
+.endm
+
+.macro ASSERT_CARRY_RESET 
+  jp c,exit_with_failure
+  nop
+.endm
+
 
 .macro CLEAN_STACK
   .rept \1
@@ -111,12 +126,22 @@
 
     minion_test_data_5:
       .db MINION_IDLE
-      .db 0 0 0 0 0 0 0 0 0
+      .db 0 0 0 0 0 0 0 0
       .db MINION_DEACTIVATED
-      .db 0 0 0 0 0 0 0 0 0
+      .db 0 0 0 0 0 0 0 0
       .db MINION_DEACTIVATED
-      .db 0 0 0 0 0 0 0 0 0
+      .db 0 0 0 0 0 0 0 0
     __:
+
+    minion_test_data_b:
+      .db MINION_IDLE
+      .db 0 0 0 0 0 0 0 0
+      .db MINION_IDLE
+      .db 0 0 0 0 0 0 0 0
+      .db MINION_IDLE
+      .db 0 0 0 0 0 0 0 0
+    __:
+
 
 .ends
 
@@ -168,6 +193,46 @@
     ld ix,minions.2
     ld a,(ix+minion.state)
     ASSERT_A_EQUALS MINION_IDLE
+    ld ix,minions.3
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_DEACTIVATED
+
+   ;Test 7: Failed spawn (all idle)
+    ld hl,minion_test_data_b
+    call initialize_minions
+    call spawn_minion
+    ASSERT_CARRY_SET
+
+    ; Test 8: Spawn facing left
+    ld hl,minion_test_data_5
+    call initialize_minions
+    SET_RANDOM_NUMBER 0
+    call spawn_minion
+    ld ix,minions.2
+    ld a,(ix+minion.direction)
+    ASSERT_A_EQUALS LEFT
+
+    ; Test 9: Spawn facing right, in the left side.
+    ld hl,minion_test_data_5
+    call initialize_minions
+    SET_RANDOM_NUMBER 1
+    call spawn_minion
+    ld ix,minions.2
+    ld a,(ix+minion.direction)
+    ASSERT_A_EQUALS RIGHT
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 0
+
+    ; Test 10: Spawn facing left, in the right side.
+    ld hl,minion_test_data_5
+    call initialize_minions
+    SET_RANDOM_NUMBER 0
+    call spawn_minion
+    ld ix,minions.2
+    ld a,(ix+minion.direction)
+    ASSERT_A_EQUALS LEFT
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 250
 
 
   ; ------- end of tests --------------------------------------------------------

@@ -1,29 +1,25 @@
 
-.struct minion
-  ; Specification of the minion struct.
-  ; * see notes
-  state db
-  y db
-  x db
-  sprite_index db
-  anim_timer db
-  frame db
-  frame_table dw
-  hspeed db
-  vspeed db
-.endst
-
-
 .equ MINION_DEACTIVATED $ff
 .equ MINION_IDLE 0
 .equ MINION_MAX 3
 
-.ramsection "Ram section for library being developed" slot 3
+.struct minion
+  state db
+  y db
+  x db
+  direction db
+  index db
+  timer db
+  frame db
+  hspeed db
+  vspeed db
+.endst
 
+.ramsection "Ram section for library being developed" slot 3
+  random_number db
   minions INSTANCEOF minion 3
 
 .ends
-
 
 .bank 0 slot 0
 ; -----------------------------------------------------------------------------
@@ -40,10 +36,31 @@
       ld de,_sizeof_minion
       add ix,de
     djnz -
+    scf   ; Set carry = failure (no deactivated minion to spawn).
   ret
     @activate:  
       ld a,MINION_IDLE
       ld (ix+minion.state),a
+      call get_random_number
+      bit 0,a
+      jp z,+
+        ; Spawn a minion at the left side, facing right.
+        ld a,RIGHT
+        ld (ix+minion.direction),a
+        ld a,FLOOR_LEVEL
+        ld (ix+minion.y),a
+        ld a,0
+        ld (ix+minion.x),a
+        jp ++
+      +:
+        ld a,LEFT
+        ld (ix+minion.direction),a
+        ld a,FLOOR_LEVEL
+        ld (ix+minion.y),a
+        ld a,250
+        ld (ix+minion.x),a
+      ++:
+      or a    ; Reset carry = succes.
     ret
   ret
   
