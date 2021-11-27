@@ -1,5 +1,188 @@
 
 
+    minion_test_data_5:
+      .db MINION_IDLE
+      .db 0 0 0 0 0 0 0 0
+      .db MINION_DEACTIVATED
+      .db 0 0 0 0 0 0 0 0
+      .db MINION_DEACTIVATED
+      .db 0 0 0 0 0 0 0 0
+    __:
+
+    minion_test_data_b:
+      .db MINION_IDLE
+      .db 0 0 0 0 0 0 0 0
+      .db MINION_IDLE
+      .db 0 0 0 0 0 0 0 0
+      .db MINION_IDLE
+      .db 0 0 0 0 0 0 0 0
+    __:
+
+
+    
+    ;Test Init
+    ld hl,minion_init_data
+    call initialize_minions
+    ld ix,minions
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_DEACTIVATED
+    
+    ;Test Init_2
+    ld hl,minion_init_data
+    call initialize_minions
+    ld ix,minions.3.state
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_DEACTIVATED
+
+    ;Test Init_3
+    ld hl,minion_init_data
+    call initialize_minions
+    ld ix,minions.3.state
+    ld a,(ix+minion.y)
+    ASSERT_A_EQUALS 0
+
+    ; Test 4: spawn minion in slot 
+    ld hl,minion_init_data
+    call initialize_minions
+    call spawn_minion
+    ld ix,minions.1
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_MOVING
+
+    ;Test 5: Init 
+    ld hl,minion_test_data_5
+    call initialize_minions
+    ld ix,minions
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_IDLE
+
+    ;Test 6: Spawn 
+    ld hl,minion_test_data_5
+    call initialize_minions
+    call spawn_minion
+    ld ix,minions.2
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_IDLE
+    ld ix,minions.3
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_DEACTIVATED
+
+   ;Test 7: Failed spawn (all idle)
+    ld hl,minion_test_data_b
+    call initialize_minions
+    call spawn_minion
+    ASSERT_CARRY_SET
+
+    ; Test 8: Spawn facing left
+    ld hl,minion_test_data_5
+    call initialize_minions
+    SET_RANDOM_NUMBER 0
+    call spawn_minion
+    ld ix,minions.2
+    ld a,(ix+minion.direction)
+    ASSERT_A_EQUALS LEFT
+
+    ; Test 9: Spawn facing right, in the left side.
+    ld hl,minion_test_data_5
+    call initialize_minions
+    SET_RANDOM_NUMBER 1
+    call spawn_minion
+    ld ix,minions.2
+    ld a,(ix+minion.direction)
+    ASSERT_A_EQUALS RIGHT
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 0
+
+    ; Test 10: Spawn facing left, in the right side.
+    ld hl,minion_test_data_5
+    call initialize_minions
+    SET_RANDOM_NUMBER 0
+    call spawn_minion
+    ld ix,minions.2
+    ld a,(ix+minion.direction)
+    ASSERT_A_EQUALS LEFT
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 250
+
+    ; Test 11: Move minion left
+    jp +
+      minion_test_data_c:
+        .db MINION_MOVING
+        ;   y    x    d     i  t  f  h   v
+        .db 127, 250, LEFT, 0, 0, 0, -1, 0
+        .db MINION_DEACTIVATED
+        .db 0 0 0 0 0 0 0 0
+        .db MINION_DEACTIVATED
+        .db 0 0 0 0 0 0 0 0
+    +:
+    ld hl,minion_test_data_c
+    call initialize_minions
+    ld ix,minions.1
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 250
+    ld a,(ix+minion.hspeed)
+    ASSERT_A_EQUALS -1
+    call process_minions
+    ld ix,minions.1
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 249
+
+    ; Test 12: Move 2 minions left
+    jp +
+      minion_test_data_d:
+        .db MINION_MOVING
+        ;   y    x    d     i  t  f  h   v
+        .db 127, 250, LEFT, 0, 0, 0, -1, 0
+        .db MINION_DEACTIVATED
+        .db 0 0 0 0 0 0 0 0
+        .db MINION_MOVING
+        ;   y    x    d     i  t  f  h   v
+        .db 127, 120, LEFT, 0, 0, 0, -1, 0
+    +:
+    ld hl,minion_test_data_d
+    call initialize_minions
+    call process_minions
+    ld ix,minions.1
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 249
+    ld ix,minions.3
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 119
+    call process_minions
+    ld ix,minions.1
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 248
+    ld ix,minions.3
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 118
+    ld ix,minions.2
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 0
+
+    ; Test 13: Jump 1 minion left
+    jp +
+      minion_test_data_e:
+        .db MINION_MOVING
+        ;   y    x    d     i  t  f  h   v
+        .db 127, 250, LEFT, 0, 0, 0, -1, -1
+        .db MINION_DEACTIVATED
+        .db 0 0 0 0 0 0 0 0
+        .db MINION_IDLE
+        ;   y    x    d     i  t  f  h  v
+        .db 127, 120, LEFT, 0, 0, 0, 0, 0
+    +:
+    ld hl,minion_test_data_e
+    call initialize_minions
+    call process_minions
+    ld ix,minions.1
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 249
+    ld a,(ix+minion.y)
+    ASSERT_A_EQUALS 126
+
+
+
+
     ld hl,anim_init
     ld de,anim_0
     call init_looping_bytestream

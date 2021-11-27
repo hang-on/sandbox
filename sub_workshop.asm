@@ -26,21 +26,24 @@
 .section "Subroutine workshop" free
 ; -----------------------------------------------------------------------------
   process_minions:
-    ;
     ld ix,minions
     ld b,MINION_MAX
-    -:
-      ld a,(ix+minion.state)
-      cp MINION_MOVING
-      call z,@move
-      ld de,_sizeof_minion
-      add ix,de
-    djnz -
+    -:                          ; For all minions, do...
+      push bc                   ; Save loop counter.
+        call @move              ; Apply h- and vspeed to x and y.
+        ; ...
+        ld de,_sizeof_minion    
+        add ix,de               ; Point ix to next minion.
+      pop bc                    ; Restore loop counter.
+    djnz -                      ; Process next minion.
   ret
     @move:
       ld a,(ix+minion.x)
       add a,(ix+minion.hspeed)
       ld (ix+minion.x),a
+      ld a,(ix+minion.y)
+      add a,(ix+minion.vspeed)
+      ld (ix+minion.y),a
     ret
 
   spawn_minion:
@@ -57,7 +60,7 @@
     scf   ; Set carry = failure (no deactivated minion to spawn).
   ret
     @activate:  
-      ld a,MINION_IDLE
+      ld a,MINION_MOVING
       ld (ix+minion.state),a
       call get_random_number
       bit 0,a
