@@ -234,6 +234,30 @@
     ld a,(ix+minion.x)
     ASSERT_A_EQUALS 250
 
+    ; Test 11: Move minion left
+    jp +
+      minion_test_data_c:
+        .db MINION_IDLE
+        ;   y    x    d     i  t  f  h   v
+        .db 127, 250, LEFT, 0, 0, 0, -1, 0
+        .db MINION_DEACTIVATED
+        .db 0 0 0 0 0 0 0 0
+        .db MINION_DEACTIVATED
+        .db 0 0 0 0 0 0 0 0
+    +:
+    ld hl,minion_test_data_c
+    call initialize_minions
+    ld ix,minions.1
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 250
+    ld a,(ix+minion.hspeed)
+    ASSERT_A_EQUALS -1
+    call process_minions
+    ld ix,minions.1
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 249
+
+
 
   ; ------- end of tests --------------------------------------------------------
   exit_with_succes:

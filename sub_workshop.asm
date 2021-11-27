@@ -18,13 +18,21 @@
 .ramsection "Ram section for library being developed" slot 3
   random_number db
   minions INSTANCEOF minion 3
-
 .ends
 
 .bank 0 slot 0
 ; -----------------------------------------------------------------------------
 .section "Subroutine workshop" free
 ; -----------------------------------------------------------------------------
+  process_minions:
+    ;
+    ld ix,minions.1
+    ;ld a,249
+    ld a,(ix+minion.x)
+    add a,(ix+minion.hspeed)
+    ld (ix+minion.x),a
+  ret
+
   spawn_minion:
     ; Spawn a minion.
     ld ix,minions
@@ -51,6 +59,8 @@
         ld (ix+minion.y),a
         ld a,0
         ld (ix+minion.x),a
+        ld a,1
+        ld (ix+minion.hspeed),a
         jp ++
       +:
         ld a,LEFT
@@ -59,6 +69,8 @@
         ld (ix+minion.y),a
         ld a,250
         ld (ix+minion.x),a
+        ld a,-1
+        ld (ix+minion.hspeed),a
       ++:
       or a    ; Reset carry = succes.
     ret
@@ -74,8 +86,7 @@
     __:
 
   initialize_minions:
-    ; Set the state to deactivated, then set every remaining byte in the
-    ; minion struct to 0.
+    ; In: hl = ptr. to init data.
     ld de,minions
     ld bc,_sizeof_minion_init_data
     ldir
