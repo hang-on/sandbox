@@ -237,7 +237,7 @@
     ; Test 11: Move minion left
     jp +
       minion_test_data_c:
-        .db MINION_IDLE
+        .db MINION_MOVING
         ;   y    x    d     i  t  f  h   v
         .db 127, 250, LEFT, 0, 0, 0, -1, 0
         .db MINION_DEACTIVATED
@@ -256,6 +256,39 @@
     ld ix,minions.1
     ld a,(ix+minion.x)
     ASSERT_A_EQUALS 249
+
+    ; Test 12: Move 2 minions left
+    jp +
+      minion_test_data_d:
+        .db MINION_MOVING
+        ;   y    x    d     i  t  f  h   v
+        .db 127, 250, LEFT, 0, 0, 0, -1, 0
+        .db MINION_DEACTIVATED
+        .db 0 0 0 0 0 0 0 0
+        .db MINION_MOVING
+        ;   y    x    d     i  t  f  h   v
+        .db 127, 120, LEFT, 0, 0, 0, -1, 0
+    +:
+    ld hl,minion_test_data_d
+    call initialize_minions
+    call process_minions
+    ld ix,minions.1
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 249
+    ld ix,minions.3
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 119
+    call process_minions
+    ld ix,minions.1
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 248
+    ld ix,minions.3
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 118
+    ld ix,minions.2
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 0
+
 
 
 

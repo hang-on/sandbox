@@ -1,6 +1,7 @@
 
 .equ MINION_DEACTIVATED $ff
 .equ MINION_IDLE 0
+.equ MINION_MOVING 1
 .equ MINION_MAX 3
 
 .struct minion
@@ -26,12 +27,21 @@
 ; -----------------------------------------------------------------------------
   process_minions:
     ;
-    ld ix,minions.1
-    ;ld a,249
-    ld a,(ix+minion.x)
-    add a,(ix+minion.hspeed)
-    ld (ix+minion.x),a
+    ld ix,minions
+    ld b,MINION_MAX
+    -:
+      ld a,(ix+minion.state)
+      cp MINION_MOVING
+      call z,@move
+      ld de,_sizeof_minion
+      add ix,de
+    djnz -
   ret
+    @move:
+      ld a,(ix+minion.x)
+      add a,(ix+minion.hspeed)
+      ld (ix+minion.x),a
+    ret
 
   spawn_minion:
     ; Spawn a minion.
