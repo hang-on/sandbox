@@ -130,7 +130,27 @@
 ; -----------------------------------------------------------------------------
 .section "tests" free
   test_bench:
-    ; These are the tests:
+    ; Test 1: Do not process deactivated minions.
+    jp +
+      minion_test_data_a:
+        .db MINION_ACTIVATED
+        ;   y    x    d     i  t  f  h   v
+        .db 127, 250, LEFT, 0, 0, 0, -1, 0
+        .db MINION_DEACTIVATED
+        .db 0 0 0 0 0 0 0 0
+        .db MINION_DEACTIVATED
+        ;   y    x    d     i  t  f  h  v
+        .db 127, 120, LEFT, 0, 0, 0, -1, 0
+    +:
+    ld hl,minion_test_data_a
+    call initialize_minions
+    call process_minions
+    ld ix,minions.1
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 249
+    ld ix,minions.3
+    ld a,(ix+minion.x)
+    ASSERT_A_EQUALS 120
 
 
   ; ------- end of tests --------------------------------------------------------

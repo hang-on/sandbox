@@ -1,7 +1,6 @@
 
 .equ MINION_DEACTIVATED $ff
-.equ MINION_IDLE 0
-.equ MINION_MOVING 1
+.equ MINION_ACTIVATED 0
 .equ MINION_MAX 3
 
 .struct minion
@@ -28,10 +27,14 @@
   process_minions:
     ld ix,minions
     ld b,MINION_MAX
-    -:                          ; For all minions, do...
+    -:                          ; For all non-deactivated minions, do...
       push bc                   ; Save loop counter.
-        call @move              ; Apply h- and vspeed to x and y.
-        ; ...
+        ld a,(ix+minion.state)
+        cp MINION_DEACTIVATED
+        jp z,+
+          call @move              ; Apply h- and vspeed to x and y.
+          ; ...
+        +:
         ld de,_sizeof_minion    
         add ix,de               ; Point ix to next minion.
       pop bc                    ; Restore loop counter.
@@ -60,7 +63,7 @@
     scf   ; Set carry = failure (no deactivated minion to spawn).
   ret
     @activate:  
-      ld a,MINION_MOVING
+      ld a,MINION_ACTIVATED
       ld (ix+minion.state),a
       call get_random_number
       bit 0,a
@@ -76,6 +79,7 @@
         ld (ix+minion.hspeed),a
         jp ++
       +:
+        ; Spawn a minion on the right side, facing left.
         ld a,LEFT
         ld (ix+minion.direction),a
         ld a,FLOOR_LEVEL
