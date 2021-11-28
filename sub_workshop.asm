@@ -79,9 +79,19 @@
     ret
 
     @move:
-      ld a,(ix+minion.x)
-      add a,(ix+minion.hspeed)
-      ld (ix+minion.x),a
+      ld a,(is_scrolling)
+      cp TRUE
+      jp nz,+
+        ld a,(ix+minion.x)
+        add a,(ix+minion.hspeed)
+        sub 1
+        ld (ix+minion.x),a
+        jp ++
+      +: 
+        ld a,(ix+minion.x)
+        add a,(ix+minion.hspeed)
+        ld (ix+minion.x),a
+      ++:
       ld a,(ix+minion.y)
       add a,(ix+minion.vspeed)
       ld (ix+minion.y),a
@@ -118,7 +128,7 @@
         ld (ix+minion.y),a
         ld a,0
         ld (ix+minion.x),a
-        ld a,1
+        ld a,2
         ld (ix+minion.hspeed),a
         ld a,$80
         ld (ix+minion.index),a
@@ -131,7 +141,7 @@
         ld (ix+minion.y),a
         ld a,250
         ld (ix+minion.x),a
-        ld a,-1
+        ld a,-2
         ld (ix+minion.hspeed),a
         ld a,$86
         ld (ix+minion.index),a
