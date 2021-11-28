@@ -201,10 +201,19 @@
     ;     D = y, E = x (screen position - upper left corner).
     .ifdef TEST_MODE
       ; Use the fake SAT...
-      ld bc,3
-      ld hl,str_e
-      ld de,fake_sat_xc
-      ldir ; committing horrible sins!
+      ld b,a
+      ld a,(fake_sat_index)
+      ld hl,fake_sat_y
+      call offset_byte_table
+      ld (hl),d
+      ld a,(fake_sat_index)
+      ld hl,fake_sat_xc
+      call offset_word_table
+      ld (hl),e
+      inc hl
+      ld (hl),b
+      ld hl,fake_sat_index
+      inc (hl)
     .else
       ld c,a
       call add_sprite

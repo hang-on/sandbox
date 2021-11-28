@@ -6,7 +6,7 @@
 .include "libraries/sms_constants.asm"
 
 ; Remove comment to enable unit testing
-.equ TEST_MODE
+;.equ TEST_MODE
 .ifdef TEST_MODE
   .equ USE_TEST_KERNEL
 .endif
@@ -109,6 +109,8 @@
   killbox_width db
   ; ----------------
 
+
+  spawner db
 
   hscroll_screen db ; 0-255
   hscroll_column db ; 0-7
@@ -230,6 +232,10 @@
     LOAD_BYTES odd_frame, TRUE
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
+
+    LOAD_BYTES spawner, 255
+    ld hl,minion_init_data
+    call initialize_minions
 
     ; Make solid block special tile in SAT.
     ld a,2
@@ -558,6 +564,16 @@
       ld a,TRUE
       ld (accept_button_2_input),a
     +:
+
+    ; Minions
+    ld a,(spawner)
+    dec a
+    call z,spawn_minion
+    ld (spawner),a
+
+    call process_minions
+    call draw_minions
+
 
 
     ld a,(scroll_enabled)

@@ -26,7 +26,7 @@
 .section "Subroutine workshop" free
 ; -----------------------------------------------------------------------------
   draw_minions:
-    ; Put activated minions in the SAT buffer.
+    ; Put non-deactivated minions in the SAT buffer.
     ld ix,minions
     ld b,MINION_MAX
     -:                          ; For all non-deactivated minions, do...
@@ -36,8 +36,8 @@
         jp z,+
           ld d,(ix+minion.y)
           ld e,(ix+minion.x)
-          ld a,(ix+minion.index)
-          call spr_2x2
+          ld a,(ix+minion.index); FIXME: Depending on direction and state!
+          call spr_2x2          ; + animation...
         +:
         ld de,_sizeof_minion    
         add ix,de               ; Point ix to next minion.
@@ -120,6 +120,8 @@
         ld (ix+minion.x),a
         ld a,1
         ld (ix+minion.hspeed),a
+        ld a,$80
+        ld (ix+minion.index),a
         jp ++
       +:
         ; Spawn a minion on the right side, facing left.
@@ -131,6 +133,8 @@
         ld (ix+minion.x),a
         ld a,-1
         ld (ix+minion.hspeed),a
+        ld a,$86
+        ld (ix+minion.index),a
       ++:
       or a    ; Reset carry = succes.
     ret
