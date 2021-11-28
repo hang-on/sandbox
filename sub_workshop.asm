@@ -3,6 +3,7 @@
 .equ MINION_ACTIVATED 0
 .equ MINION_MAX 3
 
+
 .struct minion
   state db
   y db
@@ -24,6 +25,26 @@
 ; -----------------------------------------------------------------------------
 .section "Subroutine workshop" free
 ; -----------------------------------------------------------------------------
+  draw_minions:
+    ; Put activated minions in the SAT buffer.
+    ld ix,minions
+    ld b,MINION_MAX
+    -:                          ; For all non-deactivated minions, do...
+      push bc                   ; Save loop counter.
+        ld a,(ix+minion.state)
+        cp MINION_DEACTIVATED
+        jp z,+
+          ld d,(ix+minion.y)
+          ld e,(ix+minion.x)
+          ld a,(ix+minion.index)
+          call spr_2x2
+        +:
+        ld de,_sizeof_minion    
+        add ix,de               ; Point ix to next minion.
+      pop bc                    ; Restore loop counter.
+    djnz -                      ; Process next minion.
+  ret
+
   process_minions:
     ld ix,minions
     ld b,MINION_MAX
@@ -32,7 +53,8 @@
         ld a,(ix+minion.state)
         cp MINION_DEACTIVATED
         jp z,+
-          call @move              ; Apply h- and vspeed to x and y.
+          call @check_limit
+          call @move            ; Apply h- and vspeed to x and y.
           ; ...
         +:
         ld de,_sizeof_minion    
@@ -40,6 +62,22 @@
       pop bc                    ; Restore loop counter.
     djnz -                      ; Process next minion.
   ret
+    @check_limit:
+      ld a,(ix+minion.direction)
+      cp LEFT
+      jp nz,+
+        ; Facing left - check if over left limit.
+        ld a,(ix+minion.x)
+        cp LEFT_LIMIT
+        call c,deactivate_minion
+        ret
+      +:
+        ; Facing right - check if over right limit.
+        ld a,(ix+minion.x)
+        cp RIGHT_LIMIT+1
+        call nc,deactivate_minion
+    ret
+
     @move:
       ld a,(ix+minion.x)
       add a,(ix+minion.hspeed)
@@ -48,6 +86,11 @@
       add a,(ix+minion.vspeed)
       ld (ix+minion.y),a
     ret
+
+  deactivate_minion:  
+      ld a,MINION_DEACTIVATED
+      ld (ix+minion.state),a
+  ret
 
   spawn_minion:
     ; Spawn a minion.

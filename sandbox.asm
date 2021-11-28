@@ -17,8 +17,8 @@
 .equ MUSIC_BANK 3
 
 .equ SCROLL_POSITION 180
-.equ LEFT_LIMIT_POSITION 10
-.equ RIGHT_LIMIT_POSITION 240
+.equ LEFT_LIMIT 10
+.equ RIGHT_LIMIT 240
 .equ FLOOR_LEVEL 127
 
 .equ LEFT 1
@@ -605,7 +605,7 @@
 
     ; Check if player is about to exit the left side of the screen.
     ld a,(player_x)
-    cp LEFT_LIMIT_POSITION
+    cp LEFT_LIMIT
     jp nc,+
       ld a,(hspeed)
       bit 7,a             ; Positive value = walking right
@@ -618,7 +618,7 @@
 
     ; Check if player is about to exit the right side of the screen.
     ld a,(player_x)
-    cp RIGHT_LIMIT_POSITION
+    cp RIGHT_LIMIT
     jp c,+
       ld a,(hspeed)
       bit 7,a             ; Negative value = walking left

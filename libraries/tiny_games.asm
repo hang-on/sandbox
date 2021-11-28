@@ -199,25 +199,33 @@
     ; spr id x y 
     ; IN: A = id, index in the sprite tile bank.
     ;     D = y, E = x (screen position - upper left corner).
-    ld c,a
-    call add_sprite
-    ld a,8
-    add e
-    ld e,a
-    inc c
-    call add_sprite
-    ld a,32
-    add c
-    ld c,a
-    ld a,8
-    add d
-    ld d,a
-    call add_sprite
-    dec c
-    ld a,e
-    sub 8
-    ld e,a
-    call add_sprite
+    .ifdef TEST_MODE
+      ; Use the fake SAT...
+      ld bc,3
+      ld hl,str_e
+      ld de,fake_sat_xc
+      ldir ; committing horrible sins!
+    .else
+      ld c,a
+      call add_sprite
+      ld a,8
+      add e
+      ld e,a
+      inc c
+      call add_sprite
+      ld a,32
+      add c
+      ld c,a
+      ld a,8
+      add d
+      ld d,a
+      call add_sprite
+      dec c
+      ld a,e
+      sub 8
+      ld e,a
+      call add_sprite
+    .endif
   ret
 
 

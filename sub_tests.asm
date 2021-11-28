@@ -111,6 +111,8 @@
 .endm
 
 .ramsection "Fake VRAM stuff" slot 3
+  ; Use to test writes to the SAT buffer
+  fake_sat_index db
   fake_sat_y dsb 64
   fake_sat_xc dsb 128
 .ends
@@ -152,6 +154,85 @@
     ld a,(ix+minion.x)
     ASSERT_A_EQUALS 120
 
+    ; Test 2: Deactivate minion over limit.
+    jp +
+      minion_test_data_b:
+        .db MINION_ACTIVATED
+        ;   y    x             d     i  t  f  h   v
+        .db 127, LEFT_LIMIT-1, LEFT, 0, 0, 0, -1, 0
+        .db MINION_DEACTIVATED
+        .db 0 0 0 0 0 0 0 0
+        .db MINION_DEACTIVATED
+        ;   y    x    d     i  t  f  h  v
+        .db 127, 120, LEFT, 0, 0, 0, -1, 0
+    +:
+    ld hl,minion_test_data_b
+    call initialize_minions
+    call process_minions
+    ld ix,minions.1
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_DEACTIVATED
+
+    ; Test 3: Do not Deactivate minion on limit.
+    jp +
+      minion_test_data_c:
+        .db MINION_ACTIVATED
+        ;   y    x           d     i  t  f  h   v
+        .db 127, LEFT_LIMIT, LEFT, 0, 0, 0, -1, 0
+        .db MINION_DEACTIVATED
+        .db 0 0 0 0 0 0 0 0
+        .db MINION_DEACTIVATED
+        ;   y    x    d     i  t  f  h  v
+        .db 127, 120, LEFT, 0, 0, 0, -1, 0
+    +:
+    ld hl,minion_test_data_c
+    call initialize_minions
+    call process_minions
+    ld ix,minions.1
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_ACTIVATED
+
+    ; Test 4: Deactivate minion over right limit.
+    jp +
+      minion_test_data_d:
+        .db MINION_ACTIVATED
+        ;   y    x              d      i  t  f  h  v
+        .db 127, RIGHT_LIMIT+1, RIGHT, 0, 0, 0, 1, 0
+        .db MINION_DEACTIVATED
+        .db 0 0 0 0 0 0 0 0
+        .db MINION_DEACTIVATED
+        ;   y    x    d     i  t  f  h  v
+        .db 127, 120, LEFT, 0, 0, 0, -1, 0
+    +:
+    ld hl,minion_test_data_d
+    call initialize_minions
+    call process_minions
+    ld ix,minions.1
+    ld a,(ix+minion.state)
+    ASSERT_A_EQUALS MINION_DEACTIVATED
+
+    ; Test 5: Put an activated minion in the SAT buffer.
+    jp +
+      minion_test_data_e:
+        .db MINION_ACTIVATED
+        ;   y    x            d      i    t  f  h  v
+        .db 127, RIGHT_LIMIT, RIGHT, $86, 0, 0, 1, 0
+        .db MINION_DEACTIVATED
+        .db 0 0 0 0 0 0 0 0
+        .db MINION_DEACTIVATED
+        ;   y    x    d     i  t  f  h  v
+        .db 127, 120, LEFT, 0, 0, 0, -1, 0
+      
+        str_e:
+          .db RIGHT_LIMIT+1, $86
+    +:
+    ld hl,minion_test_data_e
+    call initialize_minions
+    call process_minions
+    call draw_minions
+    ld hl,fake_sat_xc
+    ASSERT_HL_POINTS_TO_STRING 3, str_e 
+    
 
   ; ------- end of tests --------------------------------------------------------
   exit_with_succes:
