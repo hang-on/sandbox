@@ -16,7 +16,7 @@
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
 
-.equ SCROLL_POSITION 160
+.equ SCROLL_POSITION 152
 .equ LEFT_LIMIT 10
 .equ RIGHT_LIMIT 240
 .equ FLOOR_LEVEL 127
@@ -110,7 +110,7 @@
   ; ----------------
 
 
-  spawner db
+  spawner dw
 
   is_scrolling db
   hscroll_screen db ; 0-255
@@ -235,7 +235,7 @@
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
 
     ; Initialize the minions.
-    LOAD_BYTES spawner, 255
+    RESET_BLOCK 80, spawner, 2
     ld hl,minion_init_data
     call initialize_minions
 
@@ -740,11 +740,9 @@
     __:
 
     ; Minions
-    ld a,(spawner)
-    dec a
-    call z,spawn_minion
-    ld (spawner),a
-
+    ld hl,spawner
+    call tick_counter
+    call c,spawn_minion
     call process_minions
     call draw_minions
 
