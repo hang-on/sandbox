@@ -144,48 +144,6 @@
 .section "tests" free
   test_bench:
 
-    ; Test 1: Test timer reset
-    jp +
-      minion_test_data_a:
-        .db MINION_ACTIVATED
-        ;   y    x            d      i    t  f  h  v
-        .db 127, RIGHT_LIMIT, RIGHT, $86, 0, 0, 1, 0
-        .db MINION_DEACTIVATED
-        .db 0 0 0 0 0 0 0 0
-        .db MINION_ACTIVATED
-        ;   y    x    d     i    t  f  h   v
-        .db 127, 120, LEFT, $86, 0, 0, -1, 0
-    +:
-    RESET_FAKE_SAT
-    ld hl,minion_test_data_a
-    call initialize_minions
-    call process_minions
-    ld ix,minions.3
-    ld a,(ix+minion.timer)
-    ASSERT_A_EQUALS $ff ; Invalid value!
-
-  ; Test 2: Test timer reset
-    jp +
-      __:
-        .db MINION_ACTIVATED
-        ;   y    x            d      i    t  f  h  v
-        .db 127, RIGHT_LIMIT, RIGHT, $86, 0, 0, 1, 0
-        .db MINION_DEACTIVATED
-        .db 0 0 0 0 0 0 0 0
-        .db MINION_ACTIVATED
-        ;   y    x    d     i    t  f  h   v
-        .db 127, 120, LEFT, $86, 1, 0, -1, 0
-    +:
-    RESET_FAKE_SAT
-    ld hl,_b
-    call initialize_minions
-    call process_minions
-    ld ix,minions.3
-    ld a,(ix+minion.timer)
-    ASSERT_A_EQUALS 20
-    ld a,(ix+minion.index)
-    ASSERT_A_EQUALS $88
-
 
 
   ; ------- end of tests --------------------------------------------------------

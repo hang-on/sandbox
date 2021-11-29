@@ -99,18 +99,39 @@
     ret
 
     @animate:
-      ;ld a,20
-      ;ld (ix+minion.timer),a
       ld a,(ix+minion.timer)
       dec a
       jp nz,+
         call @@update_index
-        ld a,20
+        ld a,5                    ; Load timer reset value.
       +:
-      ld (ix+minion.timer),a
+      ld (ix+minion.timer),a      ; Reset the timer.
     ret
       @@update_index:
-        ld a,$88
+        ld a,(ix+minion.direction)
+        cp RIGHT
+        jp nz,++
+          ; Facing right
+          ld a,(ix+minion.index)
+          cp $80
+          jp nz,+
+            ld a,$82
+            ld (ix+minion.index),a
+            ret
+          +:
+          ld a,$80
+          ld (ix+minion.index),a
+          ret
+        ++:
+        ; Facing left
+        ld a,(ix+minion.index)
+        cp $86
+        jp nz,+
+          ld a,$88
+          ld (ix+minion.index),a
+          ret
+        +:
+        ld a,$86
         ld (ix+minion.index),a
       ret
 
@@ -163,6 +184,8 @@
         ld a,$86
         ld (ix+minion.index),a
       ++:
+      ld a,5
+      ld (ix+minion.timer),a
       or a    ; Reset carry = succes.
     ret
   ret
