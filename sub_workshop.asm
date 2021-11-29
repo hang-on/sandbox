@@ -55,6 +55,7 @@
         jp z,+
           call @check_limit
           call @move            ; Apply h- and vspeed to x and y.
+          call @animate
           ; ...
         +:
         ld de,_sizeof_minion    
@@ -96,6 +97,22 @@
       add a,(ix+minion.vspeed)
       ld (ix+minion.y),a
     ret
+
+    @animate:
+      ;ld a,20
+      ;ld (ix+minion.timer),a
+      ld a,(ix+minion.timer)
+      dec a
+      jp nz,+
+        call @@update_index
+        ld a,20
+      +:
+      ld (ix+minion.timer),a
+    ret
+      @@update_index:
+        ld a,$88
+        ld (ix+minion.index),a
+      ret
 
   deactivate_minion:  
       ld a,MINION_DEACTIVATED

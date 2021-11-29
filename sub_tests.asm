@@ -143,157 +143,49 @@
 ; -----------------------------------------------------------------------------
 .section "tests" free
   test_bench:
-    ; Test 1: Do not process deactivated minions.
+
+    ; Test 1: Test timer reset
     jp +
       minion_test_data_a:
         .db MINION_ACTIVATED
-        ;   y    x    d     i  t  f  h   v
-        .db 127, 250, LEFT, 0, 0, 0, -1, 0
+        ;   y    x            d      i    t  f  h  v
+        .db 127, RIGHT_LIMIT, RIGHT, $86, 0, 0, 1, 0
         .db MINION_DEACTIVATED
         .db 0 0 0 0 0 0 0 0
-        .db MINION_DEACTIVATED
-        ;   y    x    d     i  t  f  h  v
-        .db 127, 120, LEFT, 0, 0, 0, -1, 0
+        .db MINION_ACTIVATED
+        ;   y    x    d     i    t  f  h   v
+        .db 127, 120, LEFT, $86, 0, 0, -1, 0
     +:
+    RESET_FAKE_SAT
     ld hl,minion_test_data_a
     call initialize_minions
     call process_minions
-    ld ix,minions.1
-    ld a,(ix+minion.x)
-    ASSERT_A_EQUALS 249
     ld ix,minions.3
-    ld a,(ix+minion.x)
-    ASSERT_A_EQUALS 120
+    ld a,(ix+minion.timer)
+    ASSERT_A_EQUALS $ff ; Invalid value!
 
-    ; Test 2: Deactivate minion over limit.
+  ; Test 2: Test timer reset
     jp +
-      minion_test_data_b:
-        .db MINION_ACTIVATED
-        ;   y    x             d     i  t  f  h   v
-        .db 127, LEFT_LIMIT-1, LEFT, 0, 0, 0, -1, 0
-        .db MINION_DEACTIVATED
-        .db 0 0 0 0 0 0 0 0
-        .db MINION_DEACTIVATED
-        ;   y    x    d     i  t  f  h  v
-        .db 127, 120, LEFT, 0, 0, 0, -1, 0
-    +:
-    ld hl,minion_test_data_b
-    call initialize_minions
-    call process_minions
-    ld ix,minions.1
-    ld a,(ix+minion.state)
-    ASSERT_A_EQUALS MINION_DEACTIVATED
-
-    ; Test 3: Do not Deactivate minion on limit.
-    jp +
-      minion_test_data_c:
-        .db MINION_ACTIVATED
-        ;   y    x           d     i  t  f  h   v
-        .db 127, LEFT_LIMIT, LEFT, 0, 0, 0, -1, 0
-        .db MINION_DEACTIVATED
-        .db 0 0 0 0 0 0 0 0
-        .db MINION_DEACTIVATED
-        ;   y    x    d     i  t  f  h  v
-        .db 127, 120, LEFT, 0, 0, 0, -1, 0
-    +:
-    ld hl,minion_test_data_c
-    call initialize_minions
-    call process_minions
-    ld ix,minions.1
-    ld a,(ix+minion.state)
-    ASSERT_A_EQUALS MINION_ACTIVATED
-
-    ; Test 4: Deactivate minion over right limit.
-    jp +
-      minion_test_data_d:
-        .db MINION_ACTIVATED
-        ;   y    x              d      i  t  f  h  v
-        .db 127, RIGHT_LIMIT+1, RIGHT, 0, 0, 0, 1, 0
-        .db MINION_DEACTIVATED
-        .db 0 0 0 0 0 0 0 0
-        .db MINION_DEACTIVATED
-        ;   y    x    d     i  t  f  h  v
-        .db 127, 120, LEFT, 0, 0, 0, -1, 0
-    +:
-    ld hl,minion_test_data_d
-    call initialize_minions
-    call process_minions
-    ld ix,minions.1
-    ld a,(ix+minion.state)
-    ASSERT_A_EQUALS MINION_DEACTIVATED
-
-    ; Test 5: Put an activated minion in the SAT buffer.
-    jp +
-      minion_test_data_e:
-        .db MINION_ACTIVATED
-        ;   y    x            d      i    t  f  h  v
-        .db 127, RIGHT_LIMIT, RIGHT, $86, 0, 0, 1, 0
-        .db MINION_DEACTIVATED
-        .db 0 0 0 0 0 0 0 0
-        .db MINION_DEACTIVATED
-        ;   y    x    d     i  t  f  h  v
-        .db 127, 120, LEFT, 0, 0, 0, -1, 0
-      
-        str_e:
-          .db RIGHT_LIMIT+1, $86
-    +:
-    RESET_FAKE_SAT
-    ld hl,minion_test_data_e
-    call initialize_minions
-    call process_minions
-    call draw_minions
-    ld hl,fake_sat_xc
-    ASSERT_HL_POINTS_TO_STRING 2, str_e 
-    ld hl,fake_sat_y
-    ld a,(hl)
-    ASSERT_A_EQUALS 127 
-
-    ; Test 6: Put an activated minion in the SAT buffer.
-    jp +
-      minion_test_data_f:
+      __:
         .db MINION_ACTIVATED
         ;   y    x            d      i    t  f  h  v
         .db 127, RIGHT_LIMIT, RIGHT, $86, 0, 0, 1, 0
         .db MINION_DEACTIVATED
         .db 0 0 0 0 0 0 0 0
         .db MINION_ACTIVATED
-        ;   y    x    d     i  t  f  h  v
-        .db 127, 120, LEFT, $86, 0, 0, -1, 0
-      
-        str_f1:
-          .db RIGHT_LIMIT+1, $86
-        str_f2:
-          .db 119, $86
-
+        ;   y    x    d     i    t  f  h   v
+        .db 127, 120, LEFT, $86, 1, 0, -1, 0
     +:
     RESET_FAKE_SAT
-    ld a,(fake_sat_index)
-    ASSERT_A_EQUALS 0
-    ld hl,minion_test_data_f
+    ld hl,_b
     call initialize_minions
     call process_minions
-    ld a,(fake_sat_index)
-    ASSERT_A_EQUALS 0
-    call draw_minions
-    ld a,(fake_sat_index)
-    ASSERT_A_EQUALS 2
-    ld hl,fake_sat_xc
-    ASSERT_HL_POINTS_TO_STRING 2, str_f1 
-    ld hl,fake_sat_y
-    ld a,(hl)
-    ASSERT_A_EQUALS 127 
-    ld hl,fake_sat_y+1
-    ld a,(hl)
-    ASSERT_A_EQUALS 127 
-    ld hl,fake_sat_y+2
-    ld a,(hl)
-    ASSERT_A_EQUALS 0
-    ld hl,fake_sat_xc+2
-    ld a,(hl)
-    ASSERT_A_EQUALS 119 
-    inc hl
-    ld a,(hl)
-    ASSERT_A_EQUALS $86 
+    ld ix,minions.3
+    ld a,(ix+minion.timer)
+    ASSERT_A_EQUALS 20
+    ld a,(ix+minion.index)
+    ASSERT_A_EQUALS $88
+
 
 
   ; ------- end of tests --------------------------------------------------------
