@@ -235,7 +235,7 @@
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
 
     ; Initialize the minions.
-    RESET_BLOCK 80, spawner, 2
+    RESET_BLOCK 40, spawner, 2
     ld hl,minion_init_data
     call initialize_minions
 
@@ -742,7 +742,12 @@
     ; Minions
     ld hl,spawner
     call tick_counter
-    call c,spawn_minion
+    jp nc,+                   ; Skip forward if the counter is not up.
+      call get_random_number  ; Counter is up - get a random number 0-255.
+      cp 75                   ; Roll under the spawn chance.
+      jp nc,+
+        call spawn_minion     ; OK, spawn a minion.
+    +:
     call process_minions
     call draw_minions
 
