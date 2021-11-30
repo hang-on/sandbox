@@ -1,6 +1,7 @@
 
 .equ MINION_DEACTIVATED $ff
 .equ MINION_ACTIVATED 0
+.equ MINION_HURTING 1
 .equ MINION_MAX 3
 
 
@@ -14,6 +15,7 @@
   frame db
   hspeed db
   vspeed db
+  hurt_counter db
 .endst
 
 .ramsection "Ram section for library being developed" slot 3
@@ -57,6 +59,8 @@
           call @check_collision
           call @move            ; Apply h- and vspeed to x and y.
           call @animate
+          call @hurt
+
           ; ...
         +:
         ld de,_sizeof_minion    
@@ -130,11 +134,45 @@
             ld a,(iy+0)
             cp b
             ret nc
-      call deactivate_minion
-    ret ; Return with carry set.
+      ; Collision! Hurt the minion.
+      ld a,MINION_HURTING
+      ld (ix+minion.state),a
+      ld a,10
+      ld (ix+minion.hurt_counter),a
+      ld a,(ix+minion.direction)
+      cp RIGHT
+      jp nz,+
+        ; Looking right
+        ld a,$84
+        ld (ix+minion.index),a
+        ret
+      +:
+        ; Looking left
+        ld a,$8A
+        ld (ix+minion.index),a
+    ret 
 
+    @hurt:
+      ld a,(ix+minion.state)
+      cp MINION_HURTING
+      ret nz
+      ;
+      ld a,(ix+minion.hurt_counter)
+      dec a
+      ld (ix+minion.hurt_counter),a
+      call z,deactivate_minion
+      ld a,(is_scrolling)
+      cp TRUE
+      jp nz,+
+        dec (ix+minion.x)
+      +:
+    ret
 
     @move:
+      ld a,(ix+minion.state)
+      cp MINION_HURTING
+      ret z
+      ;
       ld a,(is_scrolling)
       cp TRUE
       jp nz,+
@@ -154,6 +192,10 @@
     ret
 
     @animate:
+      ld a,(ix+minion.state)
+      cp MINION_HURTING
+      ret z
+      ;
       ld a,(ix+minion.timer)
       dec a
       jp nz,+
