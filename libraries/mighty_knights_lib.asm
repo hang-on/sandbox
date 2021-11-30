@@ -17,7 +17,7 @@
 .section "Mighty Knights Library" free
 ; -----------------------------------------------------------------------------
 
-  detect_collision:
+  detect_collision_minion:
     ; Axis aligned bounding box:
     ;    if (rect1.x < rect2.x + rect2.w &&
     ;    rect1.x + rect1.w > rect2.x &&
@@ -25,20 +25,20 @@
     ;    rect1.h + rect1.y > rect2.y)
     ;    ---> collision detected!
     ; ---------------------------------------------------
-    ; IN: IX = Pointer to y, x, height, width of rect 1.
-    ;     IY = Pointer to y, x, height, width of rect2.
+    ; IN: IX = Pointer to minion struct. (rect 1)
+    ;     IY = Pointer to killbox struct (y, x, height, width of rect2.)
     ; OUT:  Carry set = collision / not set = no collision.
     ;
     ; rect1.x < rect2.x + rect2.width
     ld a,(iy+1)
     add a,(iy+3)
     ld b,a
-    ld a,(ix+1)
+    ld a,(ix+minion.x)
     cp b
     ret nc
       ; rect1.x + rect1.width > rect2.x
-      ld a,(ix+1)
-      add a,(ix+3)
+      ld a,(ix+minion.x)
+      add a,16
       ld b,a
       ld a,(iy+1)
       cp b
@@ -47,12 +47,12 @@
         ld a,(iy+0)
         add a,(iy+2)
         ld b,a
-        ld a,(ix+0)
+        ld a,(ix+minion.y)
         cp b
         ret nc
           ; rect1.y + rect1.height > rect2.y
-          ld a,(ix+0)
-          add a,(ix+2)
+          ld a,(ix+minion.y)
+          add a,16
           ld b,a
           ld a,(iy+0)
           cp b

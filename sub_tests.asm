@@ -140,6 +140,13 @@
 
 .ends
 
+.macro SET_PLAYER ARGS Y, X, DIRECTION, STATE
+  ld (player_y),Y
+  ld (player_x),X
+  ld (direction),DIRECTION
+  ld (state),STATE
+.endm
+
 ; -----------------------------------------------------------------------------
 .section "tests" free
   test_bench:
