@@ -696,7 +696,8 @@
     add a,b                           ; Apply offset (0 or ONE_ROW)
     
     call spr_2x2
-
+    
+    LOAD_BYTES killbox_y, 0, killbox_x, 0
     ; Add the sword sprite on the relevant player states.
     ld a,(state)
     cp ATTACKING
