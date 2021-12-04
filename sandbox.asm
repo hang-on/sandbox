@@ -111,6 +111,7 @@
 
 
   spawner dw
+  spawn_minions db
 
   is_scrolling db
   hscroll_screen db ; 0-255
@@ -191,6 +192,8 @@
     ld hl,vdp_register_init
     call initialize_vdp_registers
     ;
+    
+    ;
     ld a,1
     ld b,BORDER_COLOR
     call set_register
@@ -235,9 +238,10 @@
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
 
     ; Initialize the minions.
-    RESET_BLOCK 40, spawner, 2
-    ld hl,minion_init_data
     call initialize_minions
+
+
+
 
     ; Make solid block special tile in SAT.
     ld a,2
@@ -267,6 +271,13 @@
       ld a,%00000001
       out (DATA_PORT),a
     djnz -
+
+    ; Note: Stuff above can soon be deleted!
+    ld hl,mockup_dashboard
+    ld a,TRUE
+    ld b,0
+    ld c,_sizeof_mockup_dashboard
+    call copy_string_to_nametable
 
     ; Level data:
     ld hl,level_1_map+_sizeof_level_1_map
@@ -299,7 +310,7 @@
     
   jp main_loop
     vdp_register_init:
-    .db %00100110  %10100000 $ff $ff $ff
+    .db %01100110  %10100000 $ff $ff $ff
     .db $ff $fb $f0 $00 $00 $ff
   ; ---------------------------------------------------------------------------
   main_loop:
@@ -612,6 +623,7 @@
     jp c,+
       ld a,FALSE
       ld (scroll_enabled),a
+      ld (spawn_minions),a
     +:
 
     ; Check if player is about to exit the left side of the screen.
@@ -696,7 +708,7 @@
     add a,b                           ; Apply offset (0 or ONE_ROW)
     
     call spr_2x2
-    
+
     LOAD_BYTES killbox_y, 0, killbox_x, 0
     ; Add the sword sprite on the relevant player states.
     ld a,(state)
