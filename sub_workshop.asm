@@ -213,6 +213,10 @@
             cp b
             ret nc
       ; Collision! Hurt the minion.
+      ld hl,hurt_sfx
+      ld c,SFX_CHANNELS2AND3                  
+      call PSGSFXPlay                         ; Play the SFX with PSGlib.
+      ;      
       ld a,MINION_HURTING
       ld (ix+minion.state),a
       ld a,10

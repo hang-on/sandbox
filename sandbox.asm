@@ -855,4 +855,7 @@
   jump_sfx:
     .incbin "data/jump.psg"
 
+  hurt_sfx:
+    .incbin "data/hurt.psg"
+
 .ends
