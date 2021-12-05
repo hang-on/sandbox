@@ -1,4 +1,17 @@
 
+
+    ; Clear the top two rows with that special tile.
+    ld hl,NAME_TABLE_START
+    call setup_vram_write
+    ld b,32*2
+    -:
+      ld a,$fa ; Tilebank index of special tile.
+      out (DATA_PORT),a
+      ld a,%00000001
+      out (DATA_PORT),a
+    djnz -
+
+
      metatile_lut:
     .rept 90 INDEX COUNT
       .dw $2000+(COUNT*$40) ; Address of top-left tile

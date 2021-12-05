@@ -11,8 +11,6 @@
   .equ USE_TEST_KERNEL
 .endif
 
-
-
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
 
@@ -55,12 +53,12 @@
 .endro
 ;
 ; Hierarchy: Most fundamental first. 
-.include "libraries/tiny_games.asm"
 .include "libraries/psglib.inc"
 .include "libraries/vdp_lib.asm"
 .include "libraries/map_lib.asm"
 .include "libraries/input_lib.asm"
-.include "libraries/mighty_knights_lib.asm"
+.include "libraries/tiny_games.asm"
+.include "libraries/minions_lib.asm"
 .include "sub_workshop.asm"
 .include "sub_tests.asm"        
 
@@ -240,26 +238,12 @@
     ; Initialize the minions.
     call initialize_minions
 
-
-
-
     ; Make solid block special tile in SAT.
     ld a,2
     ld bc,CHARACTER_SIZE
     ld hl,solid_block
     ld de,START_OF_UNUSED_SAT_AREA
     call load_vram
-
-    ; Clear the top two rows with that special tile.
-    ld hl,NAME_TABLE_START
-    call setup_vram_write
-    ld b,32*2
-    -:
-      ld a,$fa ; Tilebank index of special tile.
-      out (DATA_PORT),a
-      ld a,%00000001
-      out (DATA_PORT),a
-    djnz -
 
     ; Clear the bottom two rows with that special tile.
     ld hl,NAME_TABLE_START+(32*22*2)
@@ -272,7 +256,6 @@
       out (DATA_PORT),a
     djnz -
 
-    ; Note: Stuff above can soon be deleted!
     ld hl,mockup_dashboard
     ld a,TRUE
     ld b,0
@@ -400,6 +383,18 @@
     +++:
 
     RESET_VARIABLES 0, vspeed, hspeed
+
+    .macro TRANSITION_PLAYER_STATE ARGS NEWSTATE, SFX
+      ; Perform the standard actions when the player's state transitions:
+      ; 1) Load new state into state variable, 2) reset animation frame and
+      ; 3) (optional) play a sound effect.
+      LOAD_BYTES state, NEWSTATE, frame, 0      ; Set the state and frame variables.
+      .IF NARGS == 2                            ; Is an SFX pointer provided?
+        ld hl,SFX                               ; If so, point HL to the SFX-data.
+        ld c,SFX_CHANNELS2AND3                  ; Set the channel.
+        call PSGSFXPlay                         ; Play the SFX with PSGlib.
+      .ENDIF
+    .endm
 
     ld a,(state)
     cp IDLE ; is state = idle?
