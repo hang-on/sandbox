@@ -21,6 +21,9 @@
 .ramsection "Minions ram section" slot 3
   random_number db
   minions INSTANCEOF minion 3
+  spawner dw
+  spawn_minions db
+
 .ends
 
 .bank 0 slot 0
@@ -314,48 +317,6 @@
       or a    ; Reset carry = succes.
     ret
   ret
-
-  detect_collision_minion:
-    ; Axis aligned bounding box:
-    ;    if (rect1.x < rect2.x + rect2.w &&
-    ;    rect1.x + rect1.w > rect2.x &&
-    ;    rect1.y < rect2.y + rect2.h &&
-    ;    rect1.h + rect1.y > rect2.y)
-    ;    ---> collision detected!
-    ; ---------------------------------------------------
-    ; IN: IX = Pointer to minion struct. (rect 1)
-    ;     IY = Pointer to killbox struct (y, x, height, width of rect2.)
-    ; OUT:  Carry set = collision / not set = no collision.
-    ;
-    ; rect1.x < rect2.x + rect2.width
-    ld a,(iy+1)
-    add a,(iy+3)
-    ld b,a
-    ld a,(ix+minion.x)
-    cp b
-    ret nc
-      ; rect1.x + rect1.width > rect2.x
-      ld a,(ix+minion.x)
-      add a,16
-      ld b,a
-      ld a,(iy+1)
-      cp b
-      ret nc
-        ; rect1.y < rect2.y + rect2.height
-        ld a,(iy+0)
-        add a,(iy+2)
-        ld b,a
-        ld a,(ix+minion.y)
-        cp b
-        ret nc
-          ; rect1.y + rect1.height > rect2.y
-          ld a,(ix+minion.y)
-          add a,16
-          ld b,a
-          ld a,(iy+0)
-          cp b
-          ret nc
-  ret ; Return with carry set.
 
 .ends
 

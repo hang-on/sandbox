@@ -21,7 +21,7 @@
 ; -----------------------------------------------------------------------------
 ; SAT Handler
 ; -----------------------------------------------------------------------------
-.equ PRIORITY_SPRITES 6         ; Number of tiles not part of asc/desc flicker.
+.equ PRIORITY_SPRITES 5         ; Number of tiles not part of asc/desc flicker.
 .equ ASCENDING 0
 .equ DESCENDING $ff
 .equ SAT_Y_SIZE HARDWARE_SPRITES

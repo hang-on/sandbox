@@ -59,6 +59,7 @@
 .include "libraries/input_lib.asm"
 .include "libraries/tiny_games.asm"
 .include "libraries/minions_lib.asm"
+.include "libraries/items_lib.asm"
 .include "sub_workshop.asm"
 .include "sub_tests.asm"        
 
@@ -82,6 +83,7 @@
   vblank_finish_high db
   odd_frame db
   rnd_seed dw
+  
 
 
   anim_counter dw
@@ -107,9 +109,6 @@
   killbox_width db
   ; ----------------
 
-
-  spawner dw
-  spawn_minions db
 
   is_scrolling db
   hscroll_screen db ; 0-255
@@ -235,8 +234,23 @@
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
 
+    ; Seed the randomizer
+    ld hl,my_seed
+    ld a,(hl)
+    ld (rnd_seed),a
+    inc hl
+    ld a,(hl)
+    ld (rnd_seed+1),a
+    jp +
+      my_seed:
+      .dbrnd 2, 0, 255
+    +:
+
     ; Initialize the minions.
     call initialize_minions
+
+    ; Initialize the items.
+    call initialize_items
 
     ; Make solid block special tile in SAT.
     ld a,2
@@ -759,6 +773,18 @@
     call process_minions
     call draw_minions
 
+    ; Items
+    ld hl,item_spawner
+    call tick_counter
+    jp nc,+                   ; Skip forward if the counter is not up.
+      call get_random_number  ; Counter is up - get a random number 0-255.
+      cp 75                   ; Roll under the spawn chance.
+      jp nc,+
+        call spawn_item     ; OK, spawn a minion.
+    +:
+    call process_items
+    call draw_items
+
   jp main_loop
 .ends
 .bank 1 slot 1
@@ -852,5 +878,10 @@
 
   hurt_sfx:
     .incbin "data/hurt.psg"
+
+  item_sfx:
+    .incbin "data/item.psg"
+
+
 
 .ends
