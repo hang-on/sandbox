@@ -23,7 +23,7 @@
   item_spawner dw
   spawn_items db
   item_pool db
-  item_pool_counter db
+  item_pool_counter dw
 .ends
 
 .bank 0 slot 0
@@ -34,7 +34,8 @@
   initialize_items:
     ; In: hl = ptr. to init data.
     RESET_BLOCK 60, item_spawner, 2
-    LOAD_BYTES item_pool, 0, item_pool_counter, 0
+    RESET_BLOCK 60, item_pool_counter, 2
+    LOAD_BYTES item_pool, 1, item_pool_counter, 0
     ld hl,item_init_data
     ld de,items
     ld bc,_sizeof_item_init_data
@@ -73,6 +74,35 @@
   ; --------------------------------------------------------------------------- 
   ; UPDATE:
   process_items:
+    ; Process the item aspect of the game.
+    ld a,(scroll_enabled)       ; Load the scroll lock.
+    cp FALSE                    ; Can the world still scroll?
+    jp nz,+                     ; If not, then...
+      ld (spawn_items),a        ; Disable item spawning.
+    +:
+    ld a,(is_scrolling)         ; Is the world scrolling this frame?
+    cp TRUE                     ; Yes?
+    jp nz,+
+      ld hl,item_pool_counter   ; Tick the item pool counter.
+      call tick_counter
+      jp nc,+                   ; Counter reaches 0...
+        ld a,(item_pool)        ; How many item waiting to be spawned?
+        cp 4                    ; If it is already max (4), skip...
+        jp z,+
+          inc a                 ; Else, increment the pool.
+          ld (item_pool),a
+    +:
+    ld hl,item_spawner          ; Tick the item spawner.
+    call tick_counter         
+    jp nc,+                     ; Skip forward if the counter is not up.
+      call get_random_number    ; Counter is up - get a random number 0-255.
+      cp 50                     ; Roll under the spawn chance.
+      jp nc,+
+        call spawn_item     ;    OK, spawn an item.
+    +:
+
+
+    ; Process each item individually.
     ld ix,items
     ld b,ITEM_MAX
     -:                          ; For all non-deactivated items, do...

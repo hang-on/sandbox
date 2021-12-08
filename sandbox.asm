@@ -368,11 +368,10 @@
     ld (odd_frame),a                ; Store value.
 
 
-    ; Seed the random number generator with the reset button.
-    call is_reset_pressed
+    ; Seed the random number generator with button 1.
+    call is_button_1_pressed
     jp nc,+
-      ld a,(vblank_counter)
-      ld (hl),a
+      call get_random_number
     +:
 
     ; Set the player's direction depending on controller input (LEFT/RIGHT).
@@ -774,31 +773,6 @@
     call draw_minions
 
     ; Items
-    ld a,(is_scrolling)
-    cp TRUE
-    jp nz,+
-      ld a,(item_pool_counter)
-      inc a
-      ld (item_pool_counter),a
-      cp 60
-      jp nz,+
-        xor a
-        ld (item_pool_counter),a
-        ld a,(item_pool)
-        cp 4
-        jp z,+
-          inc a
-          ld (item_pool),a
-    +:
-
-    ld hl,item_spawner
-    call tick_counter
-    jp nc,+                   ; Skip forward if the counter is not up.
-      call get_random_number  ; Counter is up - get a random number 0-255.
-      cp 50                   ; Roll under the spawn chance.
-      jp nc,+
-        call spawn_item     ; OK, spawn a minion.
-    +:
     call process_items
     call draw_items
 

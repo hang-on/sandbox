@@ -72,6 +72,8 @@
   ; --------------------------------------------------------------------------- 
   ; UPDATE:
   process_minions:
+    
+    ; Process each minion
     ld ix,minions
     ld b,MINION_MAX
     -:                          ; For all non-deactivated minions, do...
