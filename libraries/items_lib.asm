@@ -22,6 +22,8 @@
   items INSTANCEOF item 3
   item_spawner dw
   spawn_items db
+  item_pool db
+  item_pool_counter db
 .ends
 
 .bank 0 slot 0
@@ -31,7 +33,8 @@
   ; INIT:
   initialize_items:
     ; In: hl = ptr. to init data.
-    RESET_BLOCK 40, item_spawner, 2
+    RESET_BLOCK 60, item_spawner, 2
+    LOAD_BYTES item_pool, 0, item_pool_counter, 0
     ld hl,item_init_data
     ld de,items
     ld bc,_sizeof_item_init_data
@@ -85,8 +88,9 @@
         ld de,_sizeof_item    
         add ix,de               ; Point ix to next item.
       pop bc                    ; Restore loop counter.
-    djnz -                      ; Process next item.
+    djnz -                      ; Process next item.    
   ret
+
     @check_limit:
       ld a,(ix+item.x)
       cp LEFT_LIMIT
@@ -163,7 +167,14 @@
     ld a,(spawn_items)
     cp TRUE
     ret nz
+    ld a,(item_pool)
+    cp 0
+    ret z
+
     ; Spawn a item.
+    ld hl,item_pool
+    dec (hl)
+
     ld ix,items
     ld b,ITEM_MAX
     -:
@@ -195,6 +206,7 @@
       add a,$8c
       ld (ix+item.index),a
     ret
+
 
 
 .ends
