@@ -131,6 +131,10 @@
       jp z,+
         ret
       +:
+      ld a,(ix+minion.state)
+      cp MINION_HURTING
+      ret z
+
       ld iy,killbox_y
 
       ld a,(iy+1)
