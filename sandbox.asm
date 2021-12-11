@@ -230,7 +230,7 @@
     LOAD_BYTES metatile_halves, 0, nametable_head, 0
     LOAD_BYTES hscroll_screen, 0, hscroll_column, 0, column_load_trigger, 0
     LOAD_BYTES vblank_finish_high, 0, vblank_finish_low, 255
-    LOAD_BYTES scroll_enabled, TRUE
+    LOAD_BYTES scroll_enabled, FALSE
     LOAD_BYTES odd_frame, TRUE
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
@@ -628,14 +628,20 @@
     +:
 
     ; End of map check.
-    ld hl,(end_of_map_data)
-    ex de,hl
-    ld hl,(map_head)
-    sbc hl,de
-    jp c,+
-      ld a,FALSE
-      ld (scroll_enabled),a
-      ld (spawn_minions),a
+    ld a,(end_of_map)
+    cp TRUE
+    jp z,+
+      
+      ld hl,(end_of_map_data)
+      ex de,hl
+      ld hl,(map_head)
+      sbc hl,de
+      jp c,+
+        ld a,FALSE
+        ld (scroll_enabled),a
+        ld (spawn_minions),a
+        ld a,TRUE
+        ld (end_of_map),a
     +:
 
     ; Check if player is about to exit the left side of the screen.
@@ -781,7 +787,7 @@
     call draw_items
 
     ; Brute
-    ;call process_brute
+    call process_brute
     call draw_brute
 
   jp main_loop

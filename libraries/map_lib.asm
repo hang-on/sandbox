@@ -13,6 +13,7 @@
   map_head dw
   nametable_head db
   metatile_halves db          ; Convert left or right half of the metatile to tiles.
+  end_of_map db
 .ends
 
 ; -----------------------------------------------------------------------------
@@ -26,6 +27,9 @@
     ld a,h
     ld (map_head+1),a
     call map_column_to_metatile_buffer
+
+    ld a,FALSE
+    ld (end_of_map),a
   ret
 
   draw_columns:
