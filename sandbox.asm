@@ -60,6 +60,7 @@
 .include "libraries/tiny_games.asm"
 .include "libraries/minions_lib.asm"
 .include "libraries/items_lib.asm"
+.include "libraries/brute_lib.asm"
 .include "sub_workshop.asm"
 .include "sub_tests.asm"        
 
@@ -251,6 +252,9 @@
 
     ; Initialize the items.
     call initialize_items
+
+    ; Initialize the brute.
+    call initialize_brute
 
     ; Make solid block special tile in SAT.
     ld a,2
@@ -775,6 +779,10 @@
     ; Items
     call process_items
     call draw_items
+
+    ; Brute
+    ;call process_brute
+    call draw_brute
 
   jp main_loop
 .ends
