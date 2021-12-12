@@ -135,7 +135,7 @@
       call z,@roll_for_spawn
       ret
     +:
-    ;call @check_limit
+    call @check_limit
     call @check_collision
     call @set_direction
     call @attack
@@ -287,7 +287,7 @@
       ld a,(brute_state)
       cp BRUTE_ATTACKING
       ret z
-      
+
       ld a,(brute_direction_counter)
       dec a
       ld (brute_direction_counter),a
