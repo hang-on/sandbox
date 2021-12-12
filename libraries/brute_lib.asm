@@ -3,6 +3,7 @@
 .equ BRUTE_DEACTIVATED $ff
 .equ BRUTE_ACTIVATED 0
 .equ BRUTE_HURTING 1
+.equ BRUTE_ATTACKING 2
 
 
 .ramsection "Brute ram section" slot 3
@@ -17,6 +18,8 @@
   brute_spawn_counter dw
   brute_spawn_chance db
   brute_hurt_counter db
+  brute_attack_counter dw
+  brute_direction_counter db
 
 
 .ends
@@ -36,6 +39,8 @@
     LOAD_BYTES brute_hurt_counter, 10
     LOAD_BYTES brute_dir, LEFT
     LOAD_BYTES brute_timer, 9
+    RESET_BLOCK 20, brute_attack_counter, 2
+
   ret
   ; --------------------------------------------------------------------------- 
   ; DRAW:
@@ -43,6 +48,10 @@
     ld a,(brute_state)
     cp BRUTE_DEACTIVATED
     ret z
+
+    ld a,(brute_dir)
+    cp LEFT
+    jp nz,+  
       ; This is for brute facing left.
       ld a,(brute_index)
       ld c,a
@@ -79,7 +88,41 @@
       add a,8
       ld e,a
       call add_sprite
-
+      ret
+    +:
+      ld a,(brute_index)
+      ld c,a
+      ld a,(brute_y)
+      ld d,a
+      ld a,(brute_x)
+      ld e,a
+      call add_sprite
+      ld a,8
+      add e
+      ld e,a
+      inc c
+      call add_sprite
+      ld a,32
+      add c
+      ld c,a
+      ld a,8
+      add d
+      ld d,a
+      call add_sprite
+      dec c
+      ld a,e
+      sub 8
+      ld e,a
+      call add_sprite
+      ld a,(brute_index)
+      sub 32
+      ld c,a
+      ld a,(brute_y)
+      sub 8
+      ld d,a
+      ld a,(brute_x)
+      ld e,a
+      call add_sprite
   ret
   ; --------------------------------------------------------------------------- 
   ; UPDATE:
@@ -94,9 +137,12 @@
     +:
     ;call @check_limit
     call @check_collision
+    call @set_direction
+    call @attack
     call @move            ; Apply h- and vspeed to x and y.
     call @animate
     call @hurt
+    call @add_sword
   ret
     @check_limit:
       ld a,(brute_dir)
@@ -112,6 +158,54 @@
         ld a,(brute_x)
         cp RIGHT_LIMIT+1
         call nc,deactivate_brute
+    ret
+
+    @attack:
+      ld a,(brute_state)
+      cp BRUTE_HURTING
+      ret z
+      cp BRUTE_ATTACKING ; already attacking?
+      jp z,+++
+        ld a,(brute_dir)
+        cp LEFT
+        jp nz,+
+          ; Facing left
+          ld a,(player_x)
+          ld b,a
+          ld a,(brute_x)
+          sub b
+          sub 28
+          ret nc
+            ; Within range
+            ld a,BRUTE_ATTACKING
+            ld (brute_state),a
+            ld a,$99
+            ld (brute_index),a
+            RESET_BLOCK 30, brute_attack_counter, 2
+            ret
+        +:
+          ; Facing right
+          ld a,(brute_x)
+          ld b,a
+          ld a,(player_x)
+          sub b
+          sub 28
+          ret nc
+            ; Within range
+            ld a,BRUTE_ATTACKING
+            ld (brute_state),a
+            ld a,$39
+            ld (brute_index),a
+            RESET_BLOCK 30, brute_attack_counter, 2
+            ret
+
+      +++:  ; Already attacking, just tick the counter
+      ld hl,brute_attack_counter
+      call tick_counter
+      ret nc
+        ; Counter is up, attack finished...
+        ld a,BRUTE_ACTIVATED
+        ld (brute_state),a
     ret
 
     @check_collision:
@@ -181,7 +275,7 @@
       cp RIGHT
       jp nz,+
         ; Looking right
-        ld a,$84
+        ld a,$3b
         ld (brute_index),a
         ret
       +:
@@ -189,6 +283,31 @@
         ld a,$9b
         ld (brute_index),a
     ret 
+    @set_direction:
+      ld a,(brute_state)
+      cp BRUTE_ATTACKING
+      ret z
+      
+      ld a,(brute_direction_counter)
+      dec a
+      ld (brute_direction_counter),a
+      ret nz
+        ; reorient brute
+        ld a,100
+        ld (brute_direction_counter),a
+        ld a,(brute_x)
+        ld b,a
+        ld a,(player_x)
+        sub b
+        jp nc,+
+          ; Brute is right of the player, face brute left
+          ld a,LEFT
+          ld (brute_dir),a
+          ret
+        +:
+          ld a,RIGHT
+          ld (brute_dir),a
+    ret
 
     @hurt:
       ld a,(brute_state)
@@ -205,23 +324,37 @@
       ld a,(brute_state)
       cp BRUTE_HURTING
       ret z
+      cp BRUTE_ATTACKING
+      ret z
       ;
       ld a,(is_scrolling)
       cp TRUE
-      jp nz,+
-        ; Stand stil when scrolling...
-        jp ++
-      +: 
+      ret z
+
+        ld a,(brute_dir)
+        cp LEFT
+        jp nz,+
+          ; Left, negative hspeed
+          ld a,-1
+          ld (brute_hspeed),a
+          jp ++
+        +:          
+          ; Right, positive hspeed
+          ld a,1
+          ld (brute_hspeed),a
+        ++:
         ld a,(brute_x)
         ld hl,brute_hspeed
         add a,(hl)
         ld (brute_x),a
-      ++:
+      
     ret
 
     @animate:
       ld a,(brute_state)
       cp BRUTE_HURTING
+      ret z
+      cp BRUTE_ATTACKING
       ret z
       ;
       ld a,(brute_timer)
@@ -238,13 +371,13 @@
         jp nz,++
           ; Facing right
           ld a,(brute_index)
-          cp $80
+          cp $35
           jp nz,+
-            ld a,$82
+            ld a,$37
             ld (brute_index),a
             ret
           +:
-          ld a,$80
+          ld a,$35
           ld (brute_index),a
           ret
         ++:
@@ -275,6 +408,35 @@
           ld (brute_spawn_chance),a
       +:
     ret
+    @add_sword:
+      ld a,(brute_state)
+      cp BRUTE_ATTACKING
+      ret nz
+
+      ld a,(brute_dir)
+      cp LEFT
+      jp nz,+
+        ; Facing left
+        ld a,(brute_x)
+        sub 16
+        ld e,a
+        ld a,(brute_y)
+        add a,8
+        ld d,a
+        ld a,$d7
+        call spr_1x2
+        ret
+      +:
+        ; Facing right
+        ld a,(brute_x)
+        add a,16
+        ld e,a
+        ld a,(brute_y)
+        add a,8
+        ld d,a
+        ld a,$d5
+        call spr_1x2
+    ret
 
   deactivate_brute:  
       ld a,BRUTE_DEACTIVATED
@@ -302,11 +464,14 @@
       ld (brute_hspeed),a
       ld a,$55
       ld (brute_index),a
+      ld a,200
+      ld (brute_direction_counter),a
 
       ld a,9
       ld (brute_timer),a
       ld a,FALSE
       ld (scroll_enabled),a
+
   ret
 
 .ends

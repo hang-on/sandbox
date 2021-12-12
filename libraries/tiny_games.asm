@@ -236,6 +236,18 @@
       call add_sprite
     .endif
   ret
+  spr_1x2:
+    ; spr id x y 
+    ; IN: A = id, index in the sprite tile bank.
+    ;     D = y, E = x (screen position - upper left corner).
+    ld c,a
+    call add_sprite
+    ld a,8
+    add e
+    ld e,a
+    inc c
+    call add_sprite
+  ret
 
 
   tick_counter:
