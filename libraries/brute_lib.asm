@@ -82,7 +82,9 @@
     ld a,(brute_state)
     cp BRUTE_DEACTIVATED
     jp nz,+
-      call @roll_for_spawn
+      ld a,(end_of_map)
+      cp FALSE
+      call z,@roll_for_spawn
       ret
     +:
     ;call @check_limit
@@ -267,16 +269,18 @@
           ld a,5
           ld (brute_spawn_chance),a
       +:
-
     ret
+
   deactivate_brute:  
       ld a,BRUTE_DEACTIVATED
       ld (brute_state),a
-      ld a,TRUE
-      ld (scroll_enabled),a
+      ld a,(end_of_map)
+      cp TRUE
+      jp z,+
+        ld a,TRUE
+        ld (scroll_enabled),a ; FIXME: This should not be set from within here.?
+      +:
   ret
-
-
 
   spawn_brute:
     ; Spawn the brute.
@@ -292,7 +296,7 @@
       ld a,-1
       ld (brute_hspeed),a
       ld a,$55
-      ld (ix+minion.index),a
+      ld (brute_index),a
 
       ld a,9
       ld (brute_timer),a

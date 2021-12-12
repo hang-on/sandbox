@@ -75,8 +75,8 @@
   ; UPDATE:
   process_items:
     ; Process the item aspect of the game.
-    ld a,(scroll_enabled)       ; Load the scroll lock.
-    cp FALSE                    ; Can the world still scroll?
+    ld a,(end_of_map)       ; Load the scroll lock.
+    cp TRUE                    ; Can the world still scroll?
     jp nz,+                     ; If not, then...
       ld (spawn_items),a        ; Disable item spawning.
     +:
