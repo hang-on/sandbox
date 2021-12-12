@@ -75,10 +75,10 @@
   ; UPDATE:
   process_items:
     ; Process the item aspect of the game.
-    ld a,(end_of_map)       ; Load the scroll lock.
-    cp TRUE                    ; Can the world still scroll?
-    jp nz,+                     ; If not, then...
-      ld (spawn_items),a        ; Disable item spawning.
+    ld a,(end_of_map)           ; Load the end of map indicator.
+    cp TRUE                     ; Are we at the map's end?
+    jp nz,+                     ; If we are...
+      ld (spawn_items),a        ; ... disable item spawning.
     +:
     ld a,(is_scrolling)         ; Is the world scrolling this frame?
     cp TRUE                     ; Yes?
