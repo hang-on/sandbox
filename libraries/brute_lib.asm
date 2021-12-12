@@ -43,7 +43,7 @@
     ld a,(brute_state)
     cp BRUTE_DEACTIVATED
     ret z
-
+      ; This is for brute facing left.
       ld a,(brute_index)
       ld c,a
       ld a,(brute_y)
@@ -68,10 +68,15 @@
       sub 8
       ld e,a
       call add_sprite
-      inc c
-      inc c
-      ld a,e
-      add 16
+      ld a,(brute_index)
+      inc a
+      sub 32
+      ld c,a
+      ld a,(brute_y)
+      sub 8
+      ld d,a
+      ld a,(brute_x)
+      add a,8
       ld e,a
       call add_sprite
 
@@ -181,7 +186,7 @@
         ret
       +:
         ; Looking left
-        ld a,$98
+        ld a,$9b
         ld (brute_index),a
     ret 
 
@@ -245,13 +250,13 @@
         ++:
         ; Facing left
         ld a,(brute_index)
-        cp $55
+        cp $95
         jp nz,+
-          ld a,$58
+          ld a,$97
           ld (brute_index),a
           ret
         +:
-        ld a,$55
+        ld a,$95
         ld (brute_index),a
       ret
     @roll_for_spawn:
