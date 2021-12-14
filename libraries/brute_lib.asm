@@ -5,7 +5,6 @@
 .equ BRUTE_HURTING 1
 .equ BRUTE_ATTACKING 2
 
-
 ; Sprite sheet indexes:
 .equ BRUTE_WALKING_LEFT_0 85
 .equ BRUTE_WALKING_LEFT_1 87
@@ -13,6 +12,8 @@
 .equ BRUTE_WALKING_RIGHT_1 23
 .equ BRUTE_HURTING_LEFT 89
 .equ BRUTE_HURTING_RIGHT 25
+.equ BRUTE_SWORD_LEFT 180
+.equ BRUTE_SWORD_RIGHT 148
 
 
 .ramsection "Brute ram section" slot 3
@@ -64,8 +65,34 @@
     ld e,a
     ld a,(brute_index)
     call spr_2x2
- 
-  ret
+    
+    ; Place the sword:
+    ld a,(brute_dir)
+    cp LEFT
+    jp nz,+
+      ; Looking left.
+      ld a,(brute_y)
+      add a,8
+      ld d,a
+      ld a,(brute_x)
+      sub 8
+      ld e,a
+      ld a,BRUTE_SWORD_LEFT
+      ld c,a
+      call add_sprite
+      ret
+    +:
+      ; Looking right.
+      ld a,(brute_y)
+      add a,8
+      ld d,a
+      ld a,(brute_x)
+      add a,16
+      ld e,a
+      ld a,BRUTE_SWORD_RIGHT
+      ld c,a
+      call add_sprite
+    ret
   ; --------------------------------------------------------------------------- 
   ; UPDATE:
   process_brute:
@@ -166,12 +193,12 @@
       cp RIGHT
       jp nz,+
         ; Looking right
-        ld a,25
+        ld a,BRUTE_HURTING_RIGHT
         ld (brute_index),a
         ret
       +:
         ; Looking left
-        ld a,89
+        ld a,BRUTE_HURTING_LEFT
         ld (brute_index),a
     ret 
     @set_direction:
@@ -328,7 +355,7 @@
       ld (brute_x),a
       ld a,-1
       ld (brute_hspeed),a
-      ld a,$55
+      ld a,BRUTE_WALKING_LEFT_0
       ld (brute_index),a
       ld a,200
       ld (brute_direction_counter),a
