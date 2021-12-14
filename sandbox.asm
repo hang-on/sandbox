@@ -544,9 +544,18 @@
       inc a
       cp 32
       jp nz,+
-        TRANSITION_PLAYER_STATE IDLE        
-        LOAD_BYTES jump_counter, 0
-        jp _f
+        ld a,(attack_counter)
+        cp 0
+        jp nz,@continue_with_attack
+          ; If not attacking, continue with idle.
+          TRANSITION_PLAYER_STATE IDLE        
+          LOAD_BYTES jump_counter, 0
+          jp _f
+        @continue_with_attack:
+          ; if attacking
+          TRANSITION_PLAYER_STATE ATTACKING        
+          LOAD_BYTES jump_counter, 0
+          jp _f
       +:
       ld (jump_counter),a
       
@@ -773,12 +782,20 @@
     ; Minions
     ld hl,spawner
     call tick_counter
-    jp nc,+                   ; Skip forward if the counter is not up.
+    jp nc,+++                   ; Skip forward if the counter is not up.
+      ld a,(brute_state)
+      cp BRUTE_DEACTIVATED
+      jp z,+
+        ld b,60
+        jp ++
+      +:
+        ld b,75
+      ++:
       call get_random_number  ; Counter is up - get a random number 0-255.
-      cp 60                   ; Roll under the spawn chance.
-      jp nc,+
+      cp b                   ; Roll under the spawn chance.
+      jp nc,+++
         call spawn_minion     ; OK, spawn a minion.
-    +:
+    +++:
     call process_minions
     call draw_minions
 
