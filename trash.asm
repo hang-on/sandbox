@@ -1,4 +1,79 @@
-
+   ld a,(brute_dir)
+    cp LEFT
+    jp nz,+  
+      ; This is for brute facing left.
+      ld a,(brute_index)
+      ld c,a
+      ld a,(brute_y)
+      ld d,a
+      ld a,(brute_x)
+      ld e,a
+      call add_sprite
+      ld a,8
+      add e
+      ld e,a
+      inc c
+      call add_sprite
+      ld a,32
+      add c
+      ld c,a
+      ld a,8
+      add d
+      ld d,a
+      call add_sprite
+      dec c
+      ld a,e
+      sub 8
+      ld e,a
+      call add_sprite
+      ld a,(brute_index)
+      add 31
+      ld c,a
+      ld a,(brute_y)
+      add a,8
+      ld d,a
+      ld a,(brute_x)
+      sub 8
+      ld e,a
+      call add_sprite
+      ret
+    +:
+      ; Facing right
+      ld a,(brute_index)
+      ld c,a
+      ld a,(brute_y)
+      ld d,a
+      ld a,(brute_x)
+      ld e,a
+      call add_sprite
+      ld a,8
+      add e
+      ld e,a
+      inc c
+      call add_sprite
+      ld a,32
+      add c
+      ld c,a
+      ld a,8
+      add d
+      ld d,a
+      call add_sprite
+      dec c
+      ld a,e
+      sub 8
+      ld e,a
+      call add_sprite
+      ;
+      ld a,(brute_index)
+      add a,34
+      ld c,a
+      ld a,(brute_y)
+      add a,8
+      ld d,a
+      ld a,(brute_x)
+      add a,16
+      ld e,a
+      call add_sprite
 
 
     @attack:

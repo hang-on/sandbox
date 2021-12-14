@@ -6,6 +6,15 @@
 .equ BRUTE_ATTACKING 2
 
 
+; Sprite sheet indexes:
+.equ BRUTE_WALKING_LEFT_0 85
+.equ BRUTE_WALKING_LEFT_1 87
+.equ BRUTE_WALKING_RIGHT_0 21
+.equ BRUTE_WALKING_RIGHT_1 23
+.equ BRUTE_HURTING_LEFT 89
+.equ BRUTE_HURTING_RIGHT 25
+
+
 .ramsection "Brute ram section" slot 3
   brute_state db
   brute_y db
@@ -49,82 +58,13 @@
     cp BRUTE_DEACTIVATED
     ret z
 
-    ld a,(brute_dir)
-    cp LEFT
-    jp nz,+  
-      ; This is for brute facing left.
-      ld a,(brute_index)
-      ld c,a
-      ld a,(brute_y)
-      ld d,a
-      ld a,(brute_x)
-      ld e,a
-      call add_sprite
-      ld a,8
-      add e
-      ld e,a
-      inc c
-      call add_sprite
-      ld a,32
-      add c
-      ld c,a
-      ld a,8
-      add d
-      ld d,a
-      call add_sprite
-      dec c
-      ld a,e
-      sub 8
-      ld e,a
-      call add_sprite
-      ld a,(brute_index)
-      add 31
-      ld c,a
-      ld a,(brute_y)
-      add a,8
-      ld d,a
-      ld a,(brute_x)
-      sub 8
-      ld e,a
-      call add_sprite
-      ret
-    +:
-      ; Facing right
-      ld a,(brute_index)
-      ld c,a
-      ld a,(brute_y)
-      ld d,a
-      ld a,(brute_x)
-      ld e,a
-      call add_sprite
-      ld a,8
-      add e
-      ld e,a
-      inc c
-      call add_sprite
-      ld a,32
-      add c
-      ld c,a
-      ld a,8
-      add d
-      ld d,a
-      call add_sprite
-      dec c
-      ld a,e
-      sub 8
-      ld e,a
-      call add_sprite
-      ;
-      ld a,(brute_index)
-      add a,34
-      ld c,a
-      ld a,(brute_y)
-      add a,8
-      ld d,a
-      ld a,(brute_x)
-      add a,16
-      ld e,a
-      call add_sprite
+    ld a,(brute_y)
+    ld d,a
+    ld a,(brute_x)
+    ld e,a
+    ld a,(brute_index)
+    call spr_2x2
+ 
   ret
   ; --------------------------------------------------------------------------- 
   ; UPDATE:
@@ -226,12 +166,12 @@
       cp RIGHT
       jp nz,+
         ; Looking right
-        ld a,$1b
+        ld a,25
         ld (brute_index),a
         ret
       +:
         ; Looking left
-        ld a,$5c
+        ld a,89
         ld (brute_index),a
     ret 
     @set_direction:
@@ -254,13 +194,13 @@
           ; Brute is right of the player, face brute left
           ld a,LEFT
           ld (brute_dir),a
-          ld a,$56
+          ld a,BRUTE_WALKING_LEFT_0
           ld (brute_index),a
           ret
         +:
           ld a,RIGHT
           ld (brute_dir),a
-          ld a,$15
+          ld a,BRUTE_WALKING_RIGHT_0
           ld (brute_index),a
     ret
 
@@ -326,25 +266,25 @@
         jp nz,++
           ; Facing right
           ld a,(brute_index)
-          cp $15
+          cp BRUTE_WALKING_RIGHT_0
           jp nz,+
-            ld a,$18
+            ld a,BRUTE_WALKING_RIGHT_1
             ld (brute_index),a
             ret
           +:
-          ld a,$15
+          ld a,BRUTE_WALKING_RIGHT_0
           ld (brute_index),a
           ret
         ++:
         ; Facing left
         ld a,(brute_index)
-        cp $56
+        cp BRUTE_WALKING_LEFT_0
         jp nz,+
-          ld a,$59
+          ld a,BRUTE_WALKING_LEFT_1
           ld (brute_index),a
           ret
         +:
-        ld a,$56
+        ld a,BRUTE_WALKING_LEFT_0
         ld (brute_index),a
       ret
     @roll_for_spawn:

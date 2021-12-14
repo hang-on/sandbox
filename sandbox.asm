@@ -313,6 +313,15 @@
     vdp_register_init:
     .db %01100110  %10100000 $ff $ff $ff
     .db $ff $fb $f0 $00 $00 $ff
+
+    mockup_dashboard:
+      .db $fc $fc $e6 $e7 $e8 $e5 $e9 $ed $fa $fa $fa $fa $fa $fa $fc $fc $fc
+      .db $ea $eb $e6 $e7 $e8 $e5 $e9 $ed $fa $fa $fa $fa $fa $fa
+      .db $fc $fc $fc $e0 $e1 $e2 $e3 $e4 $e5
+      .db $ee $ef $ef $ef $ef $ef $ef $ef $ef $ef $ef $ef $ef $f0 $f1 $fc 
+      .db $e2 $eb $ec $e9 $ed $fa $fa $fc
+    __:
+
   ; ---------------------------------------------------------------------------
   main_loop:
     call wait_for_vblank

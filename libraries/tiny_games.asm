@@ -86,6 +86,50 @@
 ; -----------------------------------------------------------------------------
 .section "Tiny Games Library" free
 ; -----------------------------------------------------------------------------
+  copy_string_to_nametable:
+    ; hl = string to copy (source)
+    ; c = length of string (len)
+    ; b = nametable index (destination)
+    ; a = use tiles spritebank? true/false
+    push af
+      push hl
+        ld hl,NAME_TABLE_START
+        ld a,b
+        cp 0
+        jp z,+
+          -:    ; Apply offset per index.
+            inc hl
+            inc hl
+          djnz -
+        +:
+        call setup_vram_write
+      pop hl
+    pop af
+    cp TRUE
+    jp nz,+
+      ; Use tiles in sprite bank.
+      ld b,c
+      -:
+      ld a,(hl)
+        out (DATA_PORT),a
+        push ix
+        pop ix
+        xor a
+        out (DATA_PORT),a
+        inc hl
+      djnz -
+      ret
+    +:
+      ; Use tiles in background bank 
+      ld a,(hl)
+        out (DATA_PORT),a
+        push ix
+        pop ix
+        ld a,%00000001
+        out (DATA_PORT),a
+        inc hl
+      djnz -
+  ret
 
   get_random_number:
     ; SMS-Power!
