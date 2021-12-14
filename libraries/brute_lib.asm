@@ -78,18 +78,18 @@
       ld e,a
       call add_sprite
       ld a,(brute_index)
-      inc a
-      sub 32
+      add 31
       ld c,a
       ld a,(brute_y)
-      sub 8
+      add a,8
       ld d,a
       ld a,(brute_x)
-      add a,8
+      sub 8
       ld e,a
       call add_sprite
       ret
     +:
+      ; Facing right
       ld a,(brute_index)
       ld c,a
       ld a,(brute_y)
@@ -114,13 +114,15 @@
       sub 8
       ld e,a
       call add_sprite
+      ;
       ld a,(brute_index)
-      sub 32
+      add a,34
       ld c,a
       ld a,(brute_y)
-      sub 8
+      add a,8
       ld d,a
       ld a,(brute_x)
+      add a,16
       ld e,a
       call add_sprite
   ret
@@ -138,11 +140,9 @@
     call @check_limit
     call @check_collision
     call @set_direction
-    call @attack
     call @move            ; Apply h- and vspeed to x and y.
     call @animate
     call @hurt
-    call @add_sword
   ret
     @check_limit:
       ld a,(brute_dir)
@@ -159,55 +159,6 @@
         cp RIGHT_LIMIT+1
         call nc,deactivate_brute
     ret
-
-    @attack:
-      ld a,(brute_state)
-      cp BRUTE_HURTING
-      ret z
-      cp BRUTE_ATTACKING ; already attacking?
-      jp z,+++
-        ld a,(brute_dir)
-        cp LEFT
-        jp nz,+
-          ; Facing left
-          ld a,(player_x)
-          ld b,a
-          ld a,(brute_x)
-          sub b
-          sub 28
-          ret nc
-            ; Within range
-            ld a,BRUTE_ATTACKING
-            ld (brute_state),a
-            ld a,$99
-            ld (brute_index),a
-            RESET_BLOCK 30, brute_attack_counter, 2
-            ret
-        +:
-          ; Facing right
-          ld a,(brute_x)
-          ld b,a
-          ld a,(player_x)
-          sub b
-          sub 28
-          ret nc
-            ; Within range
-            ld a,BRUTE_ATTACKING
-            ld (brute_state),a
-            ld a,$39
-            ld (brute_index),a
-            RESET_BLOCK 30, brute_attack_counter, 2
-            ret
-
-      +++:  ; Already attacking, just tick the counter
-      ld hl,brute_attack_counter
-      call tick_counter
-      ret nc
-        ; Counter is up, attack finished...
-        ld a,BRUTE_ACTIVATED
-        ld (brute_state),a
-    ret
-
     @check_collision:
       ; Axis aligned bounding box:
       ;    if (rect1.x < rect2.x + rect2.w &&
@@ -275,12 +226,12 @@
       cp RIGHT
       jp nz,+
         ; Looking right
-        ld a,$3b
+        ld a,$1b
         ld (brute_index),a
         ret
       +:
         ; Looking left
-        ld a,$9b
+        ld a,$5c
         ld (brute_index),a
     ret 
     @set_direction:
@@ -303,10 +254,14 @@
           ; Brute is right of the player, face brute left
           ld a,LEFT
           ld (brute_dir),a
+          ld a,$56
+          ld (brute_index),a
           ret
         +:
           ld a,RIGHT
           ld (brute_dir),a
+          ld a,$15
+          ld (brute_index),a
     ret
 
     @hurt:
@@ -371,25 +326,25 @@
         jp nz,++
           ; Facing right
           ld a,(brute_index)
-          cp $35
+          cp $15
           jp nz,+
-            ld a,$37
+            ld a,$18
             ld (brute_index),a
             ret
           +:
-          ld a,$35
+          ld a,$15
           ld (brute_index),a
           ret
         ++:
         ; Facing left
         ld a,(brute_index)
-        cp $95
+        cp $56
         jp nz,+
-          ld a,$97
+          ld a,$59
           ld (brute_index),a
           ret
         +:
-        ld a,$95
+        ld a,$56
         ld (brute_index),a
       ret
     @roll_for_spawn:
@@ -407,35 +362,6 @@
           ld a,5
           ld (brute_spawn_chance),a
       +:
-    ret
-    @add_sword:
-      ld a,(brute_state)
-      cp BRUTE_ATTACKING
-      ret nz
-
-      ld a,(brute_dir)
-      cp LEFT
-      jp nz,+
-        ; Facing left
-        ld a,(brute_x)
-        sub 16
-        ld e,a
-        ld a,(brute_y)
-        add a,8
-        ld d,a
-        ld a,$d7
-        call spr_1x2
-        ret
-      +:
-        ; Facing right
-        ld a,(brute_x)
-        add a,16
-        ld e,a
-        ld a,(brute_y)
-        add a,8
-        ld d,a
-        ld a,$d5
-        call spr_1x2
     ret
 
   deactivate_brute:  

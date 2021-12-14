@@ -1,5 +1,58 @@
 
 
+
+    @attack:
+      ld a,(brute_state)
+      cp BRUTE_HURTING
+      ret z
+      cp BRUTE_ATTACKING ; already attacking?
+      jp z,+++
+        ld a,(brute_dir)
+        cp LEFT
+        jp nz,+
+          ; Facing left
+          ld a,(player_x)
+          ld b,a
+          ld a,(brute_x)
+          sub b
+          sub 28
+          ret nc
+            ; Within range
+            ld a,BRUTE_ATTACKING
+            ld (brute_state),a
+            ld a,$99
+            ld (brute_index),a
+            RESET_BLOCK 30, brute_attack_counter, 2
+            ret
+        +:
+          ; Facing right
+          ld a,(brute_x)
+          ld b,a
+          ld a,(player_x)
+          sub b
+          sub 28
+          ret nc
+            ; Within range
+            ld a,BRUTE_ATTACKING
+            ld (brute_state),a
+            ld a,$39
+            ld (brute_index),a
+            RESET_BLOCK 30, brute_attack_counter, 2
+            ret
+
+      +++:  ; Already attacking, just tick the counter
+      ld hl,brute_attack_counter
+      call tick_counter
+      ret nc
+        ; Counter is up, attack finished...
+        ld a,BRUTE_ACTIVATED
+        ld (brute_state),a
+    ret
+
+
+
+
+
     ; Clear the top two rows with that special tile.
     ld hl,NAME_TABLE_START
     call setup_vram_write

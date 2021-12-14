@@ -775,7 +775,7 @@
     call tick_counter
     jp nc,+                   ; Skip forward if the counter is not up.
       call get_random_number  ; Counter is up - get a random number 0-255.
-      cp 75                   ; Roll under the spawn chance.
+      cp 60                   ; Roll under the spawn chance.
       jp nc,+
         call spawn_minion     ; OK, spawn a minion.
     +:
