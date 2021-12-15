@@ -120,7 +120,7 @@
       call tick_counter
       ret nc
         ; Counter is up, attack finished...
-        ld a,BRUTE_ACTIVATED
+        ld a,BRUTE_MOVING
         ld (brute_state),a
     ret
 

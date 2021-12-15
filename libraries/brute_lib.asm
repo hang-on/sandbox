@@ -2,7 +2,7 @@
 
 ; States:
 .equ BRUTE_DEACTIVATED $ff
-.equ BRUTE_ACTIVATED 0
+.equ BRUTE_MOVING 0
 .equ BRUTE_HURTING 1
 
 ; Sprite sheet indexes:
@@ -19,6 +19,8 @@
   brute_state db
   brute_y db
   brute_x db
+  brute_height db
+  brute_width db
   brute_dir db
   brute_index db
   brute_anim_counter dw
@@ -38,14 +40,14 @@
   initialize_brute:
     LOAD_BYTES brute_state, BRUTE_DEACTIVATED
     LOAD_BYTES brute_spawn_chance, 10
-    RESET_BLOCK 50, brute_spawn_counter, 2
     LOAD_BYTES brute_index, $55
     LOAD_BYTES brute_y, FLOOR_LEVEL, brute_x, 250
-    LOAD_BYTES brute_hurt_counter, 10
     LOAD_BYTES brute_dir, LEFT
+    LOAD_BYTES brute_height, 16, brute_width, 16
     RESET_COUNTER brute_direction_counter, 90
-    RESET_COUNTER brute_hurt_counter, 10
+    RESET_COUNTER brute_hurt_counter, 18
     RESET_COUNTER brute_anim_counter, 9
+    RESET_COUNTER brute_spawn_counter, 70
   ret
   ; --------------------------------------------------------------------------- 
   ; DRAW:
@@ -102,7 +104,7 @@
     call @reorient
     call @move            
     call @animate
-    call @hurt
+    call @deactivate_after_hurt
   ret
     @clip_at_borders:
       ld a,(brute_dir)
@@ -133,56 +135,34 @@
       ret z
       ;
       ld iy,killbox_y     ; Put the player's killbox in IY.
-      ; Test 1.
-      ld a,(iy+1)         
-      add a,(iy+3)
-      ld b,a
-      ld a,(brute_x)
-      cp b
+      ld ix,brute_y
+      call detect_collision
       ret nc
-        ; Test 2.
-        ld a,(brute_x)
-        add a,16
-        ld b,a
-        ld a,(iy+1)
-        cp b
-        ret nc
-          ;Test 3.
-          ld a,(iy+0)
-          add a,(iy+2)
-          ld b,a
-          ld a,(brute_y)
-          cp b
-          ret nc
-            ; Test 4.
-            ld a,(brute_y)
-            add a,16
-            ld b,a
-            ld a,(iy+0)
-            cp b
-            ret nc
-      ; Fall through to collision! Hurt the brute.
-      ld hl,hurt_sfx
-      ld c,SFX_CHANNELS2AND3                  
-      call PSGSFXPlay              
-      ;      
-      ld a,BRUTE_HURTING
-      ld (brute_state),a
-      ;ld a,10
-      ;ld (brute_hurt_counter),a
-      ld a,(brute_dir)
-      cp RIGHT
-      jp nz,+
-        ; Looking right
-        ld a,BRUTE_HURTING_RIGHT
-        ld (brute_index),a
-        ret
-      +:
-        ; Looking left
-        ld a,BRUTE_HURTING_LEFT
-        ld (brute_index),a
+        ; Collision! Hurt the brute.
+        +:
+        ld hl,hurt_sfx
+        ld c,SFX_CHANNELS2AND3                  
+        call PSGSFXPlay              
+        ;      
+        ld a,BRUTE_HURTING
+        ld (brute_state),a
+        ld a,(brute_dir)
+        cp RIGHT
+        jp nz,+
+          ; Looking right
+          ld a,BRUTE_HURTING_RIGHT
+          ld (brute_index),a
+          ret
+        +:
+          ; Looking left
+          ld a,BRUTE_HURTING_LEFT
+          ld (brute_index),a
     ret 
     @reorient:
+      ld a,(brute_state)
+      cp BRUTE_MOVING
+      ret nz
+      ;
       ld hl,brute_direction_counter
       call tick_counter
       ret nc
@@ -206,7 +186,7 @@
           ld (brute_index),a
     ret
 
-    @hurt:
+    @deactivate_after_hurt:
       ld a,(brute_state)
       cp BRUTE_HURTING
       ret nz
@@ -268,19 +248,20 @@
         ld a,BRUTE_WALKING_LEFT_0
         ld (brute_index),a
       ret
+    
     @roll_for_spawn:
       ld hl,brute_spawn_counter
       call tick_counter
       jp nc,+                   ; Skip forward if the counter is not up.
         ld a,(brute_spawn_chance)
-        add a,5
+        add a,4
         ld (brute_spawn_chance),a
         ld b,a
         call get_random_number  ; Counter is up - get a random number 0-255.
         cp b                   ; Roll under the spawn chance.
         jp nc,+
           call spawn_brute     ; OK.
-          ld a,5
+          ld a,4
           ld (brute_spawn_chance),a
       +:
     ret
@@ -299,7 +280,7 @@
   spawn_brute:
     ; Spawn the brute.
       call initialize_brute
-      ld a,BRUTE_ACTIVATED
+      ld a,BRUTE_MOVING
       ld (brute_state),a
       
       ld a,FALSE              ; Scroll lock on Brute spawn.
