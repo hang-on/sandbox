@@ -3,7 +3,6 @@
 .equ BRUTE_DEACTIVATED $ff
 .equ BRUTE_ACTIVATED 0
 .equ BRUTE_HURTING 1
-.equ BRUTE_ATTACKING 2
 
 ; Sprite sheet indexes:
 .equ BRUTE_WALKING_LEFT_0 85
@@ -14,6 +13,8 @@
 .equ BRUTE_HURTING_RIGHT 25
 .equ BRUTE_SWORD_LEFT 180
 .equ BRUTE_SWORD_RIGHT 148
+
+.equ BRUTE_DIRECTION_COUNTER_INIT_VALUE 90
 
 
 .ramsection "Brute ram section" slot 3
@@ -29,7 +30,7 @@
   brute_spawn_chance db
   brute_hurt_counter db
   brute_attack_counter dw
-  brute_direction_counter db
+  brute_direction_counter dw
 
 
 .ends
@@ -50,6 +51,7 @@
     LOAD_BYTES brute_dir, LEFT
     LOAD_BYTES brute_timer, 9
     RESET_BLOCK 20, brute_attack_counter, 2
+    RESET_BLOCK BRUTE_DIRECTION_COUNTER_INIT_VALUE, brute_direction_counter, 2
 
   ret
   ; --------------------------------------------------------------------------- 
@@ -70,48 +72,46 @@
     ld a,(brute_dir)
     cp LEFT
     jp nz,+
-      ; Looking left.
-      ld a,(brute_y)
-      add a,8
-      ld d,a
-      ld a,(brute_x)
-      sub 8
-      ld e,a
-      ld a,BRUTE_SWORD_LEFT
-      ld c,a
-      call add_sprite
-      ret
+      ld hl,@left
+      jp ++      
     +:
-      ; Looking right.
-      ld a,(brute_y)
-      add a,8
-      ld d,a
-      ld a,(brute_x)
-      add a,16
-      ld e,a
-      ld a,BRUTE_SWORD_RIGHT
-      ld c,a
-      call add_sprite
-    ret
+      ld hl,@right
+    ++:
+    ld a,(brute_y)
+    add a,(hl)
+    ld d,a
+    ld a,(brute_x)
+    inc hl
+    add a,(hl)
+    ld e,a
+    inc hl
+    ld a,(hl)
+    ld c,a
+    call add_sprite
+  ret
+    @left:
+      .db 8, -8, BRUTE_SWORD_LEFT
+    @right:
+      .db 8, 16, BRUTE_SWORD_RIGHT
   ; --------------------------------------------------------------------------- 
   ; UPDATE:
   process_brute:
     ld a,(brute_state)
     cp BRUTE_DEACTIVATED
     jp nz,+
-      ld a,(end_of_map)
-      cp FALSE
-      call z,@roll_for_spawn
+      ld a,(end_of_map)       ; If Brute is deactivated...
+      cp FALSE                ; And we are NOT at the map's end...
+      call z,@roll_for_spawn  ; Then roll to see if the Brute respawns.
       ret
     +:
-    call @check_limit
+    call @clip_at_borders
     call @check_collision
-    call @set_direction
-    call @move            ; Apply h- and vspeed to x and y.
+    call @reorient
+    call @move            
     call @animate
     call @hurt
   ret
-    @check_limit:
+    @clip_at_borders:
       ld a,(brute_dir)
       cp LEFT
       jp nz,+
@@ -127,63 +127,52 @@
         call nc,deactivate_brute
     ret
     @check_collision:
-      ; Axis aligned bounding box:
-      ;    if (rect1.x < rect2.x + rect2.w &&
-      ;    rect1.x + rect1.w > rect2.x &&
-      ;    rect1.y < rect2.y + rect2.h &&
-      ;    rect1.h + rect1.y > rect2.y)
-      ;    ---> collision detected!
-      ; ---------------------------------------------------
-      ; IN: IX = Pointer to minion struct. (rect 1)
-      ;     IY = Pointer to killbox struct (y, x, height, width of rect2.)
-      ; OUT:  Carry set = collision / not set = no collision.
-      ;
-      ; rect1.x < rect2.x + rect2.width
-      ;
-      ld a,(state)
-      cp ATTACKING
+      ; Axis-aligned bounding box.
+      ld a,(state)        ; Only check for collision if player
+      cp ATTACKING        ; is attacking og jump-attacking.
       jp z,+
       cp JUMP_ATTACKING
       jp z,+
         ret
       +:
-      ld a,(brute_state)
+      ld a,(brute_state)  ; Don't check if Brute is already hurting.
       cp BRUTE_HURTING
       ret z
 
-      ld iy,killbox_y
+      ld iy,killbox_y     ; Put the player's killbox in IY.
 
-      ld a,(iy+1)
+      ; Test 1.
+      ld a,(iy+1)         
       add a,(iy+3)
       ld b,a
       ld a,(brute_x)
       cp b
       ret nc
-        ; rect1.x + rect1.width > rect2.x
+        ; Test 2.
         ld a,(brute_x)
         add a,16
         ld b,a
         ld a,(iy+1)
         cp b
         ret nc
-          ; rect1.y < rect2.y + rect2.height
+          ;Test 3.
           ld a,(iy+0)
           add a,(iy+2)
           ld b,a
           ld a,(brute_y)
           cp b
           ret nc
-            ; rect1.y + rect1.height > rect2.y
+            ; Test 4.
             ld a,(brute_y)
             add a,16
             ld b,a
             ld a,(iy+0)
             cp b
             ret nc
-      ; Collision! Hurt the brute.
+      ; Fall through to collision! Hurt the brute.
       ld hl,hurt_sfx
       ld c,SFX_CHANNELS2AND3                  
-      call PSGSFXPlay                         ; Play the SFX with PSGlib.
+      call PSGSFXPlay              
       ;      
       ld a,BRUTE_HURTING
       ld (brute_state),a
@@ -201,30 +190,24 @@
         ld a,BRUTE_HURTING_LEFT
         ld (brute_index),a
     ret 
-    @set_direction:
-      ld a,(brute_state)
-      cp BRUTE_ATTACKING
-      ret z
-
-      ld a,(brute_direction_counter)
-      dec a
-      ld (brute_direction_counter),a
-      ret nz
-        ; reorient brute
-        ld a,100
-        ld (brute_direction_counter),a
+    @reorient:
+      ld hl,brute_direction_counter
+      call tick_counter
+      ret nc
+        ; Counter is up - time to reorient Brute.
         ld a,(brute_x)
         ld b,a
         ld a,(player_x)
         sub b
         jp nc,+
-          ; Brute is right of the player, face brute left
+          ; Brute is right of the player, face brute left.
           ld a,LEFT
           ld (brute_dir),a
           ld a,BRUTE_WALKING_LEFT_0
           ld (brute_index),a
           ret
         +:
+          ; Brute is left of the player, face brute right.
           ld a,RIGHT
           ld (brute_dir),a
           ld a,BRUTE_WALKING_RIGHT_0
@@ -235,7 +218,7 @@
       ld a,(brute_state)
       cp BRUTE_HURTING
       ret nz
-      ;
+      
       ld a,(brute_hurt_counter)
       dec a
       ld (brute_hurt_counter),a
@@ -246,37 +229,21 @@
       ld a,(brute_state)
       cp BRUTE_HURTING
       ret z
-      cp BRUTE_ATTACKING
-      ret z
-      ;
-      ld a,(is_scrolling)
-      cp TRUE
-      ret z
 
-        ld a,(brute_dir)
-        cp LEFT
-        jp nz,+
-          ; Left, negative hspeed
-          ld a,-1
-          ld (brute_hspeed),a
-          jp ++
-        +:          
-          ; Right, positive hspeed
-          ld a,1
-          ld (brute_hspeed),a
-        ++:
-        ld a,(brute_x)
-        ld hl,brute_hspeed
-        add a,(hl)
-        ld (brute_x),a
-      
+      ld hl,brute_x
+      ld a,(brute_dir)
+      cp LEFT
+      jp nz,+
+        dec (hl)  ; Move left.
+        jp ++
+      +:          
+        inc (hl)  ; Move right.
+      ++:
     ret
 
     @animate:
       ld a,(brute_state)
       cp BRUTE_HURTING
-      ret z
-      cp BRUTE_ATTACKING
       ret z
       ;
       ld a,(brute_timer)

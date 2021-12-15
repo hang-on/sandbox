@@ -110,7 +110,7 @@
         ld a,(ix+item.state)
         cp ITEM_DEACTIVATED
         jp z,+
-          call @check_limit
+          call @clip_at_borders
           call @check_collision
           call @move
           ; ...
@@ -121,7 +121,7 @@
     djnz -                      ; Process next item.    
   ret
 
-    @check_limit:
+    @clip_at_borders:
       ld a,(ix+item.x)
       cp LEFT_LIMIT
       call c,deactivate_item

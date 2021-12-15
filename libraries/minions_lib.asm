@@ -81,7 +81,7 @@
         ld a,(ix+minion.state)
         cp MINION_DEACTIVATED
         jp z,+
-          call @check_limit
+          call @clip_at_borders
           call @check_collision
           call @move            ; Apply h- and vspeed to x and y.
           call @animate
@@ -94,7 +94,7 @@
       pop bc                    ; Restore loop counter.
     djnz -                      ; Process next minion.
   ret
-    @check_limit:
+    @clip_at_borders:
       ld a,(ix+minion.direction)
       cp LEFT
       jp nz,+
