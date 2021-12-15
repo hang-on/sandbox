@@ -6,9 +6,12 @@
 .equ MINION_MAX 3
 
 .struct minion
-  state db
   y db
   x db
+  height db
+  width db
+
+  state db
   direction db
   index db
   timer db
@@ -31,23 +34,35 @@
 .section "Minions" free
 ; -----------------------------------------------------------------------------
   ; INIT:
-  initialize_minions:
-    ; In: hl = ptr. to init data.
+  initialize_minions:    
+    
     RESET_BLOCK 40, spawner, 2
-    ld hl,minion_init_data
-    ld de,minions
-    ld bc,_sizeof_minion_init_data
-    ldir
     LOAD_BYTES spawn_minions, TRUE
+
+    ld ix,minions
+    ld b,MINION_MAX
+    -:
+      push bc
+        call @initialize
+        ld de,_sizeof_minion    
+        add ix,de               ; Point ix to next minion.
+      pop bc
+    djnz -
+
   ret
-    minion_init_data:
-      .rept MINION_MAX
-        .db MINION_DEACTIVATED
-        .rept _sizeof_minion-1
-          .db 0
-        .endr
-      .endr
-      __:
+    @initialize:
+      ld hl,minion_init_data
+      push ix
+      pop de
+      ld bc,_sizeof_minion_init_data
+      ldir
+    ret
+      minion_init_data:
+          .db 0, 0, 16, 16
+          .db MINION_DEACTIVATED
+          .db 0 0 0 0 0 0 0
+        __:
+
   ; --------------------------------------------------------------------------- 
   ; DRAW:
   draw_minions:
@@ -118,11 +133,6 @@
       ;    rect1.h + rect1.y > rect2.y)
       ;    ---> collision detected!
       ; ---------------------------------------------------
-      ; IN: IX = Pointer to minion struct. (rect 1)
-      ;     IY = Pointer to killbox struct (y, x, height, width of rect2.)
-      ; OUT:  Carry set = collision / not set = no collision.
-      ;
-      ; rect1.x < rect2.x + rect2.width
       ;
       ld a,(state)
       cp ATTACKING
