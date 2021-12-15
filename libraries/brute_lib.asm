@@ -1,5 +1,6 @@
 ; The brute
 
+; States:
 .equ BRUTE_DEACTIVATED $ff
 .equ BRUTE_ACTIVATED 0
 .equ BRUTE_HURTING 1
@@ -14,25 +15,19 @@
 .equ BRUTE_SWORD_LEFT 180
 .equ BRUTE_SWORD_RIGHT 148
 
-.equ BRUTE_DIRECTION_COUNTER_INIT_VALUE 90
-
-
 .ramsection "Brute ram section" slot 3
   brute_state db
   brute_y db
   brute_x db
   brute_dir db
   brute_index db
-  brute_hspeed db
-  brute_timer db
+  brute_anim_counter dw
+
+  brute_spawn_chance db
 
   brute_spawn_counter dw
-  brute_spawn_chance db
-  brute_hurt_counter db
-  brute_attack_counter dw
+  brute_hurt_counter dw
   brute_direction_counter dw
-
-
 .ends
 
 .bank 0 slot 0
@@ -45,14 +40,12 @@
     LOAD_BYTES brute_spawn_chance, 10
     RESET_BLOCK 50, brute_spawn_counter, 2
     LOAD_BYTES brute_index, $55
-    LOAD_BYTES brute_y, FLOOR_LEVEL, brute_x, 180
-    LOAD_BYTES brute_hspeed, -1
+    LOAD_BYTES brute_y, FLOOR_LEVEL, brute_x, 250
     LOAD_BYTES brute_hurt_counter, 10
     LOAD_BYTES brute_dir, LEFT
-    LOAD_BYTES brute_timer, 9
-    RESET_BLOCK 20, brute_attack_counter, 2
-    RESET_BLOCK BRUTE_DIRECTION_COUNTER_INIT_VALUE, brute_direction_counter, 2
-
+    RESET_COUNTER brute_direction_counter, 90
+    RESET_COUNTER brute_hurt_counter, 10
+    RESET_COUNTER brute_anim_counter, 9
   ret
   ; --------------------------------------------------------------------------- 
   ; DRAW:
@@ -105,7 +98,7 @@
       ret
     +:
     call @clip_at_borders
-    call @check_collision
+    call @hurt_with_player_attack
     call @reorient
     call @move            
     call @animate
@@ -126,7 +119,7 @@
         cp RIGHT_LIMIT+1
         call nc,deactivate_brute
     ret
-    @check_collision:
+    @hurt_with_player_attack:
       ; Axis-aligned bounding box.
       ld a,(state)        ; Only check for collision if player
       cp ATTACKING        ; is attacking og jump-attacking.
@@ -138,9 +131,8 @@
       ld a,(brute_state)  ; Don't check if Brute is already hurting.
       cp BRUTE_HURTING
       ret z
-
+      ;
       ld iy,killbox_y     ; Put the player's killbox in IY.
-
       ; Test 1.
       ld a,(iy+1)         
       add a,(iy+3)
@@ -176,8 +168,8 @@
       ;      
       ld a,BRUTE_HURTING
       ld (brute_state),a
-      ld a,10
-      ld (brute_hurt_counter),a
+      ;ld a,10
+      ;ld (brute_hurt_counter),a
       ld a,(brute_dir)
       cp RIGHT
       jp nz,+
@@ -218,11 +210,10 @@
       ld a,(brute_state)
       cp BRUTE_HURTING
       ret nz
-      
-      ld a,(brute_hurt_counter)
-      dec a
-      ld (brute_hurt_counter),a
-      call z,deactivate_brute
+      ;
+      ld hl,brute_hurt_counter
+      call tick_counter
+      call c,deactivate_brute
     ret
 
     @move:
@@ -246,13 +237,9 @@
       cp BRUTE_HURTING
       ret z
       ;
-      ld a,(brute_timer)
-      dec a
-      jp nz,+
-        call @@update_index
-        ld a,9                    ; Load timer reset value.
-      +:
-      ld (brute_timer),a      ; Reset the timer.
+      ld hl,brute_anim_counter
+      call tick_counter
+      call c,@@update_index
     ret
       @@update_index:
         ld a,(brute_dir)
@@ -304,34 +291,19 @@
       ld a,(end_of_map)
       cp TRUE
       jp z,+
-        ld a,TRUE
+        ld a,TRUE             ; Scroll unlock on Brute deactivation.
         ld (scroll_enabled),a ; FIXME: This should not be set from within here.?
       +:
   ret
 
   spawn_brute:
     ; Spawn the brute.
+      call initialize_brute
       ld a,BRUTE_ACTIVATED
       ld (brute_state),a
-      ; Spawn a minion on the right side, facing left.
-      ld a,LEFT
-      ld (brute_dir),a
-      ld a,FLOOR_LEVEL
-      ld (brute_y),a
-      ld a,250
-      ld (brute_x),a
-      ld a,-1
-      ld (brute_hspeed),a
-      ld a,BRUTE_WALKING_LEFT_0
-      ld (brute_index),a
-      ld a,200
-      ld (brute_direction_counter),a
-
-      ld a,9
-      ld (brute_timer),a
-      ld a,FALSE
+      
+      ld a,FALSE              ; Scroll lock on Brute spawn.
       ld (scroll_enabled),a
-
   ret
 
 .ends

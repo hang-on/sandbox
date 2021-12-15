@@ -111,7 +111,7 @@
         cp ITEM_DEACTIVATED
         jp z,+
           call @clip_at_borders
-          call @check_collision
+          call @hurt_with_player_attack
           call @move
           ; ...
         +:
@@ -126,7 +126,7 @@
       cp LEFT_LIMIT
       call c,deactivate_item
     ret
-    @check_collision: 
+    @hurt_with_player_attack: 
       ; Axis aligned bounding box:
       ;    if (rect1.x < rect2.x + rect2.w &&
       ;    rect1.x + rect1.w > rect2.x &&

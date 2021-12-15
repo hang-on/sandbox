@@ -70,6 +70,17 @@
   .endr
 .endm
 ; -----------------------------------------------------------------------------
+.macro RESET_COUNTER ARGS COUNTER, VALUE
+; -----------------------------------------------------------------------------
+  ; Easy way to reset a word-sized counter for the tick_counter routine.
+  ld a,VALUE
+  ld hl,COUNTER
+  ld (hl),a
+  inc hl
+  ld (hl),a
+.endm
+
+; -----------------------------------------------------------------------------
 .macro LOAD_BYTES
 ; -----------------------------------------------------------------------------
   ; Load byte-sized variables with matching values. Useful for initializing. 
