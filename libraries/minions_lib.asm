@@ -58,11 +58,10 @@
       ldir
     ret
       minion_init_data:
-          .db 0, 0, 16, 16
-          .db MINION_DEACTIVATED
-          .db 0 0 0 0 0 0 0
+          .db 0, 0, 16, 16        ; Y, x, height, width.
+          .db MINION_DEACTIVATED  ; State.
+          .db 0 0 0 0 0 0 0       ; 
         __:
-
   ; --------------------------------------------------------------------------- 
   ; DRAW:
   draw_minions:
@@ -145,35 +144,10 @@
       cp MINION_HURTING
       ret z
 
-      ld iy,killbox_y
-
-      ld a,(iy+1)
-      add a,(iy+3)
-      ld b,a
-      ld a,(ix+minion.x)
-      cp b
+      ld iy,killbox_y     ; Put the player's killbox in IY.
+      call detect_collision
       ret nc
-        ; rect1.x + rect1.width > rect2.x
-        ld a,(ix+minion.x)
-        add a,16
-        ld b,a
-        ld a,(iy+1)
-        cp b
-        ret nc
-          ; rect1.y < rect2.y + rect2.height
-          ld a,(iy+0)
-          add a,(iy+2)
-          ld b,a
-          ld a,(ix+minion.y)
-          cp b
-          ret nc
-            ; rect1.y + rect1.height > rect2.y
-            ld a,(ix+minion.y)
-            add a,16
-            ld b,a
-            ld a,(iy+0)
-            cp b
-            ret nc
+
       ; Collision! Hurt the minion.
       ld hl,hurt_sfx
       ld c,SFX_CHANNELS2AND3                  
