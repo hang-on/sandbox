@@ -75,8 +75,8 @@
         jp z,+
           ld d,(ix+minion.y)
           ld e,(ix+minion.x)
-          ld a,(ix+minion.index); FIXME: Depending on direction and state!
-          call spr_2x2          ; + animation...
+          ld a,(ix+minion.index) 
+          call spr_2x2          
         +:
         ld de,_sizeof_minion    
         add ix,de               ; Point ix to next minion.
@@ -144,8 +144,8 @@
       cp MINION_HURTING
       ret z
 
-      ld iy,killbox_y     ; Put the player's killbox in IY.
-      call detect_collision
+      ld iy,killbox_y         ; Put the player's killbox in IY.
+      call detect_collision   ; IX holds the minion.
       ret nc
 
       ; Collision! Hurt the minion.

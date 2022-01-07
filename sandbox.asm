@@ -84,8 +84,6 @@
   vblank_finish_high db
   odd_frame db
   rnd_seed dw
-  
-
 
   anim_counter dw
   frame db
