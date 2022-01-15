@@ -1,5 +1,5 @@
 ; Sandbox - working title for a new take on "Mighty Knights".
-;.sdsctag 1.0, "Title", "Description", "hang-on Entertainment"
+.sdsctag 1.0, "Title", "Description", "hang-on Entertainment"
 ; -----------------------------------------------------------------------------
 ; GLOBAL DEFINITIONS
 ; -----------------------------------------------------------------------------
@@ -61,6 +61,7 @@
 .include "libraries/minions_lib.asm"
 .include "libraries/items_lib.asm"
 .include "libraries/brute_lib.asm"
+.include "libraries/score_lib.asm"
 .include "sub_workshop.asm"
 .include "sub_tests.asm"        
 
