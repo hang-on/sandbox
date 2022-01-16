@@ -44,7 +44,7 @@
     LOAD_BYTES brute_y, FLOOR_LEVEL, brute_x, 250
     LOAD_BYTES brute_dir, LEFT
     LOAD_BYTES brute_height, 16, brute_width, 16
-    RESET_COUNTER brute_direction_counter, 90
+    RESET_COUNTER brute_direction_counter, 95
     RESET_COUNTER brute_hurt_counter, 18
     RESET_COUNTER brute_anim_counter, 9
     RESET_COUNTER brute_spawn_counter, 70
@@ -83,6 +83,16 @@
     cp BRUTE_WALKING_RIGHT_1
     jp nz,+
       ld hl,@right_1
+      jp ++      
+    +:
+    cp BRUTE_HURTING_LEFT
+    jp nz,+
+      ld hl,@left_0
+      jp ++      
+    +:
+    cp BRUTE_HURTING_RIGHT
+    jp nz,+
+      ld hl,@right_0
       jp ++      
     +:
 
