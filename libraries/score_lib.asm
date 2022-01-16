@@ -4,7 +4,8 @@
 ; SCORE AND HISCORE
 ; -----------------------------------------------------------------------------
 .equ ASCII_ZERO $f2 ; FIXME: Where in the tilebank is the ASCII zero?
-.equ SCORE_VRAM_ADDRESS 0
+.equ SCORE_ADDRESS $3810 
+.equ HISCORE_ADDRESS $3832
 
 .equ SCORE_ONES 5
 .equ SCORE_TENS 4

@@ -64,13 +64,28 @@
     call spr_2x2
     
     ; Place the sword:
-    ld a,(brute_dir)
-    cp LEFT
+    ld a,(brute_index)
+    cp BRUTE_WALKING_LEFT_0
     jp nz,+
-      ld hl,@left
+      ld hl,@left_0
       jp ++      
     +:
-      ld hl,@right
+    cp BRUTE_WALKING_LEFT_1
+    jp nz,+
+      ld hl,@left_1
+      jp ++      
+    +:
+    cp BRUTE_WALKING_RIGHT_0
+    jp nz,+
+      ld hl,@right_0
+      jp ++      
+    +:
+    cp BRUTE_WALKING_RIGHT_1
+    jp nz,+
+      ld hl,@right_1
+      jp ++      
+    +:
+
     ++:
     ld a,(brute_y)
     add a,(hl)
@@ -84,10 +99,15 @@
     ld c,a
     call add_sprite
   ret
-    @left:
+    @left_0:
       .db 8, -8, BRUTE_SWORD_LEFT
-    @right:
+    @right_0:
       .db 8, 16, BRUTE_SWORD_RIGHT
+    @left_1:
+      .db 9, -8, BRUTE_SWORD_LEFT
+    @right_1:
+      .db 9, 16, BRUTE_SWORD_RIGHT
+
   ; --------------------------------------------------------------------------- 
   ; UPDATE:
   process_brute:
