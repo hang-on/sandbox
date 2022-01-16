@@ -58,10 +58,10 @@
 .include "libraries/map_lib.asm"
 .include "libraries/input_lib.asm"
 .include "libraries/tiny_games.asm"
+.include "libraries/score_lib.asm"
 .include "libraries/minions_lib.asm"
 .include "libraries/items_lib.asm"
 .include "libraries/brute_lib.asm"
-.include "libraries/score_lib.asm"
 .include "sub_workshop.asm"
 .include "sub_tests.asm"        
 
@@ -234,6 +234,7 @@
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
 
+
     ; Seed the randomizer
     ld hl,my_seed
     ld a,(hl)
@@ -299,6 +300,11 @@
     call next_metatile_half_to_tile_buffer
     call tilebuffer_to_nametable
     
+    ; Score:
+    ld hl,score
+    call reset_score
+
+
     ei
     halt
     halt
@@ -359,6 +365,12 @@
         ld (vblank_finish_high),a       ; Store in ram.
     ++:                                 ;
  
+    ; Update the score
+    ld ix,score
+    ld hl,SCORE_ADDRESS
+    call fast_print_score
+
+
     ; End of critical vblank routines. ----------------------------------------
  
     ; Begin general updating (UPDATE).
@@ -622,6 +634,8 @@
         jp nz,+ 
         cp 0                ; Zero = no horizontal motion.
         jp z,+
+          ADD_TO SCORE_ONES, 2
+          
           xor a
           ld (hspeed),a
           ; Scroll instead

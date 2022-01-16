@@ -15,6 +15,13 @@
 .equ SCORE_HUNDRED_THOUSANDS 0
 .equ SCORE_DIGITS_TOTAL 6
 
+.macro ADD_TO ARGS DIGIT POINTS
+  ld a,DIGIT
+  ld b,POINTS
+  ld hl,score
+  call add_to_score
+.endm
+
 .struct score_struct
   hundred_thousands db
   ten_thousands db                
@@ -92,19 +99,20 @@
         ret nc
       jp -
   ret
-    
-    reset_score:
-      ex de,hl                            ; Switch to destination (DE).
-      ld hl,reset_score_data              ; Point to reset data.
-      ld bc,SCORE_DIGITS_TOTAL            ; Number of digits to reset.
-      ldir                                ; Do it.
-    ret
-    ;
-    reset_score_data:
+  
+  reset_score:
+    ; Entry: HL = Pointer to score object.
+    ; Exit: None
+    ex de,hl                            ; Switch to destination (DE).
+    ld hl,@reset_data              ; Point to reset data.
+    ld bc,SCORE_DIGITS_TOTAL            ; Number of digits to reset.
+    ldir                                ; Do it.
+  ret
+    @reset_data:
       .rept SCORE_DIGITS_TOTAL
         .db ASCII_ZERO  ;.asc "0"
       .endr
-      ;
+    
   fast_print_score:
     ; Print the digits in a score object to the name table.
     ; Entry: HL = VRAM address.

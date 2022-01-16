@@ -2,10 +2,10 @@
 
 .equ ITEM_DEACTIVATED $ff
 .equ ITEM_ACTIVATED 0
-.equ APPLE 0
-.equ TOMATO 1
-.equ JUG 2
-.equ GOLD 3
+.equ APPLE 140
+.equ TOMATO 142
+.equ JUG 144
+.equ GOLD 146
 
 .equ ITEM_MAX 3
 
@@ -174,6 +174,33 @@
       ld c,SFX_CHANNELS2AND3                  
       call PSGSFXPlay                         ; Play the SFX with PSGlib.
       ;      
+      ; Award different points for different items
+      ld a,(ix+item.index)
+      cp APPLE
+      jp nz,+
+        ADD_TO SCORE_HUNDREDS, 2
+        ADD_TO SCORE_TENS, 5
+        jp ++
+      +:
+      cp TOMATO
+      jp nz,+
+        ADD_TO SCORE_HUNDREDS, 5
+        jp ++
+      +:
+      cp JUG
+      jp nz,+
+        ADD_TO SCORE_THOUSANDS, 2
+        ADD_TO SCORE_HUNDREDS, 5
+        jp ++
+      +:
+      cp GOLD
+      jp nz,+
+        ADD_TO SCORE_THOUSANDS, 5
+        jp ++
+      +:
+
+      ++:
+
       ld a,ITEM_DEACTIVATED
       ld (ix+item.state),a
     ret 
