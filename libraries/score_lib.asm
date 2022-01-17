@@ -56,6 +56,9 @@
     ret c
       sub 10
       ld (hl),a
+      ; debug
+      cp 10
+      jp c, @fail
       -:
         dec hl
         ;inc hl ??
@@ -68,6 +71,10 @@
       jp -
       ;
   ret
+  @fail:
+    nop
+    jp @fail
+  
   ;
   subtract_from_score:
     ; New version.

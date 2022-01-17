@@ -17,5 +17,6 @@ data/village_tiles.inc: data/img/village.png
 data/village_tilemap.bin: data/map/village.tmx
 	node tools/convert_map.js data/map/village.tmx data/village_tilemap.bin
 
-data/%.psg: data/sfx/%.vgm
+data/%.psg: data/psg/%.vgm
 	@C:\Users\ANSJ\Documents\PSGlib-nov15\tools\vgm2psg.exe $< $@
+

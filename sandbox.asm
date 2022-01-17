@@ -11,6 +11,9 @@
   .equ USE_TEST_KERNEL
 .endif
 
+; Comment to turn music on
+.equ MUSIC_OFF
+
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
 
@@ -304,6 +307,11 @@
     ld hl,score
     call reset_score
 
+    ; Music:
+    .ifndef MUSIC_OFF
+      ld hl,village_on_fire
+      call PSGPlay
+    .endif
 
     ei
     halt
@@ -929,6 +937,9 @@
 
   item_sfx:
     .incbin "data/item.psg"
+
+  village_on_fire:
+    .incbin "data/village_on_fire.psg"
 
 
 
