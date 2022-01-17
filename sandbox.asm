@@ -332,6 +332,7 @@
     call wait_for_vblank
     
     ; Begin vblank critical code (DRAW) ---------------------------------------
+      
     call load_sat
 
     ld a,(column_load_trigger)
@@ -346,6 +347,13 @@
     ld a,(hscroll_screen)
     ld b,HORIZONTAL_SCROLL_REGISTER
     call set_register 
+
+    ; Update the score
+    ; We access VRAM here!
+    ld ix,score
+    ld hl,SCORE_ADDRESS
+    call fast_print_score
+
 
     ; Quick and dirty vblank profiling.
     ; Note: A high value of $DA means vblank finishes between 218-223.
@@ -364,12 +372,6 @@
         ld a,b                          ; Yes = new highest! Get counter.
         ld (vblank_finish_high),a       ; Store in ram.
     ++:                                 ;
- 
-    ; Update the score
-    ld ix,score
-    ld hl,SCORE_ADDRESS
-    call fast_print_score
-
 
     ; End of critical vblank routines. ----------------------------------------
  
@@ -828,6 +830,8 @@
     ; Brute
     call process_brute
     call draw_brute
+
+
 
   jp main_loop
 .ends

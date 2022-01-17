@@ -3,7 +3,7 @@
 ; -----------------------------------------------------------------------------
 ; SCORE AND HISCORE
 ; -----------------------------------------------------------------------------
-.equ ASCII_ZERO $f2 ; FIXME: Where in the tilebank is the ASCII zero?
+.equ ASCII_ZERO $f2 ; Where in the tilebank is the ASCII zero?
 .equ SCORE_ADDRESS $3810 
 .equ HISCORE_ADDRESS $3832
 
@@ -15,7 +15,7 @@
 .equ SCORE_HUNDRED_THOUSANDS 0
 .equ SCORE_DIGITS_TOTAL 6
 
-.macro ADD_TO ARGS DIGIT POINTS
+.macro ADD_TO ARGS DIGIT, POINTS
   ld a,DIGIT
   ld b,POINTS
   ld hl,score
