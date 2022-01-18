@@ -95,42 +95,9 @@
   rnd_seed dw
   game_state db
 
-; Player variables. Note - this order is expected!
-  anim_counter dw
-  frame db
-  direction db
-  state db
-  attack_counter dw
-  
-  player_y db
-  player_x db
-  player_height db
-  player_width db
-  ; ------------
-  jump_counter db
-  hspeed db
-  vspeed db
-
-  ; Note - this order is expected!
-  killbox_y db
-  killbox_x db
-  killbox_height db
-  killbox_width db
-  ; ----------------
-
-
-  is_scrolling db
-  hscroll_screen db ; 0-255
-  hscroll_column db ; 0-7
-  column_load_trigger db ; flag
-  scroll_enabled db
-  end_of_map_data dw
-
   accept_button_1_input db
   accept_button_2_input db
   
-
-
 .ends
 
 .org 0
@@ -224,14 +191,8 @@
     ld h,(hl)           ; Get MSB from table.
     ld l,a              ; HL now contains the address of the state handler.
     jp (hl)             ; Jump to this handler - note, not call!
-    
-    
 .ends
-
-.bank 0 slot 0
-  .section "Game states" free
-    .include "game_states/level.asm"
-  .ends
+  .include "game_states/level.asm"
 
 .bank 1 slot 1
  ; ----------------------------------------------------------------------------
