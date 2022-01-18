@@ -3,7 +3,10 @@
 ; -----------------------------------------------------------------------------
 ; SCORE AND HISCORE
 ; -----------------------------------------------------------------------------
-.equ ASCII_ZERO $f2 ; Where in the tilebank is the ASCII zero?
+; Important: The score tiles must be placed in a sequence (0-9),
+; and with ASCII_ZERO within the range of ($0 - $e9). 
+.equ ASCII_ZERO $c0 ; Where in the tilebank is the ASCII zero?
+
 .equ SCORE_ADDRESS $3810 
 .equ HISCORE_ADDRESS $3832
 
@@ -13,7 +16,6 @@
 .equ SCORE_THOUSANDS 2
 .equ SCORE_TEN_THOUSANDS 1
 .equ SCORE_HUNDRED_THOUSANDS 0
-.equ SCORE_DIGITS_TOTAL 6
 
 .macro ADD_TO ARGS DIGIT, POINTS
   ld a,DIGIT
@@ -46,19 +48,16 @@
     ;         HL = Pointer to score struct.
     ; Uses: AF, DE, HL
     ld d,0
-    add a,score_struct.hundred_thousands
     ld e,a
     add hl,de
     ld a,b
     add a,(hl)
     ld (hl),a
+
     cp ASCII_ZERO+10
     ret c
       sub 10
       ld (hl),a
-      ; debug
-      cp 10
-      jp c, @fail
       -:
         dec hl
         ;inc hl ??
@@ -71,10 +70,7 @@
       jp -
       ;
   ret
-  @fail:
-    nop
-    jp @fail
-  
+
   ;
   subtract_from_score:
     ; New version.
@@ -112,11 +108,11 @@
     ; Exit: None
     ex de,hl                            ; Switch to destination (DE).
     ld hl,@reset_data              ; Point to reset data.
-    ld bc,SCORE_DIGITS_TOTAL            ; Number of digits to reset.
+    ld bc,_sizeof_score_struct            ; Number of digits to reset.
     ldir                                ; Do it.
   ret
     @reset_data:
-      .rept SCORE_DIGITS_TOTAL
+      .rept _sizeof_score_struct
         .db ASCII_ZERO  ;.asc "0"
       .endr
     
@@ -134,7 +130,7 @@
     out (CONTROL_PORT),a
     push ix
     pop hl
-    ld b,SCORE_DIGITS_TOTAL
+    ld b,_sizeof_score_struct
     -:
       ld a,(hl)
       inc hl
@@ -144,6 +140,35 @@
     djnz -
   ret
 
+  safe_print_score:
+    ; Print the digits in a score object to the name table.
+    ; Entry: HL = VRAM address.
+    ;        IX = Score object.
+    ; Exit: None.
+    ; Uses: ?
+    ;
+    di
+      ld a,l
+      out (CONTROL_PORT),a
+      ld a,h
+      or VRAM_WRITE_COMMAND
+      out (CONTROL_PORT),a
+      push ix
+      pop hl
+      ld b,_sizeof_score_struct
+      -:
+        ld a,(hl)
+        inc hl
+        out (DATA_PORT),a           ; Write it to name table.
+        ld a,%00000000              ; Select background palette for this char.
+        push ix
+        pop ix
+        out (DATA_PORT),a           ; Write 2nd byte to name table.
+        push ix
+        pop ix
+      djnz -
+    ei
+  ret
 
   
   compare_scores:

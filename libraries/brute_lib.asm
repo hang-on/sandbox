@@ -170,7 +170,7 @@
       ret nc
         ; Collision! Hurt the brute.
         +:
-        ADD_TO SCORE_THOUSANDS, 1
+        ADD_TO SCORE_HUNDREDS, 5
         
         ld hl,hurt_sfx
         ld c,SFX_CHANNELS2AND3                  

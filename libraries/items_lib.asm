@@ -178,24 +178,24 @@
       ld a,(ix+item.index)
       cp APPLE
       jp nz,+
-        ADD_TO SCORE_HUNDREDS, 2
+        ADD_TO SCORE_HUNDREDS, 1
         ADD_TO SCORE_TENS, 5
         jp ++
       +:
       cp TOMATO
       jp nz,+
-        ADD_TO SCORE_HUNDREDS, 5
+        ADD_TO SCORE_HUNDREDS, 2
+        ADD_TO SCORE_TENS, 5
         jp ++
       +:
       cp JUG
       jp nz,+
-        ADD_TO SCORE_THOUSANDS, 2
-        ADD_TO SCORE_HUNDREDS, 5
+        ADD_TO SCORE_THOUSANDS, 1
         jp ++
       +:
       cp GOLD
       jp nz,+
-        ADD_TO SCORE_THOUSANDS, 5
+        ADD_TO SCORE_THOUSANDS, 2
         jp ++
       +:
 

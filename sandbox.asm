@@ -12,7 +12,7 @@
 .endif
 
 ; Comment to turn music on
-.equ MUSIC_OFF
+;.equ MUSIC_OFF
 
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
@@ -328,11 +328,11 @@
     .db $ff $fb $f0 $00 $00 $ff
 
     mockup_dashboard:
-      .db $fc $fc $e6 $e7 $e8 $e5 $e9 $ed $fa $fa $fa $fa $fa $fa $fc $fc $fc
-      .db $ea $eb $e6 $e7 $e8 $e5 $e9 $ed $fa $fa $fa $fa $fa $fa
+      .db $fc $fc $e6 $e7 $e8 $e5 $e9 $ed $c0 $c0 $c0 $c0 $c0 $c0 $fc $fc $fc
+      .db $ea $eb $e6 $e7 $e8 $e5 $e9 $ed $c0 $c0 $c0 $c0 $c0 $c0
       .db $fc $fc $fc $e0 $e1 $e2 $e3 $e4 $e5
       .db $ee $ef $ef $ef $ef $ef $ef $ef $ef $ef $ef $ef $ef $f0 $f1 $fc 
-      .db $e2 $eb $ec $e9 $ed $fa $fa $fc
+      .db $e2 $eb $ec $e9 $ed $c0 $c0 $fc
     __:
 
   ; ---------------------------------------------------------------------------
@@ -355,13 +355,6 @@
     ld a,(hscroll_screen)
     ld b,HORIZONTAL_SCROLL_REGISTER
     call set_register 
-
-    ; Update the score
-    ; We access VRAM here!
-    ld ix,score
-    ld hl,SCORE_ADDRESS
-    call fast_print_score
-
 
     ; Quick and dirty vblank profiling.
     ; Note: A high value of $DA means vblank finishes between 218-223.
@@ -401,6 +394,10 @@
     cpl                             ; Invert (TRUE -> FALSE, FALSE -> TRUE).
     ld (odd_frame),a                ; Store value.
 
+
+    ; Debugging
+    ;ADD_TO SCORE_ONES, 1
+    ;ADD_TO SCORE_TENS, 5
 
     ; Seed the random number generator with button 1.
     call is_button_1_pressed
@@ -644,8 +641,6 @@
         jp nz,+ 
         cp 0                ; Zero = no horizontal motion.
         jp z,+
-          ADD_TO SCORE_ONES, 2
-          
           xor a
           ld (hspeed),a
           ; Scroll instead
@@ -838,6 +833,14 @@
     ; Brute
     call process_brute
     call draw_brute
+
+    
+    ; Update the score
+    ; We access VRAM here!
+    ld ix,score
+    ld hl,SCORE_ADDRESS
+    call safe_print_score
+
 
 
 
