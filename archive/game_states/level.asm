@@ -720,36 +720,3 @@
       .db 4 3 3 2 2 2 2 2 2 2 2 2 2 2 2 2
       .db 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1
 .ends
-
-.bank 4 slot 2
- ; ----------------------------------------------------------------------------
-.section "Level 0 assets" free
-; -----------------------------------------------------------------------------
-  sprite_tiles:
-    .include "data/sprite_tiles.inc"
-    __:
-
-  level_0_tiles:
-    .include "data/village_tiles.inc"
-
-  level_0_map:
-    .incbin "data/village_tilemap.bin"
-    level_0_map_end:
-
-.ends
-
-.bank 5 slot 2
- ; ----------------------------------------------------------------------------
-.section "Level 1 assets" free
-; -----------------------------------------------------------------------------
-  level_1_sprite_tiles:
-    .include "data/sprite_tiles.inc"
-    __:
-  level_1_tiles:
-    .include "data/boss_tiles.inc"
-
-  level_1_map:
-    .incbin "data/boss_tilemap.bin"
-    level_1_map_end:
-
-.ends
