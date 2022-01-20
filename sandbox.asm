@@ -118,6 +118,7 @@
   column_load_trigger db ; flag
   scroll_enabled db
   end_of_map_data dw
+  exit_locked db      ; Can you progress from the level now?
 
   vblank_finish_low db
   vblank_finish_high db
@@ -304,6 +305,8 @@
       LOAD_BYTES odd_frame, TRUE
 
       LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
+
+      LOAD_BYTES exit_locked, FALSE  ; Todo: Boss will lock it.
 
       ; Initialize the minions.
       call initialize_minions
@@ -711,21 +714,19 @@
       ; End of map check.
       ld a,(end_of_map)
       cp TRUE
-      jp z,+
+      jp z,_f
         
         ld hl,(end_of_map_data)
         ex de,hl
         ld hl,(map_head)
         sbc hl,de
-        jp c,+
+        jp c,_f
           ld a,FALSE
           ld (scroll_enabled),a
           ld (spawn_minions),a
           ld a,TRUE
           ld (end_of_map),a
-          ld a,FINISH_LEVEL
-          ld (game_state),a
-      +:
+      __:
 
       ; Check if player is about to exit the left side of the screen.
       ld a,(player_x)
@@ -751,6 +752,15 @@
         jp z,+
           xor a
           ld (hspeed),a
+          ld a,(end_of_map)
+          cp TRUE
+          jp nz,+
+            ld a,(exit_locked)
+            cp FALSE
+            jp nz,+
+              ld a,FINISH_LEVEL
+              ld (game_state),a
+              jp main_loop
       +:
 
 
