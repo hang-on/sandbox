@@ -1,3 +1,5 @@
+.equ SIZEOF_LEVEL_TILES $bf*32
+
 ; -----------------------------------------------------------------------------
 .ramsection "Level variables" slot 3
 ; -----------------------------------------------------------------------------
@@ -37,17 +39,26 @@
 .bank 0 slot 0
 .section "Level" free
   initialize_level:
-
-      ld a,2
+      ld a,(current_level)
+      add a,4
       ld hl,sprite_tiles
       ld de,$0000
       ld bc,_sizeof_sprite_tiles
       call load_vram
 
-      ld a,2
-      ld hl,level_1_tiles
+      ld hl,level_tiles_table
+      ld a,(current_level)
+      call lookup_word
+      jp +
+        level_tiles_table:
+          .dw level_0_tiles
+        
+      +:
+      ld a,(current_level)
+      add a,4
+      ;ld hl,level_0_tiles
       ld de,BACKGROUND_BANK_START
-      ld bc,_sizeof_level_1_tiles
+      ld bc,SIZEOF_LEVEL_TILES 
       call load_vram
 
       RESET_VARIABLES 0, frame, direction, jump_counter, hspeed, vspeed
@@ -67,19 +78,6 @@
       LOAD_BYTES odd_frame, TRUE
 
       LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
-
-
-      ; Seed the randomizer
-      ld hl,my_seed
-      ld a,(hl)
-      ld (rnd_seed),a
-      inc hl
-      ld a,(hl)
-      ld (rnd_seed+1),a
-      jp +
-        my_seed:
-        .dbrnd 2, 0, 255
-      +:
 
       ; Initialize the minions.
       call initialize_minions
@@ -120,8 +118,11 @@
       ld c,_sizeof_mockup_dashboard
       call copy_string_to_nametable
 
+      ld a,(current_level)
+      add a,4
+      SELECT_BANK_IN_REGISTER_A
       ; Level data:
-      ld hl,level_1_map+_sizeof_level_1_map
+      ld hl,level_0_map+_sizeof_level_0_map
       ld a,l
       ld b,h
       ld hl,end_of_map_data
@@ -130,7 +131,7 @@
       ld (hl),b
       
       ; Init map head.
-      ld hl,level_1_map
+      ld hl,level_0_map
       call initialize_map
       ; Draw a full screen 
       ld b,32
@@ -139,10 +140,6 @@
       ; Fill the blanked column.
       call next_metatile_half_to_tile_buffer
       call tilebuffer_to_nametable
-      
-      ; Score:
-      ld hl,score
-      call reset_score
 
       ; Music:
       .ifndef MUSIC_OFF
@@ -174,6 +171,9 @@
 
 
     run_level:
+      ld a,(current_level)
+      add a,4
+      SELECT_BANK_IN_REGISTER_A      
       call wait_for_vblank
       
       ; Begin vblank critical code (DRAW) ---------------------------------------
@@ -220,7 +220,8 @@
       SELECT_BANK_IN_REGISTER_A
       call PSGSFXFrame
       
-      ld a,2
+      ld a,(current_level)
+      add a,4
       SELECT_BANK_IN_REGISTER_A
       
       call refresh_sat_handler
@@ -229,11 +230,6 @@
       ld a,(odd_frame)                ; Get value, either TRUE or FALSE.
       cpl                             ; Invert (TRUE -> FALSE, FALSE -> TRUE).
       ld (odd_frame),a                ; Store value.
-
-
-      ; Debugging
-      ;ADD_TO SCORE_ONES, 1
-      ;ADD_TO SCORE_TENS, 5
 
       ; Seed the random number generator with button 1.
       call is_button_1_pressed
@@ -722,4 +718,37 @@
     jump_counter_to_hspeed_table:
       .db 4 3 3 2 2 2 2 2 2 2 2 2 2 2 2 2
       .db 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1
+.ends
+
+.bank 4 slot 2
+ ; ----------------------------------------------------------------------------
+.section "Level 0 assets" free
+; -----------------------------------------------------------------------------
+  sprite_tiles:
+    .include "data/sprite_tiles.inc"
+    __:
+
+  level_0_tiles:
+    .include "data/village_tiles.inc"
+
+  level_0_map:
+    .incbin "data/village_tilemap.bin"
+    level_0_map_end:
+
+.ends
+
+.bank 5 slot 2
+ ; ----------------------------------------------------------------------------
+.section "Level 1 assets" free
+; -----------------------------------------------------------------------------
+  level_1_sprite_tiles:
+    .include "data/sprite_tiles.inc"
+    __:
+  level_1_tiles:
+    .include "data/boss_tiles.inc"
+
+  level_1_map:
+    .incbin "data/boss_tilemap.bin"
+    level_1_map_end:
+
 .ends

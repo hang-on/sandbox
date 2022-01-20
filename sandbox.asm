@@ -39,9 +39,10 @@
 .equ SWORD_WIDTH 4
 
 ; Game states:
-.equ LOAD_LEVEL 0
+.equ INITIALIZE_LEVEL 0
 .equ RUN_LEVEL 1
-.equ INITIAL_GAMESTATE LOAD_LEVEL
+.equ START_NEW_GAME 2
+.equ INITIAL_GAMESTATE START_NEW_GAME
 
 ; -----------------------------------------------------------------------------
 .memorymap
@@ -186,9 +187,9 @@
     
   jp main_loop
     game_state_jump_table:
-    .dw initialize_level, run_level  
+    .dw initialize_level, run_level 
+    .dw start_new_game 
 
-    
     vdp_register_init:
     .db %01100110  %10100000 $ff $ff $ff
     .db $ff $fb $f0 $00 $00 $ff
@@ -208,6 +209,7 @@
     jp (hl)             ; Jump to this handler - note, not call!
 .ends
   .include "game_states/level.asm"
+  .include "game_states/start_new_game.asm"
 
 .bank 1 slot 1
  ; ----------------------------------------------------------------------------
@@ -216,25 +218,6 @@
 
 .ends
 
-.bank 2 slot 2
- ; ----------------------------------------------------------------------------
-.section "Level 1 assets" free
-; -----------------------------------------------------------------------------
-  sprite_tiles:
-    .include "data/sprite_tiles.inc"
-    __:
-
-  level_1_tiles:
-    .include "data/village_tiles.inc"
-    __:
-  
-  level_1_map:
-    .incbin "data/village_tilemap.bin"
-    level_1_map_end:
-
-
-
-.ends
 .bank 3 slot 2
  ; ----------------------------------------------------------------------------
 .section "Sound effects" free
