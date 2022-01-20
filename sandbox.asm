@@ -46,7 +46,8 @@
 
 .equ SIZEOF_LEVEL_TILES $bf*32
 .equ LEVEL_BANK_OFFSET 4        ; Level data is at current level + offset
-
+.equ SIZEOF_STANDARD_LEVEL_TILEMAP $501  ; Size in bytes.
+.equ SIZEOF_BOSS_LEVEL_TILEMAP $281
 ; -----------------------------------------------------------------------------
 .memorymap
 ; -----------------------------------------------------------------------------
@@ -277,12 +278,10 @@
       call lookup_word
       jp +
         level_tiles_table:
-          .dw level_0_tiles
-        
+          .dw level_0_tiles, level_1_tiles
       +:
       ld a,(current_level)
       add a,LEVEL_BANK_OFFSET
-      ;ld hl,level_0_tiles
       ld de,BACKGROUND_BANK_START
       ld bc,SIZEOF_LEVEL_TILES 
       call load_vram
@@ -348,7 +347,7 @@
       add a,4
       SELECT_BANK_IN_REGISTER_A
       ; Level data:
-      ld hl,level_0_map+_sizeof_level_0_map
+      ld hl,level_0_map+SIZEOF_STANDARD_LEVEL_TILEMAP
       ld a,l
       ld b,h
       ld hl,end_of_map_data
