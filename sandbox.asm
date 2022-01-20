@@ -343,11 +343,29 @@
       ld c,_sizeof_mockup_dashboard
       call copy_string_to_nametable
 
+      ; Initialize and draw the map:
       ld a,(current_level)
-      add a,4
+      add a,LEVEL_BANK_OFFSET
       SELECT_BANK_IN_REGISTER_A
-      ; Level data:
-      ld hl,level_0_map+SIZEOF_STANDARD_LEVEL_TILEMAP
+      ld hl,level_map_table
+      ld a,(current_level)
+      call lookup_word
+      jp +
+        level_map_table:
+          .dw level_0_map, level_1_map
+      +:
+      push hl
+        ld hl,level_map_size_table
+        ld a,(current_level)
+        call lookup_word
+        jp +
+          level_map_size_table:
+            .dw SIZEOF_STANDARD_LEVEL_TILEMAP
+            .dw SIZEOF_BOSS_LEVEL_TILEMAP
+        +:
+        ex de,hl
+      pop hl
+      add hl,de
       ld a,l
       ld b,h
       ld hl,end_of_map_data
@@ -356,8 +374,11 @@
       ld (hl),b
       
       ; Init map head.
-      ld hl,level_0_map
+      ld hl,level_map_table
+      ld a,(current_level)
+      call lookup_word
       call initialize_map
+      
       ; Draw a full screen 
       ld b,32
       call draw_columns
