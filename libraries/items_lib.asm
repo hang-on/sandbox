@@ -96,9 +96,14 @@
     call tick_counter         
     jp nc,+                     ; Skip forward if the counter is not up.
       call get_random_number    ; Counter is up - get a random number 0-255.
-      cp 50                     ; Roll under the spawn chance.
+      cp 55                     ; Roll under the spawn chance.
       jp nc,+
-        call spawn_item     ;    OK, spawn an item.
+        ld a,(state)            ; Dont spawn items
+        cp JUMPING              ; when the player is in the air.
+        jp z,+
+        cp JUMP_ATTACKING
+        jp z,+
+          call spawn_item     ;    OK, spawn an item.
     +:
 
 
