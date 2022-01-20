@@ -891,16 +891,14 @@
       call process_brute
       call draw_brute
 
-      
       ; Update the score
-      ; We access VRAM here!
       ld ix,score
       ld hl,SCORE_ADDRESS
       call safe_print_score
 
     jp main_loop
 
-  ; Data for controlling the player character.
+    ; Data for controlling the player character.
     idle_frame_to_index_table:
       .db 1 1 3 3 5 7 7 
       __:
