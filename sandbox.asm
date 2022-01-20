@@ -42,6 +42,7 @@
 .equ INITIALIZE_LEVEL 0
 .equ RUN_LEVEL 1
 .equ START_NEW_GAME 2
+.equ FINISH_LEVEL 3
 .equ INITIAL_GAMESTATE START_NEW_GAME
 
 .equ SIZEOF_LEVEL_TILES $bf*32
@@ -235,7 +236,7 @@
     jp (hl)             ; Jump to this handler - note, not call!
       game_state_jump_table:
       .dw initialize_level, run_level 
-      .dw start_new_game 
+      .dw start_new_game, finish_level 
 
   ; ---------------------------------------------------------------------------
   start_new_game:
@@ -254,7 +255,7 @@
     ld hl,score
     call reset_score
 
-    LOAD_BYTES current_level, 1    
+    LOAD_BYTES current_level, 0    
     
     ld a,INITIALIZE_LEVEL
     ld (game_state),a
@@ -263,6 +264,9 @@
 
   ; ---------------------------------------------------------------------------
   initialize_level:
+      ld a,DISABLED
+      call set_display
+      
       ld a,(current_level)
       add a,LEVEL_BANK_OFFSET
       ld hl,sprite_tiles
@@ -719,6 +723,8 @@
           ld (spawn_minions),a
           ld a,TRUE
           ld (end_of_map),a
+          ld a,FINISH_LEVEL
+          ld (game_state),a
       +:
 
       ; Check if player is about to exit the left side of the screen.
@@ -925,6 +931,19 @@
     jump_counter_to_hspeed_table:
       .db 4 3 3 2 2 2 2 2 2 2 2 2 2 2 2 2
       .db 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1
+
+  finish_level:
+    call FadeOutScreen
+    ld a,(current_level)
+    inc a       ; Fixme: Also check for other stuff, like the end...
+    cp 2        ; Hardcoded end of demo - wrap around to
+    jp nz,+     ; first level.
+      xor a
+    +:
+    ld (current_level),a
+    ld a,INITIALIZE_LEVEL
+    ld (game_state),a
+  jp main_loop
 
 .ends
 
