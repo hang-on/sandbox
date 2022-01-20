@@ -117,11 +117,7 @@
   column_load_trigger db ; flag
   scroll_enabled db
   end_of_map_data dw
-.ends
 
-; -----------------------------------------------------------------------------
-.ramsection "Game variables" slot 3
-; -----------------------------------------------------------------------------
   vblank_finish_low db
   vblank_finish_high db
   odd_frame db
@@ -130,7 +126,8 @@
 
   accept_button_1_input db
   accept_button_2_input db
-  
+
+  PaletteBuffer dsb 32  
 .ends
 
 .org 0
@@ -257,7 +254,7 @@
     ld hl,score
     call reset_score
 
-    LOAD_BYTES current_level, 0    
+    LOAD_BYTES current_level, 1    
     
     ld a,INITIALIZE_LEVEL
     ld (game_state),a
@@ -343,42 +340,7 @@
       ld c,_sizeof_mockup_dashboard
       call copy_string_to_nametable
 
-      ; Initialize and draw the map:
-      ld a,(current_level)
-      add a,LEVEL_BANK_OFFSET
-      SELECT_BANK_IN_REGISTER_A
-      ld hl,level_map_table
-      ld a,(current_level)
-      call lookup_word
-      jp +
-        level_map_table:
-          .dw level_0_map, level_1_map
-      +:
-      push hl
-        ld hl,level_map_size_table
-        ld a,(current_level)
-        call lookup_word
-        jp +
-          level_map_size_table:
-            .dw SIZEOF_STANDARD_LEVEL_TILEMAP
-            .dw SIZEOF_BOSS_LEVEL_TILEMAP
-        +:
-        ex de,hl
-      pop hl
-      add hl,de
-      ld a,l
-      ld b,h
-      ld hl,end_of_map_data
-      ld (hl),a
-      inc hl
-      ld (hl),b
-      
-      ; Init map head.
-      ld hl,level_map_table
-      ld a,(current_level)
-      call lookup_word
-      call initialize_map
-      
+      call initialize_map    
       ; Draw a full screen 
       ld b,32
       call draw_columns
@@ -401,6 +363,8 @@
       
       ld a,ENABLED
       call set_display
+
+      call FadeInScreen
 
       ld a,RUN_LEVEL
       ld (game_state),a

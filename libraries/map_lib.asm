@@ -21,12 +21,47 @@
 ; -----------------------------------------------------------------------------   
 
   initialize_map:
-    ; IN: HL = Pointer to binary map data from Tiled>convert-map.
+    ; In: Nothing. It uses the value in current_level to load the map data.
+    ld a,(current_level)
+    add a,LEVEL_BANK_OFFSET
+    ld (SLOT_2_CONTROL),a
+
+    ; Init end of map data (fixme: This is overly complex - use LUT).
+    ld hl,level_map_table
+    ld a,(current_level)
+    call lookup_word
+    jp +
+      level_map_table:
+        .dw level_0_map, level_1_map
+    +:
+    push hl
+      ld hl,level_map_size_table
+      ld a,(current_level)
+      call lookup_word
+      jp +
+        level_map_size_table:
+          .dw SIZEOF_STANDARD_LEVEL_TILEMAP
+          .dw SIZEOF_BOSS_LEVEL_TILEMAP
+      +:
+      ex de,hl
+    pop hl
+    add hl,de
+    ld a,l
+    ld b,h
+    ld hl,end_of_map_data
+    ld (hl),a
+    inc hl
+    ld (hl),b
     
+    ; Init map head
+    ld hl,level_map_table
+    ld a,(current_level)
+    call lookup_word  
     ld a,l
     ld (map_head),a
     ld a,h
     ld (map_head+1),a
+    
     call map_column_to_metatile_buffer
 
     ld a,FALSE

@@ -142,6 +142,93 @@
       djnz -
   ret
 
+FadeInScreen:
+
+    halt                   ; wait for Vblank
+
+    xor a
+    out ($bf),a            ; palette index (0)
+    ld a,$c0
+    out ($bf),a            ; palette write identifier
+
+    ld b,32                ; number of palette entries: 32 (full palette)
+    ld hl,sweetie16_palette    ; source
+ -: ld a,(hl)              ; load raw palette data
+    and %00101010          ; modify color values: 3 becomes 2, 1 becomes 0
+    srl a                  ; modify color values: 2 becomes 1
+    out ($be),a            ; write modified data to CRAM
+    inc hl
+    djnz -
+
+    ld b,4                 ; delay 4 frames
+ -: halt
+    djnz -
+
+    ld b,32                ; number of palette entries: 32 (full palette)
+    ld hl,sweetie16_palette    ; source
+ -: ld a,(hl)              ; load raw palette data
+    and %00101010          ; modify color values: 3 becomes 2, 1 becomes 0
+    out ($be),a            ; write modified data to CRAM
+    inc hl
+    djnz -
+
+    ld b,4                 ; delay 4 frames
+ -: halt
+    djnz -
+
+    ld b,32                ; number of palette entries: 32 (full palette)
+    ld hl,sweetie16_palette    ; source
+ -: ld a,(hl)              ; load raw palette data
+    out ($be),a            ; write unfodified data to CRAM, palette load complete
+    inc hl
+    djnz -
+
+ret
+
+FadeOutScreen:
+    halt                   ; wait for Vblank
+
+    xor a
+    out ($bf),a            ; palette index (0)
+    ld a,$c0
+    out ($bf),a            ; palette write identifier
+
+    ld b,32                ; number of palette entries: 32 (full palette)
+    ld hl,sweetie16_palette    ; source
+ -: ld a,(hl)              ; load raw palette data
+    and %00101010          ; modify color values: 3 becomes 2, 1 becomes 0
+    out ($be),a            ; write modified data to CRAM
+    inc hl
+    djnz -
+
+    ld b,4                 ; delay 4 frames
+ -: halt
+    djnz -
+
+    ld b,32                ; number of palette entries: 32 (full palette)
+    ld hl,sweetie16_palette    ; source
+ -: ld a,(hl)              ; load raw palette data
+    and %00101010          ; modify color values: 3 becomes 2, 1 becomes 0
+    srl a                  ; modify color values: 2 becomes 1
+    out ($be),a            ; write modified data to CRAM
+    inc hl
+    djnz -
+
+    ld b,4                 ; delay 4 frames
+ -: halt
+    djnz -
+
+    ld b, 32               ; number of palette entries: 32 (full palette)
+    xor a                  ; we want to blacken the palette, so a is set to 0
+ -: out ($be), a           ; write zeros to CRAM, palette fade complete
+    djnz -
+
+ret
+
+  function_at_hl:
+    ; Emulate a call (hl) function.
+    jp (hl)
+
   get_random_number:
     ; SMS-Power!
     ; Returns an 8-bit pseudo-random number in a
@@ -172,10 +259,6 @@
       ld (rnd_seed),hl
     pop hl
   ret              ; return random number in a
-
-  function_at_hl:
-    ; Emulate a call (hl) function.
-    jp (hl)
 
   get_word:
     ; Get the 16-bit value (word) at the address pointed to by HL.
