@@ -1,4 +1,5 @@
 .equ SIZEOF_LEVEL_TILES $bf*32
+.equ LEVEL_BANK_OFFSET 4        ; Level data is at current level + offset
 
 ; -----------------------------------------------------------------------------
 .ramsection "Level variables" slot 3
@@ -40,7 +41,7 @@
 .section "Level" free
   initialize_level:
       ld a,(current_level)
-      add a,4
+      add a,LEVEL_BANK_OFFSET
       ld hl,sprite_tiles
       ld de,$0000
       ld bc,_sizeof_sprite_tiles
@@ -55,7 +56,7 @@
         
       +:
       ld a,(current_level)
-      add a,4
+      add a,LEVEL_BANK_OFFSET
       ;ld hl,level_0_tiles
       ld de,BACKGROUND_BANK_START
       ld bc,SIZEOF_LEVEL_TILES 
@@ -172,7 +173,7 @@
 
     run_level:
       ld a,(current_level)
-      add a,4
+      add a,LEVEL_BANK_OFFSET
       SELECT_BANK_IN_REGISTER_A      
       call wait_for_vblank
       
