@@ -256,7 +256,14 @@
     ld hl,score
     call reset_score
 
-    LOAD_BYTES current_level, 1    
+    LOAD_BYTES current_level, 1
+
+    ; Music:
+    .ifndef MUSIC_OFF
+      ld hl,village_on_fire
+      call PSGPlay
+    .endif
+    
     
     ld a,INITIALIZE_LEVEL
     ld (game_state),a
@@ -265,9 +272,6 @@
 
   ; ---------------------------------------------------------------------------
   initialize_level:
-
-    call PSGSFXStop
-    call PSGStop
 
     call clear_vram
     ld hl,vdp_register_init
@@ -368,11 +372,7 @@
     call next_metatile_half_to_tile_buffer
     call tilebuffer_to_nametable
 
-    ; Music:
-    .ifndef MUSIC_OFF
-      ld hl,village_on_fire
-      call PSGPlay
-    .endif
+    call PSGResume
 
     ei
     halt
@@ -770,6 +770,8 @@
           ld a,(exit_locked)
           cp FALSE
           jp nz,+
+            call PSGSFXStop
+            call PSGStop
             ld a,FINISH_LEVEL
             ld (game_state),a
             jp main_loop
