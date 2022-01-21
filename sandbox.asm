@@ -266,6 +266,9 @@
   ; ---------------------------------------------------------------------------
   initialize_level:
 
+    call PSGSFXStop
+    call PSGStop
+
     call clear_vram
     ld hl,vdp_register_init
     call initialize_vdp_registers    
