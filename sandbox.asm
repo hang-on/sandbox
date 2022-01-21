@@ -256,7 +256,7 @@
     ld hl,score
     call reset_score
 
-    LOAD_BYTES current_level, 0    
+    LOAD_BYTES current_level, 1    
     
     ld a,INITIALIZE_LEVEL
     ld (game_state),a
