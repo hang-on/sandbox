@@ -12,7 +12,7 @@
 .endif
 
 ; Comment to turn music on
-.equ MUSIC_OFF
+;.equ MUSIC_OFF
 
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
@@ -372,6 +372,7 @@
     call next_metatile_half_to_tile_buffer
     call tilebuffer_to_nametable
 
+    call PSGRestoreVolumes
     call PSGResume
 
     ei
@@ -771,7 +772,7 @@
           cp FALSE
           jp nz,+
             call PSGSFXStop
-            call PSGStop
+            call PSGSilenceChannels
             ld a,FINISH_LEVEL
             ld (game_state),a
             jp main_loop
