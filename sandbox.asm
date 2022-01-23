@@ -14,6 +14,8 @@
 ; Comment to turn music on
 ;.equ MUSIC_OFF
 
+.equ FIRST_LEVEL 1
+
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
 
@@ -256,7 +258,7 @@
     ld hl,score
     call reset_score
 
-    LOAD_BYTES current_level, 1
+    LOAD_BYTES current_level, FIRST_LEVEL
 
     ; Music:
     .ifndef MUSIC_OFF
