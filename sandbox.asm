@@ -14,7 +14,7 @@
 ; Comment to turn music on
 ;.equ MUSIC_OFF
 
-.equ FIRST_LEVEL 0
+.equ FIRST_LEVEL 1
 
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
@@ -78,6 +78,8 @@
 .include "libraries/minions_lib.asm"
 .include "libraries/items_lib.asm"
 .include "libraries/brute_lib.asm"
+.include "libraries/boss_lib.asm"
+
 .include "sub_workshop.asm"
 .include "sub_tests.asm"        
 
@@ -334,6 +336,9 @@
 
     ; Initialize the brute.
     call initialize_brute
+
+    ; Initialize the boss.
+    call initialize_boss
 
     ; Make solid block special tile in SAT.
     ld a,2
@@ -906,6 +911,9 @@
     ; Brute
     call process_brute
     call draw_brute
+
+    ; Boss
+    call draw_boss
 
     ; Update the score
     ld ix,score

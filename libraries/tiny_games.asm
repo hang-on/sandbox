@@ -374,6 +374,89 @@ ret
       call add_sprite
     .endif
   ret
+
+  spr_3x3:
+    ; spr id x y 
+    ; IN: A = id, index in the sprite tile bank.
+    ;     D = y, E = x (screen position - bottom / middle!!).
+      ; Top row:
+      ld c,a
+      ld a,d
+      sub 24
+      ld d,a
+      ld a,e
+      sub 12
+      call add_sprite
+      ld a,8
+      add e
+      ld e,a
+      inc c
+      call add_sprite
+      ld a,8
+      add e
+      ld e,a
+      inc c
+      call add_sprite
+      
+      ; Middle row:
+      ld a,c
+      add a,30
+      ld c,a
+      ld a,d
+      add a,8
+      ld d,a
+      ld a,e
+      sub 16
+      ld e,a
+      call add_sprite
+      ld a,8
+      add e
+      ld e,a
+      inc c
+      call add_sprite
+      ld a,8
+      add e
+      ld e,a
+      inc c
+      call add_sprite
+
+      ; Bottom row:
+      ld a,c
+      add a,30
+      ld c,a
+      ld a,d
+      add a,8
+      ld d,a
+      ld a,e
+      sub 16
+      ld e,a
+      call add_sprite
+      ld a,8
+      add e
+      ld e,a
+      inc c
+      call add_sprite
+      ld a,8
+      add e
+      ld e,a
+      inc c
+      call add_sprite
+
+      
+  ret
+    @offsets:
+      .db -24, -12, 0
+      .db -24, -4, 1
+      .db -24, 4, 2
+      .db -16, -12, 32
+      .db -16, -4, 33
+      .db -16, 4, 34
+      .db -8, -12, 64
+      .db -8, -4, 65
+      .db -8, 4, 66
+  
+
+
   spr_1x2:
     ; spr id x y 
     ; IN: A = id, index in the sprite tile bank.

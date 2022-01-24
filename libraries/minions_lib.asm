@@ -65,6 +65,11 @@
   ; --------------------------------------------------------------------------- 
   ; DRAW:
   draw_minions:
+    ld a,(boss_state)     ; Only while developing the boss..
+    cp BOSS_ACTIVATED
+    ret z
+
+
     ; Put non-deactivated minions in the SAT buffer.
     ld ix,minions
     ld b,MINION_MAX
@@ -86,7 +91,10 @@
   ; --------------------------------------------------------------------------- 
   ; UPDATE:
   process_minions:
-    
+    ld a,(boss_state); Only while developing the boss..
+    cp BOSS_ACTIVATED
+    ret z
+
     ; Process each minion
     ld ix,minions
     ld b,MINION_MAX
