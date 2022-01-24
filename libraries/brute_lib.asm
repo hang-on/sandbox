@@ -16,6 +16,7 @@
 .equ BRUTE_SWORD_RIGHT 148
 
 .ramsection "Brute ram section" slot 3
+  brute_enabled db        ; True = Roll to spawn the brute
   brute_state db
   brute_y db
   brute_x db
@@ -48,6 +49,14 @@
     RESET_COUNTER brute_hurt_counter, 18
     RESET_COUNTER brute_anim_counter, 9
     RESET_COUNTER brute_spawn_counter, 70
+
+    LOAD_BYTES brute_enabled, TRUE
+    ld a,(current_level)
+    cp 1
+    jp nz,+
+      LOAD_BYTES brute_enabled, FALSE
+    +:
+
   ret
   ; --------------------------------------------------------------------------- 
   ; DRAW:
@@ -282,6 +291,9 @@
       ret
     
     @roll_for_spawn:
+      ld a,(brute_enabled)
+      cp TRUE
+      ret nz
       ld hl,brute_spawn_counter
       call tick_counter
       jp nc,+                   ; Skip forward if the counter is not up.

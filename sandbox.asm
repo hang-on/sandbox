@@ -14,7 +14,7 @@
 ; Comment to turn music on
 ;.equ MUSIC_OFF
 
-.equ FIRST_LEVEL 1
+.equ FIRST_LEVEL 0
 
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
@@ -1009,7 +1009,7 @@
 .bank 5 slot 2
 .section "Level 1 assets" free
   level_1_sprite_tiles:
-    .include "data/sprite_tiles.inc"
+    .include "data/boss_sprite_tiles.inc"
     __:
   level_1_tiles:
     .include "data/boss_tiles.inc"

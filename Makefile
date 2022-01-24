@@ -17,6 +17,10 @@ data/village_tiles.inc: data/img/village.png
 data/village_tilemap.bin: data/map/village.tmx
 	node tools/convert_map.js data/map/village.tmx data/village_tilemap.bin
 
+data/boss_sprite_tiles.inc: data/img/boss_sprites.png
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/boss_sprites.png -noremovedupes -8x8 -palsms -fullpalette -savetiles data/boss_sprite_tiles.inc -exit
+
+
 data/boss_tiles.inc: data/img/boss.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/boss.png -noremovedupes -8x8 -palsms -fullpalette -savetiles data/boss_tiles.inc -exit
 
