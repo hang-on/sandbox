@@ -68,8 +68,62 @@
     cp BOSS_DEACTIVATED
     ret z
     
+    call @reorient
+    call @move
     call @animate 
   ret
+    @reorient:
+      ld a,(boss_x)
+      ld b,a
+      ld a,(player_x)
+      sub b
+      jp nc,+
+        ; Boss is right of the player, face boss left.
+        ld a,(boss_dir)
+        cp LEFT
+        ret z
+        ld a,LEFT
+        ld (boss_dir),a
+        ld a,BOSS_WALKING_LEFT_0
+        ld (boss_index),a
+        ret
+      +:
+        ; Boss is left of the player, face boss right.
+        ld a,(boss_dir)
+        cp RIGHT
+        ret z
+        ld a,RIGHT
+        ld (boss_dir),a
+        ld a,BOSS_WALKING_RIGHT_0
+        ld (boss_index),a
+    ret
+
+
+    @move:
+      ld a,(boss_state)
+      cp BOSS_WALKING
+      ret nz
+
+      ld a,(odd_frame)
+      cp TRUE
+      ret nz
+
+      ; Do not crazy-flip the boss when he is on the player.
+      ld a,(boss_x)
+      ld hl,player_x
+      cp (hl)
+      ret z
+
+      ld hl,boss_x
+      ld a,(boss_dir)
+      cp LEFT
+      jp nz,+
+        dec (hl)  ; Move left.
+        jp ++
+      +:          
+        inc (hl)  ; Move right.
+      ++:
+    ret
 
     @animate:
       ld hl,boss_anim_counter
