@@ -8,6 +8,8 @@
 ; Sprite sheet indexes:
 .equ BOSS_WALKING_LEFT_0 117
 .equ BOSS_WALKING_LEFT_1 120
+.equ BOSS_ATTACKING_LEFT 123
+.equ BOSS_ATTACKING_RIGHT 27
 .equ BOSS_WALKING_RIGHT_0 21
 .equ BOSS_WALKING_RIGHT_1 24
 
@@ -23,7 +25,7 @@
   boss_anim_counter dw
   boss_life db
 
-  boss_behavior_counter dw
+  boss_counter db
 .ends
 
 .bank 0 slot 0
@@ -37,6 +39,14 @@
     LOAD_BYTES boss_height, 24, boss_width, 16
     LOAD_BYTES boss_index, BOSS_WALKING_LEFT_0
     RESET_COUNTER boss_anim_counter, 11
+    LOAD_BYTES boss_counter, 100
+
+    call get_random_number
+    and %00000111
+    ld b,a
+    ld a,(boss_counter)
+    add a,b
+    ld (boss_counter),a
 
 
     .ifdef SPAWN_BOSS_INSTANTLY
@@ -68,10 +78,98 @@
     cp BOSS_DEACTIVATED
     ret z
     
+    call @handle_walking
+    call @handle_idle
+    call @handle_attacking
     call @reorient
     call @move
     call @animate 
   ret
+    @handle_walking:
+      ld a,(boss_state)
+      cp BOSS_WALKING
+      ret nz
+
+      ld a,(boss_counter)
+      dec a
+      jp nz,+
+        LOAD_BYTES boss_state, BOSS_IDLE
+        call get_random_number
+        and %00001111               ; Setup a random period for idle.
+        add a,40
+        ld (boss_counter),a
+        ld a,(boss_dir)
+        cp LEFT
+        jp nz,++
+          ld a,BOSS_WALKING_LEFT_0
+          jp +++          
+        ++:
+          ld a,BOSS_WALKING_RIGHT_0
+        +++:
+        ld (boss_index),a
+        ret
+      +:
+      ; Counter is not up yet.
+      ld (boss_counter),a
+    ret
+
+    @handle_idle:
+      ld a,(boss_state)
+      cp BOSS_IDLE
+      ret nz
+
+      ld a,(boss_counter)
+      dec a
+      jp nz,+
+        ; Switch to attack or walking?
+        call get_random_number
+        cp 200
+        jp c,++
+          ; Switch to walking.
+          LOAD_BYTES boss_state, BOSS_WALKING
+          call get_random_number
+          and %00000111               ; Setup a random period for walking.
+          add a,100
+          ld (boss_counter),a
+          ret
+        ++:
+          ; Switch to attacking
+          LOAD_BYTES boss_state, BOSS_ATTACKING
+          LOAD_BYTES boss_counter, 15
+          ld a,(boss_dir)
+          cp LEFT
+          jp nz,++
+            ld a,BOSS_ATTACKING_LEFT
+            jp +++          
+          ++:
+            ld a,BOSS_ATTACKING_RIGHT
+          +++:
+          ld (boss_index),a
+          ret
+      +:
+      ; Counter is not up yet.
+      ld (boss_counter),a
+    ret
+
+    @handle_attacking:
+      ld a,(boss_state)
+      cp BOSS_ATTACKING
+      ret nz
+
+      ld a,(boss_counter)
+      dec a
+      jp nz,+
+        ; Counter up, back to walking
+        LOAD_BYTES boss_state,BOSS_WALKING
+        LOAD_BYTES boss_counter, 100
+        ld a,(boss_index)
+        sub 6
+        ld (boss_index),a
+        ret
+      +:
+      ld (boss_counter),a
+    ret
+
     @reorient:
       ld a,(boss_x)
       ld b,a
@@ -126,6 +224,10 @@
     ret
 
     @animate:
+      ld a,(boss_state)
+      cp BOSS_WALKING
+      ret nz
+      
       ld hl,boss_anim_counter
       call tick_counter
       call c,@@update_index
