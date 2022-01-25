@@ -11,8 +11,11 @@
   .equ USE_TEST_KERNEL
 .endif
 
-; Comment to turn music on
-;.equ MUSIC_OFF
+; Development dashboard:
+.equ MUSIC_OFF          ; Comment to turn music on
+.equ DISABLE_MINIONS    ; Comment to enable minions.
+.equ DISABLE_SCROLL     ; Comment to scroll levels normally.
+.equ SPAWN_BOSS_INSTANTLY ; Comment to spawn boss normally.
 
 .equ FIRST_LEVEL 1
 
@@ -321,12 +324,17 @@
     LOAD_BYTES metatile_halves, 0, nametable_head, 0
     LOAD_BYTES hscroll_screen, 0, hscroll_column, 0, column_load_trigger, 0
     LOAD_BYTES vblank_finish_high, 0, vblank_finish_low, 255
-    LOAD_BYTES scroll_enabled, TRUE
     LOAD_BYTES odd_frame, TRUE
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
 
     LOAD_BYTES exit_locked, FALSE  ; Todo: Boss will lock it.
+
+    .ifdef DISABLE_SCROLL
+      LOAD_BYTES scroll_enabled, FALSE
+    .else
+      LOAD_BYTES scroll_enabled, TRUE
+    .endif
 
     ; Initialize the minions.
     call initialize_minions
@@ -913,6 +921,7 @@
     call draw_brute
 
     ; Boss
+    call update_boss
     call draw_boss
 
     ; Update the score

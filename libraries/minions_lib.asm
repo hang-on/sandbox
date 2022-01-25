@@ -34,7 +34,11 @@
 .section "Minions" free
 ; -----------------------------------------------------------------------------
   ; INIT:
-  initialize_minions:    
+  initialize_minions: 
+    .ifdef DISABLE_MINIONS
+      ret
+    .endif
+
     
     RESET_BLOCK 40, spawner, 2
     LOAD_BYTES spawn_minions, TRUE
@@ -65,9 +69,9 @@
   ; --------------------------------------------------------------------------- 
   ; DRAW:
   draw_minions:
-    ld a,(boss_state)     ; Only while developing the boss..
-    cp BOSS_ACTIVATED
-    ret z
+    .ifdef DISABLE_MINIONS
+      ret
+    .endif
 
 
     ; Put non-deactivated minions in the SAT buffer.
@@ -91,9 +95,9 @@
   ; --------------------------------------------------------------------------- 
   ; UPDATE:
   process_minions:
-    ld a,(boss_state); Only while developing the boss..
-    cp BOSS_ACTIVATED
-    ret z
+    .ifdef DISABLE_MINIONS
+      ret
+    .endif
 
     ; Process each minion
     ld ix,minions

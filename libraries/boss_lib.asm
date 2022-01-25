@@ -1,7 +1,16 @@
 ; boss_lib.asm
 
 .equ BOSS_DEACTIVATED 0
-.equ BOSS_ACTIVATED 1
+.equ BOSS_WALKING 1
+.equ BOSS_IDLE 2
+.equ BOSS_ATTACKING 3
+
+; Sprite sheet indexes:
+.equ BOSS_WALKING_LEFT_0 117
+.equ BOSS_WALKING_LEFT_1 120
+.equ BOSS_WALKING_RIGHT_0 21
+.equ BOSS_WALKING_RIGHT_1 24
+
 
 .ramsection "Boss ram section" slot 3
   boss_state db
@@ -26,13 +35,13 @@
     LOAD_BYTES boss_y, FLOOR_LEVEL+16, boss_x, 225
     LOAD_BYTES boss_dir, LEFT
     LOAD_BYTES boss_height, 24, boss_width, 16
-    LOAD_BYTES boss_index, 117
+    LOAD_BYTES boss_index, BOSS_WALKING_LEFT_0
+    RESET_COUNTER boss_anim_counter, 11
 
-    ld a,(current_level)
-    cp 1
-    jp nz,+
-      LOAD_BYTES boss_state, BOSS_ACTIVATED
-    +:
+
+    .ifdef SPAWN_BOSS_INSTANTLY
+      LOAD_BYTES boss_state, BOSS_WALKING
+    .endif
 
   ret
   ; ---------------------------------------------------------------------------
@@ -55,7 +64,45 @@
   ; ---------------------------------------------------------------------------
 
   update_boss:
-
+    ld a,(boss_state)
+    cp BOSS_DEACTIVATED
+    ret z
+    
+    call @animate 
   ret
+
+    @animate:
+      ld hl,boss_anim_counter
+      call tick_counter
+      call c,@@update_index
+    ret
+      @@update_index:
+        ld a,(boss_dir)
+        cp RIGHT
+        jp nz,++
+          ; Facing right
+          ld a,(boss_index)
+          cp BOSS_WALKING_RIGHT_0
+          jp nz,+
+            ld a,BOSS_WALKING_RIGHT_1
+            ld (boss_index),a
+            ret
+          +:
+          ld a,BOSS_WALKING_RIGHT_0
+          ld (boss_index),a
+          ret
+        ++:
+        ; Facing left
+        ld a,(boss_index)
+        cp BOSS_WALKING_LEFT_0
+        jp nz,+
+          ld a,BOSS_WALKING_LEFT_1
+          ld (boss_index),a
+          ret
+        +:
+        ld a,BOSS_WALKING_LEFT_0
+        ld (boss_index),a
+      ret
+
 
 .ends
