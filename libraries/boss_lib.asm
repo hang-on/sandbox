@@ -69,6 +69,31 @@
     call spr_3x3
 
     ; Place the tip of the weapon if boss is attacking...
+    ld a,(boss_state)
+    cp BOSS_ATTACKING
+    ret nz
+      ld a,(boss_dir)
+      cp LEFT
+      jp nz,++
+        ld c,180
+        ld a,(boss_y)
+        sub 8
+        ld d,a
+        ld a,(boss_x)
+        sub 8
+        ld e,a
+        call add_sprite
+        ret          
+      ++:
+        ld c,148
+        ld a,(boss_y)
+        sub 8
+        ld d,a
+        ld a,(boss_x)
+        add 24
+        ld e,a
+        call add_sprite
+        ret          
 
   ret
   ; ---------------------------------------------------------------------------
@@ -78,12 +103,13 @@
     cp BOSS_DEACTIVATED
     ret z
     
+    call @animate 
     call @handle_walking
     call @handle_idle
     call @handle_attacking
     call @reorient
     call @move
-    call @animate 
+
   ret
     @handle_walking:
       ld a,(boss_state)
@@ -171,6 +197,10 @@
     ret
 
     @reorient:
+      ld a,(boss_state)
+      cp BOSS_ATTACKING
+      ret z
+
       ld a,(boss_x)
       ld b,a
       ld a,(player_x)
