@@ -457,6 +457,9 @@
     ; End of critical vblank routines. ----------------------------------------
 
     ; Begin general updating (UPDATE).
+    .ifdef MUSIC_OFF
+      call PSGStop
+    .endif
     ld a,MUSIC_BANK
     SELECT_BANK_IN_REGISTER_A
     call PSGFrame
