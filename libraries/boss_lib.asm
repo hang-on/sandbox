@@ -13,6 +13,7 @@
 .equ BOSS_WALKING_RIGHT_0 21
 .equ BOSS_WALKING_RIGHT_1 24
 .equ BOSS_SHIELD_MAX 15
+.equ BOSS_LIFE_MAX 12
 
 
 .ramsection "Boss ram section" slot 3
@@ -47,6 +48,7 @@
     RESET_COUNTER boss_anim_counter, 11
     LOAD_BYTES boss_counter, 100
     LOAD_BYTES boss_shield, 15
+    LOAD_BYTES boss_life, BOSS_LIFE_MAX 
 
     call get_random_number
     and %00000111
@@ -172,7 +174,17 @@
         
         ld hl,boss_hurt_sfx
         ld c,SFX_CHANNELS2AND3                  
-        call PSGSFXPlay              
+        call PSGSFXPlay      
+
+        ld hl,boss_life
+        dec (hl)
+        ld a,(hl)
+        cp 0
+        jp nz,+
+          ; Boss is dead!
+          ld a,BOSS_DEACTIVATED
+          ld (boss_state),a
+        +:
         ;      
         ;ld a,BOSS_HURTING
         ;ld (boss_state),a
