@@ -26,6 +26,11 @@
   brute_index db
   brute_anim_counter dw
 
+  brute_sword_y db
+  brute_sword_x db
+  brute_sword_height db
+  brute_sword_width db
+
   brute_spawn_chance db
 
   brute_spawn_counter dw
@@ -49,6 +54,8 @@
     RESET_COUNTER brute_hurt_counter, 18
     RESET_COUNTER brute_anim_counter, 9
     RESET_COUNTER brute_spawn_counter, 70
+
+    LOAD_BYTES brute_sword_height, 4, brute_sword_width, 7
 
     LOAD_BYTES brute_enabled, TRUE
     ld a,(current_level)
@@ -144,6 +151,8 @@
     call @move            
     call @animate
     call @deactivate_after_hurt
+    call @hurt_player
+    call @sync_sword
   ret
     @clip_at_borders:
       ld a,(brute_dir)
@@ -308,6 +317,40 @@
           ld a,4
           ld (brute_spawn_chance),a
       +:
+    ret
+
+    @hurt_player:
+      ld a,(state)
+      cp HURTING
+      ret z
+        ld a,(invincibility_timer)
+        cp 0
+        ret nz
+          ld ix,brute_sword_y
+          ld iy,player_y
+          call detect_collision   ; IX holds the minion.
+          ret nc
+            ; Player collides with minion.
+            TRANSITION_PLAYER_STATE HURTING
+            LOAD_BYTES invincibility_timer, INVINCIBILITY_TIMER_MAX
+    ret
+
+    @sync_sword:
+      ld a,(brute_y)
+      add a,8
+      ld (brute_sword_y),a
+      ld a,(brute_dir)
+      cp LEFT
+      jp nz,+
+        ld a,(brute_x)
+        sub 8
+        ld (brute_sword_x),a
+        jp ++
+      +: 
+        ld a,(brute_x)
+        add a,16
+        ld (brute_sword_x),a
+      ++:
     ret
 
   deactivate_brute:  

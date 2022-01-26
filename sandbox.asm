@@ -128,6 +128,7 @@
   hurt_counter dw
   hspeed db
   vspeed db
+  invincibility_timer db
 
   killbox_y db
   killbox_x db
@@ -331,7 +332,7 @@
 
     RESET_VARIABLES 0, frame, direction, jump_counter, hspeed, vspeed
     LOAD_BYTES player_y, 127, player_x, 60, state, IDLE
-    LOAD_BYTES player_height, 16, player_width, 15
+    LOAD_BYTES player_height, 16, player_width, 14
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
     RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
 
@@ -348,7 +349,10 @@
 
     LOAD_BYTES exit_locked, FALSE  ; Todo: Boss will lock it.
 
-    RESET_COUNTER hurt_counter, 16
+    RESET_COUNTER hurt_counter, 24
+
+    LOAD_BYTES invincibility_timer, 0
+    .equ INVINCIBILITY_TIMER_MAX 32
 
     .ifdef DISABLE_SCROLL
       LOAD_BYTES scroll_enabled, FALSE
@@ -699,6 +703,13 @@
     jp _f
 
     handle_hurting_state:      
+      ld a,(player_y)
+      cp FLOOR_LEVEL
+      jp nc,+
+        ld a,1
+        ld (vspeed),a
+      +:
+      LOAD_BYTES jump_counter, 0
       ld hl,hurt_counter
       call tick_counter
       jp nc,+
@@ -706,9 +717,14 @@
         TRANSITION_PLAYER_STATE IDLE
       +:
     jp _f
-
-
     __: ; End of player state checks. 
+
+    ld a,(invincibility_timer)
+    cp 0
+    jp z,+
+      dec a
+      ld (invincibility_timer),a
+    +:
 
     ; State of buttons 1 and 2 to differentiate keydown/keypress.
     ld a,FALSE

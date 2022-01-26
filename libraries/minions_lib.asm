@@ -205,12 +205,15 @@
       ld a,(state)
       cp HURTING
       ret z
-        ld iy,player_y
-        call detect_collision   ; IX holds the minion.
-        ret nc
-          ; Player collides with minion.
-          TRANSITION_PLAYER_STATE HURTING
-
+        ld a,(invincibility_timer)
+        cp 0
+        ret nz
+          ld iy,player_y
+          call detect_collision   ; IX holds the minion.
+          ret nc
+            ; Player collides with minion.
+            TRANSITION_PLAYER_STATE HURTING
+            LOAD_BYTES invincibility_timer, INVINCIBILITY_TIMER_MAX
     ret
 
     @move:
