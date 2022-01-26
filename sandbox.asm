@@ -279,7 +279,7 @@
 
   ; ---------------------------------------------------------------------------
   initialize_level:
-
+    di
     call clear_vram
     ld hl,vdp_register_init
     call initialize_vdp_registers    
@@ -288,8 +288,8 @@
     ld b,BORDER_COLOR
     call set_register
 
-    ;ld a,DISABLED
-    ;call set_display
+    ld a,DISABLED
+    call set_display
 
     ld a,(current_level)
     add a,LEVEL_BANK_OFFSET
