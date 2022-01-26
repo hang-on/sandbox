@@ -20,6 +20,7 @@
 .section "Map" free
 ; -----------------------------------------------------------------------------   
 
+;  Core functions
   initialize_map:
     ; In: Nothing. It uses the value in current_level to load the map data.
     ld a,(current_level)

@@ -41,7 +41,7 @@
 ; -----------------------------------------------------------------------------
   initialize_boss:
     LOAD_BYTES boss_state, BOSS_DEACTIVATED
-    LOAD_BYTES boss_y, FLOOR_LEVEL+16, boss_x, 225
+    LOAD_BYTES boss_y, FLOOR_LEVEL+16, boss_x, 239
     LOAD_BYTES boss_dir, LEFT
     LOAD_BYTES boss_height, 22, boss_width, 22
     LOAD_BYTES boss_index, BOSS_WALKING_LEFT_0
@@ -108,6 +108,29 @@
   ; ---------------------------------------------------------------------------
 
   update_boss:
+    ld a,(end_of_map)
+    cp TRUE
+    jp nz,+
+      ; Maybe spawn the boss
+      ld a,(current_level)
+      cp 1
+      jp nz,+
+        ld a,(boss_state)
+        cp BOSS_DEACTIVATED
+        jp nz,+
+          ld a,(boss_life)
+          cp 1
+          jp c,+
+            ; At the end of level 1 - spawn the boss.
+            ; Boss is deactivated and but fresh.
+            ld a,BOSS_WALKING
+            ld (boss_state),a
+            ; Lock exit
+            ld a,TRUE
+            ld (exit_locked),a
+    +:
+    
+    ; The rest is for an activated boss.
     ld a,(boss_state)
     cp BOSS_DEACTIVATED
     ret z
@@ -184,6 +207,10 @@
           ; Boss is dead!
           ld a,BOSS_DEACTIVATED
           ld (boss_state),a
+          ADD_TO SCORE_THOUSANDS, 5
+          ; unock exit
+          ld a,FALSE
+          ld (exit_locked),a
         +:
         ;      
         ;ld a,BOSS_HURTING
