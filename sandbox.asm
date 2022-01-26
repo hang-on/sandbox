@@ -1005,6 +1005,9 @@
   hurt_sfx:
     .incbin "data/hurt.psg"
 
+  boss_hurt_sfx:
+    .incbin "data/boss_hurt.psg"
+
   item_sfx:
     .incbin "data/item.psg"
 

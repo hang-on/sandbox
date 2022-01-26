@@ -12,6 +12,7 @@
 .equ BOSS_ATTACKING_RIGHT 27
 .equ BOSS_WALKING_RIGHT_0 21
 .equ BOSS_WALKING_RIGHT_1 24
+.equ BOSS_SHIELD_MAX 15
 
 
 .ramsection "Boss ram section" slot 3
@@ -24,8 +25,13 @@
   boss_index db
   boss_anim_counter dw
   boss_life db
+  boss_shield db
 
   boss_counter db
+  boss_hitbox_y db
+  boss_hitbox_x db
+  boss_hitbox_height db
+  boss_hitbox_width db
 .ends
 
 .bank 0 slot 0
@@ -36,10 +42,11 @@
     LOAD_BYTES boss_state, BOSS_DEACTIVATED
     LOAD_BYTES boss_y, FLOOR_LEVEL+16, boss_x, 225
     LOAD_BYTES boss_dir, LEFT
-    LOAD_BYTES boss_height, 24, boss_width, 16
+    LOAD_BYTES boss_height, 22, boss_width, 22
     LOAD_BYTES boss_index, BOSS_WALKING_LEFT_0
     RESET_COUNTER boss_anim_counter, 11
     LOAD_BYTES boss_counter, 100
+    LOAD_BYTES boss_shield, 15
 
     call get_random_number
     and %00000111
@@ -103,6 +110,19 @@
     cp BOSS_DEACTIVATED
     ret z
     
+    ; Tick shield if not at max (boss has been hurt, recently)
+    ld a,(boss_shield)
+    cp BOSS_SHIELD_MAX
+    jp z,+
+      dec a
+      cp 0
+      jp nz,++
+        ld a,BOSS_SHIELD_MAX
+      ++:
+      ld (boss_shield),a
+    +:
+
+    call @hurt_with_player_attack
     call @animate 
     call @handle_walking
     call @handle_idle
@@ -111,6 +131,55 @@
     call @move
 
   ret
+
+    @hurt_with_player_attack:
+      ; Axis-aligned bounding box.
+      ld a,(state)        ; Only check for collision if player
+      cp ATTACKING        ; is attacking og jump-attacking.
+      jp z,+
+      cp JUMP_ATTACKING   ; Consider only hurting boss with ground attacks...
+      jp z,+
+        ret
+      +:
+      ld a,(boss_shield)
+      cp BOSS_SHIELD_MAX
+      ret nz
+      ;ld a,(boss_state)  ; Don't check if Brute is already hurting.
+      ;cp BRUTE_HURTING
+      ;ret z
+      ;
+      ; Ugly workaround because boss's origin point is centre, bottom.
+
+      ld iy,killbox_y     ; Put the player's killbox in IY.
+      
+      ld hl,boss_y
+      ld de,boss_hitbox_y
+      ld bc,4
+      ldir
+      ld a,(boss_hitbox_y)
+      sub 24
+      ld (boss_hitbox_y),a
+      ;ld a,(boss_hitbox_x)
+      ;sub 12
+      ;ld (boss_hitbox_x),a
+      ld ix,boss_hitbox_y
+      call detect_collision
+      ret nc
+        ; Collision! Hurt the brute.
+        ld hl,boss_shield
+        dec (hl)            ; Start the shield counter..
+        ADD_TO SCORE_TENS, 5
+        
+        ld hl,boss_hurt_sfx
+        ld c,SFX_CHANNELS2AND3                  
+        call PSGSFXPlay              
+        ;      
+        ;ld a,BOSS_HURTING
+        ;ld (boss_state),a
+
+    ret 
+
+
     @handle_walking:
       ld a,(boss_state)
       cp BOSS_WALKING
