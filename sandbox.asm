@@ -17,7 +17,7 @@
 ; .equ DISABLE_SCROLL     ; Comment to scroll levels normally.
 ;.equ SPAWN_BOSS_INSTANTLY ; Comment to spawn boss normally.
 
-.equ FIRST_LEVEL 1
+.equ FIRST_LEVEL 0
 
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
@@ -35,6 +35,7 @@
 .equ ATTACKING 2
 .equ JUMPING 3
 .equ JUMP_ATTACKING 4
+.equ HURTING 5
 
 .equ ANIM_COUNTER_RESET 4
 .equ PLAYER_WALKING_SPEED 1
@@ -126,6 +127,7 @@
   scroll_enabled db
   end_of_map_data dw
   exit_locked db      ; Can you progress from the level now?
+  
 
   vblank_finish_low db
   vblank_finish_high db
