@@ -112,6 +112,7 @@
           call @move            ; Apply h- and vspeed to x and y.
           call @animate
           call @hurt
+          call @hurt_player
 
           ; ...
         +:
@@ -198,6 +199,18 @@
       jp nz,+
         dec (ix+minion.x)
       +:
+    ret
+
+    @hurt_player:
+      ld a,(state)
+      cp HURTING
+      ret z
+        ld iy,player_y
+        call detect_collision   ; IX holds the minion.
+        ret nc
+          ; Player collides with minion.
+          TRANSITION_PLAYER_STATE HURTING
+
     ret
 
     @move:

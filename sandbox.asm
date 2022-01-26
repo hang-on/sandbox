@@ -72,6 +72,21 @@
   banks 8
 .endro
 ;
+
+
+.macro TRANSITION_PLAYER_STATE ARGS NEWSTATE, SFX
+  ; Perform the standard actions when the player's state transitions:
+  ; 1) Load new state into state variable, 2) reset animation frame and
+  ; 3) (optional) play a sound effect.
+  LOAD_BYTES state, NEWSTATE, frame, 0      ; Set the state and frame variables.
+  .IF NARGS == 2                            ; Is an SFX pointer provided?
+    ld hl,SFX                               ; If so, point HL to the SFX-data.
+    ld c,SFX_CHANNELS2AND3                  ; Set the channel.
+    call PSGSFXPlay                         ; Play the SFX with PSGlib.
+  .ENDIF
+.endm
+
+
 ; Hierarchy: Most fundamental first. 
 .include "libraries/psglib.inc"
 .include "libraries/vdp_lib.asm"
@@ -110,6 +125,7 @@
   player_width db
   ; ------------
   jump_counter db
+  hurt_counter dw
   hspeed db
   vspeed db
 
@@ -332,6 +348,8 @@
 
     LOAD_BYTES exit_locked, FALSE  ; Todo: Boss will lock it.
 
+    RESET_COUNTER hurt_counter, 16
+
     .ifdef DISABLE_SCROLL
       LOAD_BYTES scroll_enabled, FALSE
     .else
@@ -470,7 +488,7 @@
     call PSGSFXFrame
     
     ld a,(current_level)
-    add a,4
+    add a,4                   ; FIXME: Don't we have an offset const?
     SELECT_BANK_IN_REGISTER_A
     
     call refresh_sat_handler
@@ -509,18 +527,6 @@
 
     RESET_VARIABLES 0, vspeed, hspeed
 
-    .macro TRANSITION_PLAYER_STATE ARGS NEWSTATE, SFX
-      ; Perform the standard actions when the player's state transitions:
-      ; 1) Load new state into state variable, 2) reset animation frame and
-      ; 3) (optional) play a sound effect.
-      LOAD_BYTES state, NEWSTATE, frame, 0      ; Set the state and frame variables.
-      .IF NARGS == 2                            ; Is an SFX pointer provided?
-        ld hl,SFX                               ; If so, point HL to the SFX-data.
-        ld c,SFX_CHANNELS2AND3                  ; Set the channel.
-        call PSGSFXPlay                         ; Play the SFX with PSGlib.
-      .ENDIF
-    .endm
-
     ld a,(state)
     cp IDLE ; is state = idle?
     jp z,handle_idle_state
@@ -532,6 +538,8 @@
     jp z,handle_jumping_state
     cp JUMP_ATTACKING
     jp z,handle_jump_attacking_state
+    cp HURTING
+    jp z,handle_hurting_state
     ; Fall through to error
     -:
       nop ; STATE ERROR
@@ -689,6 +697,16 @@
       +:
 
     jp _f
+
+    handle_hurting_state:      
+      ld hl,hurt_counter
+      call tick_counter
+      jp nc,+
+        ; Counter is up - stop hurting, and go to idle.
+        TRANSITION_PLAYER_STATE IDLE
+      +:
+    jp _f
+
 
     __: ; End of player state checks. 
 
@@ -956,6 +974,10 @@
   jump_attacking_frame_to_index_table:
     .db 13 15 17
     __:
+  
+  hurting_frame_to_index_table:
+    .db 19
+    __:
 
   state_to_frame_table:
     .dw idle_frame_to_index_table
@@ -963,6 +985,7 @@
     .dw attacking_frame_to_index_table
     .dw jumping_frame_to_index_table
     .dw jump_attacking_frame_to_index_table
+    .dw hurting_frame_to_index_table
     __:
 
   state_to_frames_total_table:
@@ -971,6 +994,7 @@
     .db _sizeof_attacking_frame_to_index_table
     .db _sizeof_jumping_frame_to_index_table
     .db _sizeof_jump_attacking_frame_to_index_table
+    .db _sizeof_hurting_frame_to_index_table
 
   jump_counter_to_vspeed_table:
     .db -5, -4, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -2, -2, -1, -1 
