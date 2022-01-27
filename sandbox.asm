@@ -44,6 +44,9 @@
 .equ SWORD_HEIGHT 4
 .equ SWORD_WIDTH 4
 
+.equ HEALTH_MAX 13
+
+
 ; Game states:
 .equ INITIALIZE_LEVEL 0
 .equ RUN_LEVEL 1
@@ -129,6 +132,7 @@
   hspeed db
   vspeed db
   invincibility_timer db
+  health db                 ; The player's health
 
   killbox_y db
   killbox_x db
@@ -281,6 +285,8 @@
     ; Score:
     ld hl,score
     call reset_score
+
+    LOAD_BYTES health, HEALTH_MAX ; Start the game with full health.
 
     LOAD_BYTES current_level, FIRST_LEVEL
 
@@ -479,6 +485,7 @@
     ++:                                 ;
 
     ; End of critical vblank routines. ----------------------------------------
+    begin_profile:
 
     ; Begin general updating (UPDATE).
     .ifdef MUSIC_OFF
@@ -968,6 +975,75 @@
     ld hl,SCORE_ADDRESS
     call safe_print_score
 
+    jp _f ; Skip over the functions below.
+      ; Player health regulating functions
+      dec_health:
+        ; Amount in A.
+        ld b,a
+        ld a,(health)
+        sub b
+        bit 7,a       ; Has health dropped below zero?
+        jp z,+
+          xor a       ; Reset health to zero.
+          ; TODO: Here we can signal death?
+        +:
+        ld (health),a
+      ret
+      inc_health:
+        ; Amount in A.
+        ld b,a
+        ld a,(health)
+        add a,b
+        cp HEALTH_MAX
+        jp z,+
+        jp c,+
+          ld a,HEALTH_MAX       ; Cannot go over health max.
+        +:
+        ld (health),a
+      ret
+
+
+    __:
+
+    ; Update the health bar
+    ld hl,$3852
+    call setup_vram_write
+    ld a,(health)
+    cp 0
+    jp z,+
+      ld b,a
+      -:
+        ld a,239
+        out (DATA_PORT),a
+        push ix
+        pop ix
+        ld a,0
+        out (DATA_PORT),a
+        push ix
+        pop ix
+      djnz -
+    +:
+    ; Fill the rest of the bar with empty tiles
+    ld a,(health)
+    ld b,a
+    ld a,HEALTH_MAX
+    sub b
+    cp 0
+    jp z,+
+      ld b,a
+      -:
+        ld a,240
+        out (DATA_PORT),a
+        push ix
+        pop ix
+        ld a,0
+        out (DATA_PORT),a
+        push ix
+        pop ix
+      djnz -
+    +:
+
+  end_profile: ; For profiling...
   jp main_loop
 
   ; Data for controlling the player character.

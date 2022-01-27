@@ -185,12 +185,16 @@
       jp nz,+
         ADD_TO SCORE_HUNDREDS, 1
         ADD_TO SCORE_TENS, 5
+        ld a,1
+        call inc_health
         jp ++
       +:
       cp TOMATO
       jp nz,+
         ADD_TO SCORE_HUNDREDS, 2
         ADD_TO SCORE_TENS, 5
+        ld a,2
+        call inc_health
         jp ++
       +:
       cp JUG

@@ -62,7 +62,7 @@
       ldir
     ret
       minion_init_data:
-          .db 0, 0, 16, 16        ; Y, x, height, width.
+          .db 0, 0, 14, 14        ; Y, x, height, width.
           .db MINION_DEACTIVATED  ; State.
           .db 0 0 0 0 0 0 0       ; 
         __:
@@ -205,6 +205,10 @@
       ld a,(state)
       cp HURTING
       ret z
+      ld a,(ix+minion.state)
+      cp MINION_HURTING
+      ret z
+
         ld a,(invincibility_timer)
         cp 0
         ret nz
@@ -214,6 +218,8 @@
             ; Player collides with minion.
             TRANSITION_PLAYER_STATE HURTING
             LOAD_BYTES invincibility_timer, INVINCIBILITY_TIMER_MAX
+            ld a,1
+            call dec_health
     ret
 
     @move:

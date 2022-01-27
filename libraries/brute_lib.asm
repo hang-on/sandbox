@@ -333,6 +333,9 @@
             ; Player collides with minion.
             TRANSITION_PLAYER_STATE HURTING
             LOAD_BYTES invincibility_timer, INVINCIBILITY_TIMER_MAX
+            ld a,1
+            call dec_health
+
     ret
 
     @sync_sword:
