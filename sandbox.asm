@@ -338,7 +338,7 @@
 
     RESET_VARIABLES 0, frame, direction, jump_counter, hspeed, vspeed
     LOAD_BYTES player_y, 127, player_x, 60, state, IDLE
-    LOAD_BYTES player_height, 16, player_width, 14
+    LOAD_BYTES player_height, 13, player_width, 13
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
     RESET_BLOCK _sizeof_attacking_frame_to_index_table*ANIM_COUNTER_RESET, attack_counter, 2
 
@@ -358,7 +358,7 @@
     RESET_COUNTER hurt_counter, 24
 
     LOAD_BYTES invincibility_timer, 0
-    .equ INVINCIBILITY_TIMER_MAX 32
+    .equ INVINCIBILITY_TIMER_MAX 52
 
     .ifdef DISABLE_SCROLL
       LOAD_BYTES scroll_enabled, FALSE
