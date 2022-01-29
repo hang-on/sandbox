@@ -33,6 +33,18 @@
   boss_hitbox_x db
   boss_hitbox_height db
   boss_hitbox_width db
+
+  boss_weapon_y db
+  boss_weapon_x db
+  boss_weapon_height db
+  boss_weapon_width db
+  
+  boss_killbox_y db
+  boss_killbox_x db
+  boss_killbox_height db
+  boss_killbox_width db
+
+
 .ends
 
 .bank 0 slot 0
@@ -49,6 +61,8 @@
     LOAD_BYTES boss_counter, 100
     LOAD_BYTES boss_shield, 15
     LOAD_BYTES boss_life, BOSS_LIFE_MAX 
+    LOAD_BYTES boss_weapon_height, 7, boss_weapon_width, 7
+    LOAD_BYTES boss_killbox_height, 6, boss_killbox_width, 8
 
     call get_random_number
     and %00000111
@@ -154,6 +168,9 @@
     call @handle_attacking
     call @reorient
     call @move
+    call @sync_weapon
+    call @sync_killbox
+    call @hurt_player
 
   ret
 
@@ -269,7 +286,7 @@
         ++:
           ; Switch to attacking
           LOAD_BYTES boss_state, BOSS_ATTACKING
-          LOAD_BYTES boss_counter, 15
+          LOAD_BYTES boss_counter, 10
           ld a,(boss_dir)
           cp LEFT
           jp nz,++
@@ -397,6 +414,104 @@
         ld a,BOSS_WALKING_LEFT_0
         ld (boss_index),a
       ret
+
+    @sync_weapon:
+      ; Sync it for the collision detection (hurt player).
+      ld a,(boss_state)
+      cp BOSS_ATTACKING
+      ret nz
+      ;
+      ld a,(boss_y)
+      sub 8
+      ld (boss_weapon_y),a
+      ld a,(boss_dir)
+      cp LEFT
+      jp nz,+
+        ld a,(boss_x)
+        sub 8
+        ld (boss_weapon_x),a
+        jp ++
+      +: 
+        ld a,(boss_x)
+        add a,24
+        ld (boss_weapon_x),a
+      ++:
+    ret
+
+    @sync_killbox:
+      ; Sync it for the collision detection (hurt player).
+      ld a,(boss_y)
+      sub 15
+      ld (boss_killbox_y),a
+      ld a,(boss_x)
+      add a,6
+      ld (boss_killbox_x),a
+      ;ld a,(boss_killbox_y)
+      ;ld d,a
+      ;ld a,(boss_killbox_x)
+      ;ld e,a
+      ;ld c,239
+      ;call add_sprite
+    ret
+
+
+    @hurt_player:
+      ld a,(state)
+      cp HURTING
+      ret z
+      ld a,(boss_state)
+      cp ATTACKING
+      ret z
+        ;
+        ld a,(invincibility_timer)
+        cp 0
+        ret nz
+          ; First test: Boss weapon
+          ld ix,boss_weapon_y
+          ld iy,player_y
+          call detect_collision   
+          jp nc,_f
+            ; Player collides with boss weapon.
+            TRANSITION_PLAYER_STATE HURTING
+            LOAD_BYTES invincibility_timer, INVINCIBILITY_TIMER_MAX
+            ld a,2
+            call dec_health
+            ld a,(boss_dir)
+            cp LEFT
+            jp nz,+
+            ; Left
+              ld a,(player_x)
+              sub 8
+              ld (player_x),a
+              jp ++
+            +:
+            ; Right
+              ld a,(player_x)
+              add a,8
+              ld (player_x),a
+            ++:
+            ret ; !! We exit here.
+          __:
+          ; Second test: Boss body killbox
+          ld a,(state)
+          cp JUMPING
+          ret z
+          cp JUMP_ATTACKING
+          ret z
+          ;
+          ld ix,boss_killbox_y
+          ld iy,player_y
+          call detect_collision   
+          jp nc,_f
+            ; Player collides with boss body killbox.
+            TRANSITION_PLAYER_STATE HURTING
+            LOAD_BYTES invincibility_timer, INVINCIBILITY_TIMER_MAX
+            ld a,1
+            call dec_health
+          __:
+
+
+    ret
 
 
 .ends
