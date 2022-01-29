@@ -988,6 +988,10 @@
           ; TODO: Here we can signal death?
         +:
         ld (health),a
+        ld hl,player_hurt_sfx
+        ld c,SFX_CHANNELS2AND3                  
+        call PSGSFXPlay      
+
       ret
       inc_health:
         ; Amount in A.
@@ -1125,6 +1129,9 @@
 
   boss_hurt_sfx:
     .incbin "data/boss_hurt.psg"
+
+  player_hurt_sfx:
+    .incbin "data/player_hurt.psg"
 
   item_sfx:
     .incbin "data/item.psg"

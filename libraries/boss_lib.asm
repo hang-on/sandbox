@@ -13,7 +13,7 @@
 .equ BOSS_WALKING_RIGHT_0 21
 .equ BOSS_WALKING_RIGHT_1 24
 .equ BOSS_SHIELD_MAX 15
-.equ BOSS_LIFE_MAX 12
+.equ BOSS_LIFE_MAX 25
 
 
 .ramsection "Boss ram section" slot 3
@@ -62,7 +62,7 @@
     LOAD_BYTES boss_shield, 15
     LOAD_BYTES boss_life, BOSS_LIFE_MAX 
     LOAD_BYTES boss_weapon_height, 7, boss_weapon_width, 7
-    LOAD_BYTES boss_killbox_height, 6, boss_killbox_width, 8
+    LOAD_BYTES boss_killbox_height, 5, boss_killbox_width, 7
 
     call get_random_number
     and %00000111
@@ -428,7 +428,7 @@
       cp LEFT
       jp nz,+
         ld a,(boss_x)
-        sub 8
+        sub 12
         ld (boss_weapon_x),a
         jp ++
       +: 
@@ -441,7 +441,7 @@
     @sync_killbox:
       ; Sync it for the collision detection (hurt player).
       ld a,(boss_y)
-      sub 15
+      sub 12
       ld (boss_killbox_y),a
       ld a,(boss_x)
       add a,6
