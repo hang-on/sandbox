@@ -1,7 +1,10 @@
 PRJNAME := sandbox
 OUTPUT := binaries/
+# missing the .asm files in root directory *.asm
 
-$(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm libraries/* data/* *.asm
+all: $(OUTPUT)$(PRJNAME).sms 
+
+$(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm
 	@C:\Users\ANSJ\Documents\wla_dx_9.12\wla-z80.exe -o $(PRJNAME).o $(PRJNAME).asm
 	@echo [objects] > linkfile
 	@echo $(PRJNAME).o >> linkfile
@@ -20,15 +23,19 @@ data/village_tilemap.bin: data/map/village.tmx
 data/boss_sprite_tiles.inc: data/img/boss_sprites.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/boss_sprites.png -noremovedupes -8x8 -palsms -fullpalette -savetiles data/boss_sprite_tiles.inc -exit
 
-
 data/boss_tiles.inc: data/img/boss.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/boss.png -noremovedupes -8x8 -palsms -fullpalette -savetiles data/boss_tiles.inc -exit
 
 data/boss_tilemap.bin: data/map/boss.tmx
 	node tools/convert_map.js data/map/boss.tmx data/boss_tilemap.bin
 
+data/chapter_completed_tiles.inc: data/img/chapter_completed.png
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/chapter_completed.png -8x8 -palsms -fullpalette -savetiles data/chapter_completed_tiles.inc -exit
+
+data/chapter_completed_tilemap.inc: data/img/chapter_completed.png
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/chapter_completed.png -8x8 -palsms -fullpalette -savetilemap data/chapter_completed_tilemap.inc -exit
 
 
-data/%.psg: data/psg/%.vgm
+data/%.psg: data/psg/%.psg
 	@C:\Users\ANSJ\Documents\PSGlib-nov15\tools\vgm2psg.exe $< $@
 

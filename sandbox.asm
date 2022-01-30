@@ -21,6 +21,7 @@
 
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
+.equ MISC_ASSETS_BANK 6
 
 .equ SCROLL_POSITION 152
 .equ LEFT_LIMIT 10
@@ -54,7 +55,9 @@
 .equ RUN_LEVEL 1
 .equ START_NEW_GAME 2
 .equ FINISH_LEVEL 3
-.equ INITIAL_GAMESTATE START_NEW_GAME
+.equ INITIALIZE_CHAPTER_COMPLETED 4
+.equ RUN_CHAPTER_COMPLETED 5
+.equ INITIAL_GAMESTATE INITIALIZE_CHAPTER_COMPLETED
 
 .equ SIZEOF_LEVEL_TILES $bf*32
 .equ LEVEL_BANK_OFFSET 4        ; Level data is at current level + offset
@@ -274,6 +277,7 @@
       game_state_jump_table:
       .dw initialize_level, run_level 
       .dw start_new_game, finish_level 
+      .dw initialize_chapter_completed, run_chapter_completed
 
   ; ---------------------------------------------------------------------------
   start_new_game:
@@ -1116,6 +1120,48 @@
     ld (game_state),a
   jp main_loop
 
+  ; ---------------------------------------------------------------------------
+  initialize_chapter_completed:
+    di
+    call clear_vram
+    ld hl,vdp_register_init
+    call initialize_vdp_registers    
+
+    ld a,1
+    ld b,BORDER_COLOR
+    call set_register
+
+    ld a,DISABLED
+    call set_display
+
+    ld a,MISC_ASSETS_BANK
+    ld hl,chapter_completed_tiles
+    ld de,SPRITE_BANK_START
+    ld bc,_sizeof_chapter_completed_tiles
+    call load_vram
+
+    ld a,MISC_ASSETS_BANK
+    ld hl,chapter_completed_tilemap
+    ld de,NAME_TABLE_START
+    ld bc,_sizeof_chapter_completed_tilemap
+    call load_vram
+
+    ei
+    call wait_for_vblank    
+
+    ld a,ENABLED
+    call set_display
+
+    ld a,RUN_CHAPTER_COMPLETED
+    ld (game_state),a
+
+  jp main_loop
+
+  run_chapter_completed:
+    call wait_for_vblank
+    nop
+  jp main_loop
+
 .ends
 
 ; -----------------------------------------------------------------------------
@@ -1172,3 +1218,15 @@
     .incbin "data/boss_tilemap.bin"
     level_1_map_end:
 .ends
+
+.bank 6 slot 2
+.section "Misc assets" free
+  chapter_completed_tiles:
+    .include "data/chapter_completed_tiles.inc"
+    __:
+  chapter_completed_tilemap:
+    .include "data/chapter_completed_tilemap.inc"
+    __:
+
+.ends
+
