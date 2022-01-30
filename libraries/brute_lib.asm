@@ -357,6 +357,9 @@
     ret
 
   deactivate_brute:  
+      ld a,192
+      ld (ix+minion.y),a
+      ld (brute_sword_y),a
       ld a,BRUTE_DEACTIVATED
       ld (brute_state),a
       ld a,(end_of_map)

@@ -116,7 +116,7 @@
         cp ITEM_DEACTIVATED
         jp z,+
           call @clip_at_borders
-          call @hurt_with_player_attack
+          call @pick_up
           call @move
           ; ...
         +:
@@ -131,7 +131,7 @@
       cp LEFT_LIMIT
       call c,deactivate_item
     ret
-    @hurt_with_player_attack: 
+    @pick_up: 
       ; Axis aligned bounding box:
       ;    if (rect1.x < rect2.x + rect2.w &&
       ;    rect1.x + rect1.w > rect2.x &&
@@ -185,7 +185,7 @@
       jp nz,+
         ADD_TO SCORE_HUNDREDS, 1
         ADD_TO SCORE_TENS, 5
-        ld a,1
+        ld a,3
         call inc_health
         jp ++
       +:
@@ -193,7 +193,7 @@
       jp nz,+
         ADD_TO SCORE_HUNDREDS, 2
         ADD_TO SCORE_TENS, 5
-        ld a,2
+        ld a,4
         call inc_health
         jp ++
       +:

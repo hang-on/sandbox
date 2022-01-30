@@ -222,6 +222,10 @@
         cp 0
         jp nz,+
           ; Boss is dead!
+          ld hl,boss_dies_sfx
+          ld c,SFX_CHANNELS2AND3                  
+          call PSGSFXPlay      
+
           ld a,BOSS_DEACTIVATED
           ld (boss_state),a
           ADD_TO SCORE_THOUSANDS, 5

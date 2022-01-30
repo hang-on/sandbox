@@ -289,6 +289,9 @@
   deactivate_minion:  
       ld a,MINION_DEACTIVATED
       ld (ix+minion.state),a
+      ld a,192
+      ld (ix+minion.y),a
+
   ret
 
   spawn_minion:

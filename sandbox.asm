@@ -12,9 +12,9 @@
 .endif
 
 ; Development dashboard:
-.equ MUSIC_OFF          ; Comment to turn music on
+;.equ MUSIC_OFF          ; Comment to turn music on
 .equ DISABLE_MINIONS    ; Comment to enable minions.
- .equ DISABLE_SCROLL     ; Comment to scroll levels normally.
+.equ DISABLE_SCROLL     ; Comment to scroll levels normally.
 .equ SPAWN_BOSS_INSTANTLY ; Comment to spawn boss normally.
 
 .equ FIRST_LEVEL 1
@@ -45,6 +45,8 @@
 .equ SWORD_WIDTH 4
 
 .equ HEALTH_MAX 13
+.equ INVINCIBILITY_TIMER_MAX 70
+
 
 
 ; Game states:
@@ -83,9 +85,13 @@
   ; 3) (optional) play a sound effect.
   LOAD_BYTES state, NEWSTATE, frame, 0      ; Set the state and frame variables.
   .IF NARGS == 2                            ; Is an SFX pointer provided?
-    ld hl,SFX                               ; If so, point HL to the SFX-data.
-    ld c,SFX_CHANNELS2AND3                  ; Set the channel.
-    call PSGSFXPlay                         ; Play the SFX with PSGlib.
+    call PSGSFXGetStatus
+    cp PSG_STOPPED
+    jp nz,TRANSITION\@
+      ld hl,SFX                               ; If so, point HL to the SFX-data.
+      ld c,SFX_CHANNELS2AND3                  ; Set the channel.
+      call PSGSFXPlay                         ; Play the SFX with PSGlib.
+    TRANSITION\@:
   .ENDIF
 .endm
 
@@ -358,7 +364,6 @@
     RESET_COUNTER hurt_counter, 24
 
     LOAD_BYTES invincibility_timer, 0
-    .equ INVINCIBILITY_TIMER_MAX 90
 
     .ifdef DISABLE_SCROLL
       LOAD_BYTES scroll_enabled, FALSE
@@ -991,8 +996,8 @@
         ld hl,player_hurt_sfx
         ld c,SFX_CHANNELS2AND3                  
         call PSGSFXPlay      
-
       ret
+
       inc_health:
         ; Amount in A.
         ld b,a
@@ -1005,8 +1010,6 @@
         +:
         ld (health),a
       ret
-
-
     __:
 
     ; Update the health bar
@@ -1129,6 +1132,9 @@
 
   boss_hurt_sfx:
     .incbin "data/boss_hurt.psg"
+
+  boss_dies_sfx:
+    .incbin "data/boss_dies.psg"
 
   player_hurt_sfx:
     .incbin "data/player_hurt.psg"
