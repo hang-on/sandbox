@@ -13,11 +13,11 @@
 
 ; Development dashboard:
 ;.equ MUSIC_OFF          ; Comment to turn music on
-.equ DISABLE_MINIONS    ; Comment to enable minions.
-.equ DISABLE_SCROLL     ; Comment to scroll levels normally.
-.equ SPAWN_BOSS_INSTANTLY ; Comment to spawn boss normally.
+;.equ DISABLE_MINIONS    ; Comment to enable minions.
+;.equ DISABLE_SCROLL     ; Comment to scroll levels normally.
+;.equ SPAWN_BOSS_INSTANTLY ; Comment to spawn boss normally.
 
-.equ FIRST_LEVEL 1
+.equ FIRST_LEVEL 0
 
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3

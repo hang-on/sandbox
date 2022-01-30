@@ -56,6 +56,7 @@
     RESET_COUNTER brute_spawn_counter, 70
 
     LOAD_BYTES brute_sword_height, 4, brute_sword_width, 7
+    LOAD_BYTES brute_sword_y, 192, brute_sword_x, 0
 
     LOAD_BYTES brute_enabled, TRUE
     ld a,(current_level)
@@ -330,7 +331,7 @@
           ld iy,player_y
           call detect_collision   ; IX holds the minion.
           ret nc
-            ; Player collides with minion.
+            ; Player collides with brute.
             TRANSITION_PLAYER_STATE HURTING
             LOAD_BYTES invincibility_timer, INVINCIBILITY_TIMER_MAX
             ld a,1
