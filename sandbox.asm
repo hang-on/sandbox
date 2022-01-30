@@ -57,7 +57,9 @@
 .equ FINISH_LEVEL 3
 .equ INITIALIZE_CHAPTER_COMPLETED 4
 .equ RUN_CHAPTER_COMPLETED 5
-.equ INITIAL_GAMESTATE INITIALIZE_CHAPTER_COMPLETED
+.equ INITIALIZE_END_OF_DEMO 6
+.equ RUN_END_OF_DEMO 7
+.equ INITIAL_GAMESTATE INITIALIZE_END_OF_DEMO
 
 .equ SIZEOF_LEVEL_TILES $bf*32
 .equ LEVEL_BANK_OFFSET 4        ; Level data is at current level + offset
@@ -278,7 +280,7 @@
       .dw initialize_level, run_level 
       .dw start_new_game, finish_level 
       .dw initialize_chapter_completed, run_chapter_completed
-
+      .dw initialize_end_of_demo, run_end_of_demo
   ; ---------------------------------------------------------------------------
   start_new_game:
     ; Seed the randomizer (should eventually move to title screen).
@@ -1152,12 +1154,58 @@
     ld a,ENABLED
     call set_display
 
+    call FadeInScreen
+
     ld a,RUN_CHAPTER_COMPLETED
     ld (game_state),a
 
   jp main_loop
 
   run_chapter_completed:
+    call wait_for_vblank
+    nop
+  jp main_loop
+
+  ; ---------------------------------------------------------------------------
+  initialize_end_of_demo:
+    di
+    call clear_vram
+    ld hl,vdp_register_init
+    call initialize_vdp_registers    
+
+    ld a,1
+    ld b,BORDER_COLOR
+    call set_register
+
+    ld a,DISABLED
+    call set_display
+
+    ld a,MISC_ASSETS_BANK
+    ld hl,end_of_demo_tiles
+    ld de,SPRITE_BANK_START
+    ld bc,_sizeof_end_of_demo_tiles
+    call load_vram
+
+    ld a,MISC_ASSETS_BANK
+    ld hl,end_of_demo_tilemap
+    ld de,NAME_TABLE_START
+    ld bc,_sizeof_end_of_demo_tilemap
+    call load_vram
+
+    ei
+    call wait_for_vblank    
+
+    ld a,ENABLED
+    call set_display
+
+    call FadeInScreen
+
+    ld a,RUN_END_OF_DEMO
+    ld (game_state),a
+
+  jp main_loop
+  
+  run_end_of_demo:
     call wait_for_vblank
     nop
   jp main_loop
@@ -1226,6 +1274,13 @@
     __:
   chapter_completed_tilemap:
     .include "data/chapter_completed_tilemap.inc"
+    __:
+
+  end_of_demo_tiles:
+    .include "data/end_of_demo_tiles.inc"
+    __:
+  end_of_demo_tilemap:
+    .include "data/end_of_demo_tilemap.inc"
     __:
 
 .ends
