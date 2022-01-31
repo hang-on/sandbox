@@ -423,7 +423,12 @@
       ; Sync it for the collision detection (hurt player).
       ld a,(boss_state)
       cp BOSS_ATTACKING
-      ret nz
+      jp z,+
+        ; Else: Do away with the weapon
+        ld a,192
+        ld (boss_weapon_y),a
+        ret
+      +:
       ;
       ld a,(boss_y)
       sub 8
