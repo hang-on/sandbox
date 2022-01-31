@@ -12,12 +12,25 @@
 .endif
 
 ; Development dashboard:
+
+.equ INITIALIZE_LEVEL 0
+.equ RUN_LEVEL 1
+.equ START_NEW_GAME 2
+.equ FINISH_LEVEL 3
+.equ INITIALIZE_CHAPTER_COMPLETED 4
+.equ RUN_CHAPTER_COMPLETED 5
+.equ INITIALIZE_END_OF_DEMO 6
+.equ RUN_END_OF_DEMO 7
+.equ INITIALIZE_TITLE 8
+.equ RUN_TITLE 9
+.equ INITIAL_GAMESTATE START_NEW_GAME
+
+.equ FIRST_LEVEL 0
+
 ;.equ MUSIC_OFF          ; Comment to turn music on
 ;.equ DISABLE_MINIONS    ; Comment to enable minions.
 ;.equ DISABLE_SCROLL     ; Comment to scroll levels normally.
 ;.equ SPAWN_BOSS_INSTANTLY ; Comment to spawn boss normally.
-
-.equ FIRST_LEVEL 0
 
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
@@ -48,18 +61,6 @@
 .equ HEALTH_MAX 13
 .equ INVINCIBILITY_TIMER_MAX 70
 
-
-
-; Game states:
-.equ INITIALIZE_LEVEL 0
-.equ RUN_LEVEL 1
-.equ START_NEW_GAME 2
-.equ FINISH_LEVEL 3
-.equ INITIALIZE_CHAPTER_COMPLETED 4
-.equ RUN_CHAPTER_COMPLETED 5
-.equ INITIALIZE_END_OF_DEMO 6
-.equ RUN_END_OF_DEMO 7
-.equ INITIAL_GAMESTATE INITIALIZE_END_OF_DEMO
 
 .equ SIZEOF_LEVEL_TILES $bf*32
 .equ LEVEL_BANK_OFFSET 4        ; Level data is at current level + offset
@@ -281,6 +282,7 @@
       .dw start_new_game, finish_level 
       .dw initialize_chapter_completed, run_chapter_completed
       .dw initialize_end_of_demo, run_end_of_demo
+      .dw initialize_title, run_title
   ; ---------------------------------------------------------------------------
   start_new_game:
     ; Seed the randomizer (should eventually move to title screen).
@@ -1210,6 +1212,51 @@
     nop
   jp main_loop
 
+  ; ---------------------------------------------------------------------------
+  initialize_title:
+    di
+    call clear_vram
+    ld hl,vdp_register_init
+    call initialize_vdp_registers    
+
+    ld a,1
+    ld b,BORDER_COLOR
+    call set_register
+
+    ld a,DISABLED
+    call set_display
+
+    ld a,MISC_ASSETS_BANK
+    ld hl,title_tiles
+    ld de,SPRITE_BANK_START
+    ld bc,_sizeof_title_tiles
+    call load_vram
+
+    ld a,MISC_ASSETS_BANK
+    ld hl,title_tilemap
+    ld de,NAME_TABLE_START
+    ld bc,_sizeof_title_tilemap
+    call load_vram
+
+    ei
+    call wait_for_vblank    
+
+    ld a,ENABLED
+    call set_display
+
+    call FadeInScreen
+
+    ld a,RUN_TITLE
+    ld (game_state),a
+
+  jp main_loop
+  
+  run_title:
+    call wait_for_vblank
+    nop
+  jp main_loop
+
+
 .ends
 
 ; -----------------------------------------------------------------------------
@@ -1282,6 +1329,14 @@
   end_of_demo_tilemap:
     .include "data/end_of_demo_tilemap.inc"
     __:
+
+  title_tiles:
+    .include "data/title_tiles.inc"
+    __:
+  title_tilemap:
+    .include "data/title_tilemap.inc"
+    __:
+
 
 .ends
 

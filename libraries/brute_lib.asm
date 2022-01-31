@@ -47,7 +47,7 @@
     LOAD_BYTES brute_state, BRUTE_DEACTIVATED
     LOAD_BYTES brute_spawn_chance, 10
     LOAD_BYTES brute_index, $55
-    LOAD_BYTES brute_y, FLOOR_LEVEL, brute_x, 250
+    LOAD_BYTES brute_y, FLOOR_LEVEL, brute_x, 248
     LOAD_BYTES brute_dir, LEFT
     LOAD_BYTES brute_height, 16, brute_width, 16
     RESET_COUNTER brute_direction_counter, 95

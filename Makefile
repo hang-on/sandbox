@@ -1,7 +1,10 @@
 PRJNAME := sandbox
 OUTPUT := binaries/
-TILES := data/chapter_completed_tiles.inc data/end_of_demo_tiles.inc
-TILEMAPS := data/chapter_completed_tilemap.inc data/end_of_demo_tilemap.inc
+TILES := data/chapter_completed_tiles.inc\
+	data/end_of_demo_tiles.inc data/title_tiles.inc
+TILEMAPS := data/chapter_completed_tilemap.inc\
+	data/end_of_demo_tilemap.inc data/title_tilemap.inc
+
 # missing the .asm files in root directory *.asm
 
 all: $(OUTPUT)$(PRJNAME).sms $(TILES) $(TILEMAPS)
@@ -43,6 +46,12 @@ data/end_of_demo_tiles.inc: data/img/end_of_demo.png
 
 data/end_of_demo_tilemap.inc: data/img/end_of_demo.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/end_of_demo.png -8x8 -palsms -fullpalette -savetilemap data/end_of_demo_tilemap.inc -exit
+
+data/title_tiles.inc: data/img/title.png
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/title.png -8x8 -palsms -fullpalette -savetiles data/title_tiles.inc -exit
+
+data/title_tilemap.inc: data/img/title.png
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/title.png -8x8 -palsms -fullpalette -savetilemap data/title_tilemap.inc -exit
 
 data/%.psg: data/psg/%.psg
 	@C:\Users\ANSJ\Documents\PSGlib-nov15\tools\vgm2psg.exe $< $@
