@@ -5,11 +5,9 @@ TILES := data/chapter_completed_tiles.inc\
 TILEMAPS := data/chapter_completed_tilemap.inc\
 	data/end_of_demo_tilemap.inc data/title_tilemap.inc
 
-# missing the .asm files in root directory *.asm
-
 all: $(OUTPUT)$(PRJNAME).sms $(TILES) $(TILEMAPS)
 
-$(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm
+$(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm libraries/* 
 	@C:\Users\ANSJ\Documents\wla_dx_9.12\wla-z80.exe -o $(PRJNAME).o $(PRJNAME).asm
 	@echo [objects] > linkfile
 	@echo $(PRJNAME).o >> linkfile

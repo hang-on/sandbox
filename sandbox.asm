@@ -23,7 +23,7 @@
 .equ RUN_END_OF_DEMO 7
 .equ INITIALIZE_TITLE 8
 .equ RUN_TITLE 9
-.equ INITIAL_GAMESTATE START_NEW_GAME
+.equ INITIAL_GAMESTATE INITIALIZE_TITLE
 
 .equ FIRST_LEVEL 0
 
@@ -1115,9 +1115,12 @@
     call FadeOutScreen
     ld a,(current_level)
     inc a       ; Fixme: Also check for other stuff, like the end...
-    cp 2        ; Hardcoded end of demo - wrap around to
-    jp nz,+     ; first level.
-      xor a
+    cp 2        
+    jp nz,+     
+      ; The demo ends after level 1...
+      ld a,INITIALIZE_CHAPTER_COMPLETED
+      ld (game_state),a
+      jp main_loop
     +:
     ld (current_level),a
     ld a,INITIALIZE_LEVEL
@@ -1126,6 +1129,8 @@
 
   ; ---------------------------------------------------------------------------
   initialize_chapter_completed:
+    call PSGStop
+
     di
     call clear_vram
     ld hl,vdp_register_init
@@ -1163,13 +1168,42 @@
 
   jp main_loop
 
-  run_chapter_completed:
+  run_chapter_completed:    
+    ld a,MISC_ASSETS_BANK
+    SELECT_BANK_IN_REGISTER_A      
     call wait_for_vblank
-    nop
+    
+    ; Begin vblank critical code (DRAW) ---------------------------------------
+    call load_sat
+
+    ; End of critical vblank routines. ----------------------------------------
+
+    ; Begin general updating (UPDATE).
+    call PSGStop
+    ld a,MUSIC_BANK
+    SELECT_BANK_IN_REGISTER_A
+    call PSGFrame
+    ld a,SFX_BANK
+    SELECT_BANK_IN_REGISTER_A
+    call PSGSFXFrame
+    
+    call refresh_sat_handler
+    call refresh_input_ports
+
+    call is_button_1_pressed
+    jp nc,+
+      call FadeOutScreen
+      ld a,INITIALIZE_END_OF_DEMO
+      ld (game_state),a
+    +:
+
+
   jp main_loop
 
   ; ---------------------------------------------------------------------------
   initialize_end_of_demo:
+    call PSGStop
+
     di
     call clear_vram
     ld hl,vdp_register_init
@@ -1208,12 +1242,38 @@
   jp main_loop
   
   run_end_of_demo:
+    ld a,MISC_ASSETS_BANK
+    SELECT_BANK_IN_REGISTER_A      
     call wait_for_vblank
-    nop
+    
+    ; Begin vblank critical code (DRAW) ---------------------------------------
+    call load_sat
+
+    ; End of critical vblank routines. ----------------------------------------
+
+    ; Begin general updating (UPDATE).
+    ld a,MUSIC_BANK
+    SELECT_BANK_IN_REGISTER_A
+    call PSGFrame
+    ld a,SFX_BANK
+    SELECT_BANK_IN_REGISTER_A
+    call PSGSFXFrame
+    
+    call refresh_sat_handler
+    call refresh_input_ports
+
+    call is_button_1_pressed
+    jp nc,+
+      call FadeOutScreen      
+      ld a,INITIALIZE_TITLE
+      ld (game_state),a
+    +:
   jp main_loop
 
   ; ---------------------------------------------------------------------------
   initialize_title:
+    call PSGStop
+
     di
     call clear_vram
     ld hl,vdp_register_init
@@ -1252,8 +1312,32 @@
   jp main_loop
   
   run_title:
+    ld a,MISC_ASSETS_BANK
+    SELECT_BANK_IN_REGISTER_A      
     call wait_for_vblank
-    nop
+    
+    ; Begin vblank critical code (DRAW) ---------------------------------------
+    call load_sat
+
+    ; End of critical vblank routines. ----------------------------------------
+
+    ; Begin general updating (UPDATE).
+    ld a,MUSIC_BANK
+    SELECT_BANK_IN_REGISTER_A
+    call PSGFrame
+    ld a,SFX_BANK
+    SELECT_BANK_IN_REGISTER_A
+    call PSGSFXFrame
+    
+    call refresh_sat_handler
+    call refresh_input_ports
+
+    call is_button_1_pressed
+    jp nc,+
+      call FadeOutScreen
+      ld a,START_NEW_GAME
+      ld (game_state),a
+    +:
   jp main_loop
 
 

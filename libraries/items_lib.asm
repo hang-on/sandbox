@@ -185,7 +185,7 @@
       jp nz,+
         ADD_TO SCORE_HUNDREDS, 1
         ADD_TO SCORE_TENS, 5
-        ld a,3
+        ld a,2
         call inc_health
         jp ++
       +:
@@ -193,7 +193,7 @@
       jp nz,+
         ADD_TO SCORE_HUNDREDS, 2
         ADD_TO SCORE_TENS, 5
-        ld a,4
+        ld a,3
         call inc_health
         jp ++
       +:
