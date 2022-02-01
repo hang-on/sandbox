@@ -1216,7 +1216,7 @@
     call refresh_sat_handler
     call refresh_input_ports
 
-    call is_button_1_pressed
+    call is_button_1_or_2_pressed
     jp nc,+
       call FadeOutScreen
       ld a,INITIALIZE_END_OF_DEMO
@@ -1288,7 +1288,7 @@
     call refresh_sat_handler
     call refresh_input_ports
 
-    call is_button_1_pressed
+    call is_button_1_or_2_pressed
     jp nc,+
       call FadeOutScreen      
       ld a,INITIALIZE_TITLE
@@ -1358,7 +1358,7 @@
     call refresh_sat_handler
     call refresh_input_ports
 
-    call is_button_1_pressed
+    call is_button_1_or_2_pressed
     jp nc,+
       call FadeOutScreen
       ld a,START_NEW_GAME
