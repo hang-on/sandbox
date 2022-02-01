@@ -108,7 +108,7 @@
 .include "libraries/map_lib.asm"
 .include "libraries/input_lib.asm"
 .include "libraries/tiny_games.asm"
-.include "libraries/score_and_timer_lib.asm"
+.include "libraries/number_display_lib.asm"
 .include "libraries/minions_lib.asm"
 .include "libraries/items_lib.asm"
 .include "libraries/brute_lib.asm"
@@ -299,6 +299,11 @@
     ; Score:
     ld hl,score
     call reset_score
+
+    ; Timer
+    ld hl,timer
+    call reset_timer
+
 
     LOAD_BYTES health, HEALTH_MAX ; Start the game with full health.
 
@@ -984,9 +989,16 @@
     call draw_boss
 
     ; Update the score
+    ld a,_sizeof_score_struct
     ld ix,score
     ld hl,SCORE_ADDRESS
-    call safe_print_score
+    call safe_draw_number_display
+
+    ; Update the timer
+    ld a,_sizeof_timer_struct
+    ld ix,timer
+    ld hl,TIMER_ADDRESS
+    call safe_draw_number_display
 
     jp _f ; Skip over the functions below.
       ; Player health regulating functions

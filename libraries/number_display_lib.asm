@@ -1,13 +1,15 @@
+; number_display_lib, i.e.
 ; score_and_timer_lib.asm
 ; Based on Astroswab.
 ; -----------------------------------------------------------------------------
-; SCORE, HISCORE AND TIMER
+; SCORE, HISCORE AND TIMER 
 ; -----------------------------------------------------------------------------
-; Important: The score tiles must be placed in a sequence (0-9),
+; Important: The number display tiles must be placed in a sequence (0-9),
 ; and with ASCII_ZERO within the range of ($0 - $e9). 
 .equ ASCII_ZERO $c0 ; Where in the tilebank is the ASCII zero?
 
 .equ SCORE_ADDRESS $3810 
+.equ TIMER_ADDRESS $387A 
 .equ HISCORE_ADDRESS $3832
 
 .equ SCORE_ONES 5
@@ -17,12 +19,21 @@
 .equ SCORE_TEN_THOUSANDS 1
 .equ SCORE_HUNDRED_THOUSANDS 0
 
+.equ TIMER_ONES 1
+.equ TIMER_TENS 0
+
+
 .macro ADD_TO ARGS DIGIT, POINTS
   ld a,DIGIT
   ld b,POINTS
   ld hl,score
-  call add_to_score
+  call add_to_number
 .endm
+
+.struct timer_struct
+  tens db
+  ones db
+.endst
 
 .struct score_struct
   hundred_thousands db
@@ -33,14 +44,15 @@
   ones db
 .endst
 
-.ramsection "Score variables" slot 3
+.ramsection "Number display variables" slot 3
   score instanceof score_struct
   hiscore instanceof score_struct
+  timer instanceof timer_struct
 .ends
 ; -----------------------------------------------------------------------------
-.section "Score functions" free
+.section "Number display functions" free
 
-  add_to_score:
+  add_to_number:
     ; Add a number passed in B to the digit specified in A. Update the other
     ; digits in the score struct as necessary. Credit to Jonathan Cauldwell.
     ; Entry:  A = Digit to add to
@@ -115,7 +127,21 @@
       .rept _sizeof_score_struct
         .db ASCII_ZERO  ;.asc "0"
       .endr
-    
+
+  reset_timer:
+    ; Entry: HL = Pointer to timer struct.
+    ; Exit: None
+    ex de,hl                            ; Switch to destination (DE).
+    ld hl,@reset_data              ; Point to reset data.
+    ld bc,_sizeof_timer_struct            ; Number of digits to reset.
+    ldir                                ; Do it.
+  ret
+    @reset_data:
+      .rept _sizeof_timer_struct
+        .db ASCII_ZERO+9  ;.asc "9"
+      .endr
+
+
   fast_print_score:
     ; Print the digits in a score object to the name table.
     ; Entry: HL = VRAM address.
@@ -140,14 +166,16 @@
     djnz -
   ret
 
-  safe_print_score:
-    ; Print the digits in a score object to the name table.
-    ; Entry: HL = VRAM address.
+  safe_draw_number_display:
+    ; Print the digits in a number display to the name table.
+    ; Entry: A = number of digits 
+    ;        HL = VRAM address.
     ;        IX = Score object.
     ; Exit: None.
     ; Uses: ?
     ;
     di
+      ld b,a              ; Store number of digits.
       ld a,l
       out (CONTROL_PORT),a
       ld a,h
@@ -155,7 +183,6 @@
       out (CONTROL_PORT),a
       push ix
       pop hl
-      ld b,_sizeof_score_struct
       -:
         ld a,(hl)
         inc hl
