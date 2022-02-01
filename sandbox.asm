@@ -60,6 +60,7 @@
 
 .equ HEALTH_MAX 13
 .equ INVINCIBILITY_TIMER_MAX 70
+.equ TIMER_DELAY_VALUE 150
 
 
 .equ SIZEOF_LEVEL_TILES $bf*32
@@ -376,7 +377,7 @@
     LOAD_BYTES exit_locked, FALSE  ; Todo: Boss will lock it.
 
     RESET_COUNTER hurt_counter, 24
-    RESET_COUNTER timer_delay, 60
+    RESET_COUNTER timer_delay, TIMER_DELAY_VALUE
 
 
     LOAD_BYTES invincibility_timer, 0

@@ -163,7 +163,7 @@
 
       ; Collision! Hurt the minion.
       ADD_TO SCORE_HUNDREDS, 1
-      
+
       ld hl,hurt_sfx
       ld c,SFX_CHANNELS2AND3                  
       call PSGSFXPlay                         ; Play the SFX with PSGlib.
