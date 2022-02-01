@@ -84,7 +84,7 @@
   ret
 
   ;
-  subtract_from_score:
+  subtract_from_number:
     ; New version.
     ; Entry:  A = Digit to subtract from.
     ;         B = Number to subtract (non-ascii!).
@@ -103,8 +103,8 @@
       add a,10
       ld (hl),a
       ld a,c
-      cp 0
-      jp z,reset_score
+      ;cp 0
+      ;jp z,reset_score
         dec a
         ld c,a
         dec hl

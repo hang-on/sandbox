@@ -152,6 +152,7 @@
   killbox_width db
   ; ----------------
 
+  timer_delay dw
   current_level db
   is_scrolling db
   hscroll_screen db ; 0-255
@@ -375,8 +376,11 @@
     LOAD_BYTES exit_locked, FALSE  ; Todo: Boss will lock it.
 
     RESET_COUNTER hurt_counter, 24
+    RESET_COUNTER timer_delay, 60
+
 
     LOAD_BYTES invincibility_timer, 0
+
 
     .ifdef DISABLE_SCROLL
       LOAD_BYTES scroll_enabled, FALSE
@@ -995,6 +999,15 @@
     call safe_draw_number_display
 
     ; Update the timer
+    ld hl,timer_delay
+    call tick_counter
+    jp nc,+
+      ; Time to shave one second of the timer
+      ld a,TIMER_ONES
+      ld b,1
+      ld hl,timer
+      call subtract_from_number
+    +:
     ld a,_sizeof_timer_struct
     ld ix,timer
     ld hl,TIMER_ADDRESS
