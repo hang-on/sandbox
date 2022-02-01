@@ -108,7 +108,7 @@
 .include "libraries/map_lib.asm"
 .include "libraries/input_lib.asm"
 .include "libraries/tiny_games.asm"
-.include "libraries/score_lib.asm"
+.include "libraries/score_and_timer_lib.asm"
 .include "libraries/minions_lib.asm"
 .include "libraries/items_lib.asm"
 .include "libraries/brute_lib.asm"

@@ -1,7 +1,7 @@
-; score_lib.asm
+; score_and_timer_lib.asm
 ; Based on Astroswab.
 ; -----------------------------------------------------------------------------
-; SCORE AND HISCORE
+; SCORE, HISCORE AND TIMER
 ; -----------------------------------------------------------------------------
 ; Important: The score tiles must be placed in a sequence (0-9),
 ; and with ASCII_ZERO within the range of ($0 - $e9). 
