@@ -1,5 +1,5 @@
 ; number_display_lib, i.e.
-; score_and_timer_lib.asm
+; 
 ; Based on Astroswab.
 ; -----------------------------------------------------------------------------
 ; SCORE, HISCORE AND TIMER 

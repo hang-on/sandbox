@@ -88,7 +88,7 @@
 
 .equ HEALTH_MAX 13
 .equ INVINCIBILITY_TIMER_MAX 70
-.equ TIMER_DELAY_VALUE 150
+.equ TIMER_DELAY_VALUE 5
 
 
 .equ SIZEOF_LEVEL_TILES $bf*32
@@ -1008,6 +1008,23 @@
     call tick_counter
     jp nc,+
       ; Time to shave one second of the timer
+      ; But is the timer at 00?
+      ld hl,timer
+      ld a,(hl)
+      cp ASCII_ZERO
+      jp nz,++
+        inc hl
+        ld a,(hl)
+        cp ASCII_ZERO
+        jp nz,++
+          ; Timer is 00, game over instead of decrement.
+          call PSGStop
+          call PSGSFXStop
+          call FadeOutScreen
+          ld a,INITIALIZE_GAME_OVER
+          ld (game_state),a
+          jp main_loop
+      ++:
       ld a,TIMER_ONES
       ld b,1
       ld hl,timer
