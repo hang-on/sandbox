@@ -1,11 +1,13 @@
 PRJNAME := sandbox
 OUTPUT := binaries/
 TILES := data/chapter_completed_tiles.inc\
-	data/end_of_demo_tiles.inc data/title_tiles.inc
+	data/end_of_demo_tiles.inc data/title_tiles.inc\
+	data/game_over_tiles.inc
 TILEMAPS := data/chapter_completed_tilemap.inc\
-	data/end_of_demo_tilemap.inc data/title_tilemap.inc
+	data/end_of_demo_tilemap.inc data/title_tilemap.inc\
+	data/game_over_tilemap.inc
 
-all: $(OUTPUT)$(PRJNAME).sms $(TILES) $(TILEMAPS)
+all: $(TILES) $(TILEMAPS) $(OUTPUT)$(PRJNAME).sms
 
 $(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm libraries/* 
 	@C:\Users\ANSJ\Documents\wla_dx_9.12\wla-z80.exe -o $(PRJNAME).o $(PRJNAME).asm
@@ -15,6 +17,7 @@ $(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm libraries/*
 	@rm *.o linkfile
 
 # FIXME: Include all files below in the all-variables!!
+
 data/sprite_tiles.inc: data/img/sprites.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/sprites.png -noremovedupes -8x8 -palsms -fullpalette -savetiles data/sprite_tiles.inc -exit
 
@@ -50,6 +53,12 @@ data/title_tiles.inc: data/img/title.png
 
 data/title_tilemap.inc: data/img/title.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/title.png -8x8 -palsms -fullpalette -savetilemap data/title_tilemap.inc -exit
+
+data/game_over_tiles.inc: data/img/game_over.png
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/game_over.png -8x8 -palsms -fullpalette -savetiles data/game_over_tiles.inc -exit
+
+data/game_over_tilemap.inc: data/img/game_over.png
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/game_over.png -8x8 -palsms -fullpalette -savetilemap data/game_over_tilemap.inc -exit
 
 data/%.psg: data/psg/%.psg
 	@C:\Users\ANSJ\Documents\PSGlib-nov15\tools\vgm2psg.exe $< $@

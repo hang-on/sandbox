@@ -1447,6 +1447,13 @@
     .include "data/title_tilemap.inc"
     __:
 
+  game_over_tiles:
+    .include "data/game_over_tiles.inc"
+    __:
+  game_over_tilemap:
+    ;.include "data/game_over_tilemap.inc"
+    __:
+
 
 .ends
 
