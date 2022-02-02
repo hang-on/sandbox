@@ -88,7 +88,7 @@
 
 .equ HEALTH_MAX 13
 .equ INVINCIBILITY_TIMER_MAX 70
-.equ TIMER_DELAY_VALUE 130
+.equ TIMER_DELAY_VALUE 140
 
 
 .equ SIZEOF_LEVEL_TILES $bf*32
@@ -1408,6 +1408,9 @@
     
     call refresh_sat_handler
     call refresh_input_ports
+
+    ; Seed the random number generator
+    call get_random_number
 
     call is_button_1_or_2_pressed
     jp nc,+
