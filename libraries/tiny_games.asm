@@ -143,7 +143,7 @@
   ret
 
 FadeInScreen:
-
+    call PSGSilenceChannels
     halt                   ; wait for Vblank
 
     xor a
@@ -182,10 +182,12 @@ FadeInScreen:
     out ($be),a            ; write unfodified data to CRAM, palette load complete
     inc hl
     djnz -
+    call PSGRestoreVolumes
 
 ret
 
 FadeOutScreen:
+    call PSGSilenceChannels
     halt                   ; wait for Vblank
 
     xor a
@@ -222,6 +224,7 @@ FadeOutScreen:
     xor a                  ; we want to blacken the palette, so a is set to 0
  -: out ($be), a           ; write zeros to CRAM, palette fade complete
     djnz -
+    call PSGRestoreVolumes
 
 ret
 

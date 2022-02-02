@@ -172,7 +172,7 @@
   scroll_enabled db
   end_of_map_data dw
   exit_locked db      ; Can you progress from the level now?
-  
+  wait_counter dw
 
   vblank_finish_low db
   vblank_finish_high db
@@ -290,7 +290,8 @@
     ld l,a              ; HL now contains the address of the state handler.
     jp (hl)             ; Jump to this handler - note, not call!
   ; ---------------------------------------------------------------------------
-  start_new_game:
+  start_new_game: 
+    call PSGSilenceChannels
     ; Seed the randomizer (should eventually move to title screen).
     ld hl,my_seed
     ld a,(hl)
@@ -315,13 +316,6 @@
 
     LOAD_BYTES current_level, FIRST_LEVEL
 
-    ; Music:
-    .ifndef MUSIC_OFF
-      ld hl,village_on_fire
-      call PSGPlay
-    .endif
-    
-    
     ld a,INITIALIZE_LEVEL
     ld (game_state),a
     
@@ -329,6 +323,13 @@
 
   ; ---------------------------------------------------------------------------
   initialize_level:
+    call PSGSilenceChannels
+    call PSGStop
+    call PSGSFXStop
+    call PSGSFXFrame
+    call PSGFrame
+    halt
+    halt
     di
     call clear_vram
     ld hl,vdp_register_init
@@ -444,12 +445,21 @@
     call next_metatile_half_to_tile_buffer
     call tilebuffer_to_nametable
 
-    call PSGRestoreVolumes
-    call PSGResume
+    ; Music:
+    ld a,(current_level)
+    cp 0
+    jp nz,+
+      ld hl,village_on_fire
+      call PSGPlay
+      jp ++
+    +:
+      call PSGResume
+    ++:
 
     ei
     halt
     halt
+
     xor a
     ld (vblank_counter),a
     
@@ -460,7 +470,6 @@
 
     ld a,RUN_LEVEL
     ld (game_state),a
-
   jp main_loop
 
   mockup_dashboard:
@@ -1337,7 +1346,8 @@
   ; ---------------------------------------------------------------------------
   initialize_title:
     call PSGStop
-
+    call PSGSFXStop
+    call PSGSilenceChannels
     di
     call clear_vram
     ld hl,vdp_register_init
@@ -1368,8 +1378,11 @@
     ld a,ENABLED
     call set_display
 
-    call FadeInScreen
+    ld hl,village_on_fire
+    call PSGPlay
 
+    call FadeInScreen
+    call PSGRestoreVolumes
     ld a,RUN_TITLE
     ld (game_state),a
 
@@ -1433,6 +1446,7 @@
     call load_vram
 
     ei
+    RESET_COUNTER wait_counter, 240
     call wait_for_vblank    
 
     ld a,ENABLED
@@ -1466,7 +1480,8 @@
     call refresh_sat_handler
     call refresh_input_ports
 
-    call is_button_1_or_2_pressed
+    ld hl,wait_counter
+    call tick_counter
     jp nc,+
       call FadeOutScreen
       ld a,INITIALIZE_TITLE
