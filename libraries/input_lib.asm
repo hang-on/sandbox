@@ -24,7 +24,7 @@
   is_button_1_or_2_pressed:
     ld a,(input_ports)
     and %00010000
-    jp nz,+            ; Return with carry flag reset
+    jp nz,+            
       scf
       ret
     +:

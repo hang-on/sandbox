@@ -1,6 +1,23 @@
 ; Sandbox - working title for a new take on "Mighty Knights".
 .sdsctag 1.0, "Sandbox", "Description", "hang-on Entertainment"
 ; -----------------------------------------------------------------------------
+.memorymap
+; -----------------------------------------------------------------------------
+  defaultslot 0
+  slotsize $4000
+  slot 0 $0000
+  slot 1 $4000
+  slot 2 $8000
+  slotsize $2000
+  slot 3 $c000
+.endme
+.rombankmap ; 128K rom
+  bankstotal 8
+  banksize $4000
+  banks 8
+.endro
+;
+; -----------------------------------------------------------------------------
 ; GLOBAL DEFINITIONS
 ; -----------------------------------------------------------------------------
 .include "libraries/sms_constants.asm"
@@ -11,22 +28,33 @@
   .equ USE_TEST_KERNEL
 .endif
 
+.bank 0 slot 0
+.section "Game states" free
+  .equ INITIALIZE_LEVEL 0
+  .equ RUN_LEVEL 1
+  .equ START_NEW_GAME 2
+  .equ FINISH_LEVEL 3
+  .equ INITIALIZE_CHAPTER_COMPLETED 4
+  .equ RUN_CHAPTER_COMPLETED 5
+  .equ INITIALIZE_END_OF_DEMO 6
+  .equ RUN_END_OF_DEMO 7
+  .equ INITIALIZE_TITLE 8
+  .equ RUN_TITLE 9
+  .equ INITIALIZE_GAME_OVER 10
+  .equ RUN_GAME_OVER 11
+  .equ INITIAL_GAMESTATE INITIALIZE_TITLE
+    game_state_jump_table:
+    .dw initialize_level, run_level 
+    .dw start_new_game, finish_level 
+    .dw initialize_chapter_completed, run_chapter_completed
+    .dw initialize_end_of_demo, run_end_of_demo
+    .dw initialize_title, run_title
+    .dw initialize_game_over, run_game_over
+.ends
+
 ; Development dashboard:
 
-.equ INITIALIZE_LEVEL 0
-.equ RUN_LEVEL 1
-.equ START_NEW_GAME 2
-.equ FINISH_LEVEL 3
-.equ INITIALIZE_CHAPTER_COMPLETED 4
-.equ RUN_CHAPTER_COMPLETED 5
-.equ INITIALIZE_END_OF_DEMO 6
-.equ RUN_END_OF_DEMO 7
-.equ INITIALIZE_TITLE 8
-.equ RUN_TITLE 9
-.equ INITIAL_GAMESTATE INITIALIZE_TITLE
-
 .equ FIRST_LEVEL 0
-
 ;.equ MUSIC_OFF          ; Comment to turn music on
 ;.equ DISABLE_MINIONS    ; Comment to enable minions.
 ;.equ DISABLE_SCROLL     ; Comment to scroll levels normally.
@@ -67,24 +95,6 @@
 .equ LEVEL_BANK_OFFSET 4        ; Level data is at current level + offset
 .equ SIZEOF_STANDARD_LEVEL_TILEMAP $501  ; Size in bytes.
 .equ SIZEOF_BOSS_LEVEL_TILEMAP $281
-; -----------------------------------------------------------------------------
-.memorymap
-; -----------------------------------------------------------------------------
-  defaultslot 0
-  slotsize $4000
-  slot 0 $0000
-  slot 1 $4000
-  slot 2 $8000
-  slotsize $2000
-  slot 3 $c000
-.endme
-.rombankmap ; 128K rom
-  bankstotal 8
-  banksize $4000
-  banks 8
-.endro
-;
-
 
 .macro TRANSITION_PLAYER_STATE ARGS NEWSTATE, SFX
   ; Perform the standard actions when the player's state transitions:
@@ -279,12 +289,6 @@
     ld h,(hl)           ; Get MSB from table.
     ld l,a              ; HL now contains the address of the state handler.
     jp (hl)             ; Jump to this handler - note, not call!
-      game_state_jump_table:
-      .dw initialize_level, run_level 
-      .dw start_new_game, finish_level 
-      .dw initialize_chapter_completed, run_chapter_completed
-      .dw initialize_end_of_demo, run_end_of_demo
-      .dw initialize_title, run_title
   ; ---------------------------------------------------------------------------
   start_new_game:
     ; Seed the randomizer (should eventually move to title screen).
@@ -1024,7 +1028,24 @@
         bit 7,a       ; Has health dropped below zero?
         jp z,+
           xor a       ; Reset health to zero.
-          ; TODO: Here we can signal death?
+          ; Player has lost all health:
+          ld (health),a
+          ld hl,player_hurt_sfx
+          ld c,SFX_CHANNELS2AND3                            
+          call PSGSFXPlay                
+          ld b,60
+          -:
+            push bc
+              halt
+              ld a,SFX_BANK
+              SELECT_BANK_IN_REGISTER_A
+              call PSGSFXFrame
+            pop bc
+          djnz -
+          call FadeOutScreen
+          ld a,INITIALIZE_GAME_OVER
+          ld (game_state),a
+          jp main_loop
         +:
         ld (health),a
         ld hl,player_hurt_sfx
@@ -1367,6 +1388,77 @@
   jp main_loop
 
 
+  initialize_game_over:
+    call PSGStop
+
+    di
+    call clear_vram
+    ld hl,vdp_register_init
+    call initialize_vdp_registers    
+
+    ld a,1
+    ld b,BORDER_COLOR
+    call set_register
+
+    ld a,DISABLED
+    call set_display
+
+    ld a,MISC_ASSETS_BANK
+    ld hl,game_over_tiles
+    ld de,SPRITE_BANK_START
+    ld bc,_sizeof_game_over_tiles
+    call load_vram
+
+    ld a,MISC_ASSETS_BANK
+    ld hl,game_over_tilemap
+    ld de,NAME_TABLE_START
+    ld bc,_sizeof_game_over_tilemap
+    call load_vram
+
+    ei
+    call wait_for_vblank    
+
+    ld a,ENABLED
+    call set_display
+
+    call FadeInScreen
+
+    ld a,RUN_GAME_OVER
+    ld (game_state),a
+
+  jp main_loop
+  
+  run_game_over:
+    ld a,MISC_ASSETS_BANK
+    SELECT_BANK_IN_REGISTER_A      
+    call wait_for_vblank
+    
+    ; Begin vblank critical code (DRAW) ---------------------------------------
+    call load_sat
+
+    ; End of critical vblank routines. ----------------------------------------
+
+    ; Begin general updating (UPDATE).
+    ld a,MUSIC_BANK
+    SELECT_BANK_IN_REGISTER_A
+    call PSGFrame
+    ld a,SFX_BANK
+    SELECT_BANK_IN_REGISTER_A
+    call PSGSFXFrame
+    
+    call refresh_sat_handler
+    call refresh_input_ports
+
+    call is_button_1_or_2_pressed
+    jp nc,+
+      call FadeOutScreen
+      ld a,INITIALIZE_TITLE
+      ld (game_state),a
+    +:
+  jp main_loop
+
+
+
 .ends
 
 ; -----------------------------------------------------------------------------
@@ -1451,7 +1543,7 @@
     .include "data/game_over_tiles.inc"
     __:
   game_over_tilemap:
-    ;.include "data/game_over_tilemap.inc"
+    .include "data/game_over_tilemap.inc"
     __:
 
 
