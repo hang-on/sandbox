@@ -1378,8 +1378,9 @@
     ld a,ENABLED
     call set_display
 
-    ld hl,village_on_fire
-    call PSGPlay
+    ; Replace with title tune:
+    ;ld hl,village_on_fire
+    ;call PSGPlay
 
     call FadeInScreen
     call PSGRestoreVolumes

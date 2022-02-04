@@ -2,21 +2,22 @@ PRJNAME := sandbox
 OUTPUT := binaries/
 TILES := data/chapter_completed_tiles.inc\
 	data/end_of_demo_tiles.inc data/title_tiles.inc\
-	data/game_over_tiles.inc
+	data/game_over_tiles.inc data/sprite_tiles.inc\
+	data/boss_sprite_tiles.inc
 TILEMAPS := data/chapter_completed_tilemap.inc\
 	data/end_of_demo_tilemap.inc data/title_tilemap.inc\
 	data/game_over_tilemap.inc
 
 all: $(TILES) $(TILEMAPS) $(OUTPUT)$(PRJNAME).sms
 
-$(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm libraries/* 
+$(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm libraries/* data/*
 	@C:\Users\ANSJ\Documents\wla_dx_9.12\wla-z80.exe -o $(PRJNAME).o $(PRJNAME).asm
 	@echo [objects] > linkfile
 	@echo $(PRJNAME).o >> linkfile
 	@C:\Users\ANSJ\Documents\wla_dx_9.12\wlalink.exe -d -v -S linkfile $(OUTPUT)$(PRJNAME).sms
 	@rm *.o linkfile
 
-# FIXME: Include all files below in the all-variables!!
+
 
 data/sprite_tiles.inc: data/img/sprites.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/sprites.png -noremovedupes -8x8 -palsms -fullpalette -savetiles data/sprite_tiles.inc -exit
