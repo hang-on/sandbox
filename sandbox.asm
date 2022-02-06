@@ -42,6 +42,8 @@
   .equ RUN_TITLE 9
   .equ INITIALIZE_GAME_OVER 10
   .equ RUN_GAME_OVER 11
+  .equ INITIALIZE_MINIMAP 12
+  .equ RUN_MINIMAP 13
   .equ INITIAL_GAMESTATE INITIALIZE_TITLE
     game_state_jump_table:
     .dw initialize_level, run_level 
@@ -50,6 +52,7 @@
     .dw initialize_end_of_demo, run_end_of_demo
     .dw initialize_title, run_title
     .dw initialize_game_over, run_game_over
+    .dw initialize_minimap, run_minimap
 .ends
 
 ; Development dashboard:
@@ -316,7 +319,7 @@
 
     LOAD_BYTES current_level, FIRST_LEVEL
 
-    ld a,INITIALIZE_LEVEL
+    ld a,INITIALIZE_MINIMAP
     ld (game_state),a
     
     jp main_loop
@@ -1494,6 +1497,73 @@
   jp main_loop
 
 
+  ; ---------------------------------------------------------------------------
+  initialize_minimap:
+    call PSGStop
+    call PSGSFXStop
+    call PSGSilenceChannels
+    di
+    call clear_vram
+    ld hl,vdp_register_init
+    call initialize_vdp_registers    
+
+    ld a,1
+    ld b,BORDER_COLOR
+    call set_register
+
+    ld a,DISABLED
+    call set_display
+
+    ei
+    call wait_for_vblank    
+
+    ld a,ENABLED
+    ;call set_display       ; FIXME: Add proper gfx for minimap!
+
+    ld hl,minimap_music
+    call PSGPlayNoRepeat
+
+    call FadeInScreen
+    call PSGRestoreVolumes
+    ld a,RUN_MINIMAP
+    ld (game_state),a
+
+  jp main_loop
+  
+  run_minimap:
+    ld a,MISC_ASSETS_BANK
+    SELECT_BANK_IN_REGISTER_A      
+    call wait_for_vblank
+    
+    ; Begin vblank critical code (DRAW) ---------------------------------------
+    call load_sat
+
+    ; End of critical vblank routines. ----------------------------------------
+
+    ; Begin general updating (UPDATE).
+    ld a,MUSIC_BANK
+    SELECT_BANK_IN_REGISTER_A
+    call PSGFrame
+    ld a,SFX_BANK
+    SELECT_BANK_IN_REGISTER_A
+    call PSGSFXFrame
+    
+    call refresh_sat_handler
+    call refresh_input_ports
+
+    ; Seed the random number generator
+    call get_random_number
+
+    call is_button_1_or_2_pressed
+    jp nc,+
+      call FadeOutScreen
+      ld a,INITIALIZE_LEVEL
+      ld (game_state),a
+    +:
+  jp main_loop
+
+
+
 
 .ends
 
@@ -1523,6 +1593,10 @@
 
   village_on_fire:
     .incbin "data/village_on_fire.psg"
+
+  minimap_music:
+    .incbin "data/minimap.psg"
+
 .ends
 
 ; -----------------------------------------------------------------------------

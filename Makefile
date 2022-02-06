@@ -7,8 +7,9 @@ TILES := data/chapter_completed_tiles.inc\
 TILEMAPS := data/chapter_completed_tilemap.inc\
 	data/end_of_demo_tilemap.inc data/title_tilemap.inc\
 	data/game_over_tilemap.inc
+PSGS := data/minimap.psg
 
-all: $(TILES) $(TILEMAPS) $(OUTPUT)$(PRJNAME).sms
+all: $(PSGS) $(TILES) $(TILEMAPS) $(OUTPUT)$(PRJNAME).sms
 
 $(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm libraries/* data/*
 	@C:\Users\ANSJ\Documents\wla_dx_9.12\wla-z80.exe -o $(PRJNAME).o $(PRJNAME).asm
@@ -61,6 +62,6 @@ data/game_over_tiles.inc: data/img/game_over.png
 data/game_over_tilemap.inc: data/img/game_over.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/game_over.png -8x8 -palsms -fullpalette -savetilemap data/game_over_tilemap.inc -exit
 
-data/%.psg: data/psg/%.psg
+data/%.psg: data/psg/%.vgm
 	@C:\Users\ANSJ\Documents\PSGlib-nov15\tools\vgm2psg.exe $< $@
 
