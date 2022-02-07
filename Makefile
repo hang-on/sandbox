@@ -7,7 +7,7 @@ TILES := data/chapter_completed_tiles.inc\
 TILEMAPS := data/chapter_completed_tilemap.inc\
 	data/end_of_demo_tilemap.inc data/title_tilemap.inc\
 	data/game_over_tilemap.inc
-PSGS := data/minimap.psg
+PSGS := data/minimap.psg data/eod.psg
 
 all: $(PSGS) $(TILES) $(TILEMAPS) $(OUTPUT)$(PRJNAME).sms
 

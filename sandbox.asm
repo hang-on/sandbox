@@ -1304,6 +1304,11 @@
     ld bc,_sizeof_end_of_demo_tilemap
     call load_vram
 
+    ; Replace with title tune:
+    ld hl,end_of_demo_music
+    call PSGPlay
+
+
     ei
     call wait_for_vblank    
 
@@ -1380,10 +1385,6 @@
 
     ld a,ENABLED
     call set_display
-
-    ; Replace with title tune:
-    ;ld hl,village_on_fire
-    ;call PSGPlay
 
     call FadeInScreen
     call PSGRestoreVolumes
@@ -1596,6 +1597,9 @@
 
   minimap_music:
     .incbin "data/minimap.psg"
+
+  end_of_demo_music:
+    .incbin "data/eod.psg"
 
 .ends
 
