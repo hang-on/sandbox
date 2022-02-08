@@ -136,6 +136,7 @@
 ; -----------------------------------------------------------------------------
   temp_byte db                  ; Temporary variable - byte.
   temp_word db                  ; Temporary variable - word.
+  temp_counter dw               ; Temporary counter.
   ;
   vblank_counter db
   hline_counter db
@@ -1308,6 +1309,9 @@
     ld hl,end_of_demo_music
     call PSGPlay
 
+    RESET_COUNTER temp_counter, 30
+    LOAD_BYTES temp_byte, 15
+
 
     ei
     call wait_for_vblank    
@@ -1333,6 +1337,20 @@
     ; End of critical vblank routines. ----------------------------------------
 
     ; Begin general updating (UPDATE).
+    ld a,(temp_byte)
+    ld l,a
+    call PSGSetMusicVolumeAttenuation
+    ld hl,temp_counter
+    call tick_counter
+    jp nc,+
+      ; Fade in music by turning down attenuation
+      ld a,(temp_byte)
+      cp 0
+      jp z,+
+        dec a
+        ld (temp_byte),a
+    +:
+
     ld a,MUSIC_BANK
     SELECT_BANK_IN_REGISTER_A
     call PSGFrame
@@ -1420,6 +1438,8 @@
     call is_button_1_or_2_pressed
     jp nc,+
       call FadeOutScreen
+      ld l,0
+      call PSGSetMusicVolumeAttenuation  
       ld a,START_NEW_GAME
       ld (game_state),a
     +:
