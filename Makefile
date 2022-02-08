@@ -3,10 +3,10 @@ OUTPUT := binaries/
 TILES := data/chapter_completed_tiles.inc\
 	data/end_of_demo_tiles.inc data/title_tiles.inc\
 	data/game_over_tiles.inc data/sprite_tiles.inc\
-	data/boss_sprite_tiles.inc
+	data/boss_sprite_tiles.inc data/minimap_tiles.inc
 TILEMAPS := data/chapter_completed_tilemap.inc\
 	data/end_of_demo_tilemap.inc data/title_tilemap.inc\
-	data/game_over_tilemap.inc
+	data/game_over_tilemap.inc data/minimap_tilemap.inc
 PSGS := data/minimap.psg data/eod.psg
 
 all: $(PSGS) $(TILES) $(TILEMAPS) $(OUTPUT)$(PRJNAME).sms
@@ -61,6 +61,12 @@ data/game_over_tiles.inc: data/img/game_over.png
 
 data/game_over_tilemap.inc: data/img/game_over.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/game_over.png -8x8 -palsms -fullpalette -savetilemap data/game_over_tilemap.inc -exit
+
+data/minimap_tiles.inc: data/img/minimap.png
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/minimap.png -8x8 -palsms -fullpalette -savetiles data/minimap_tiles.inc -exit
+
+data/minimap_tilemap.inc: data/img/minimap.png
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/minimap.png -8x8 -palsms -fullpalette -savetilemap data/minimap_tilemap.inc -exit
 
 data/%.psg: data/psg/%.vgm
 	@C:\Users\ANSJ\Documents\PSGlib-nov15\tools\vgm2psg.exe $< $@

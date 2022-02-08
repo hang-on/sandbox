@@ -280,6 +280,11 @@
     .db %01100110  %10100000 $ff $ff $ff
     .db $ff $fb $f0 $00 $00 $ff
 
+    vdp_register_init_show_left_column:
+    .db %01000110  %10100000 $ff $ff $ff
+    .db $ff $fb $f0 $00 $00 $ff
+
+
   ; ---------------------------------------------------------------------------
   main_loop:
     ld a,(game_state)   ; Get current game state - it will serve as JT offset.
@@ -1525,14 +1530,26 @@
     call PSGSilenceChannels
     di
     call clear_vram
-    ld hl,vdp_register_init
+    ld hl,vdp_register_init_show_left_column
     call initialize_vdp_registers    
 
     ld a,1
     ld b,BORDER_COLOR
     call set_register
 
-    ld a,DISABLED
+    ld a,MISC_ASSETS_BANK
+    ld hl,minimap_tiles
+    ld de,SPRITE_BANK_START
+    ld bc,_sizeof_minimap_tiles
+    call load_vram
+
+    ld a,MISC_ASSETS_BANK
+    ld hl,minimap_tilemap
+    ld de,NAME_TABLE_START
+    ld bc,_sizeof_minimap_tilemap
+    call load_vram
+
+    ld a,ENABLED
     call set_display
 
     ei
@@ -1680,6 +1697,12 @@
     .include "data/game_over_tilemap.inc"
     __:
 
+  minimap_tiles:
+    .include "data/minimap_tiles.inc"
+    __:
+  minimap_tilemap:
+    .include "data/minimap_tilemap.inc"
+    __:
 
 .ends
 
