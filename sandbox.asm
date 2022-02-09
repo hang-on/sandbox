@@ -986,22 +986,6 @@
     __:
 
     ; Minions
-    ld hl,spawner
-    call tick_counter
-    jp nc,+++                   ; Skip forward if the counter is not up.
-      ld a,(brute_state)
-      cp BRUTE_DEACTIVATED
-      jp z,+
-        ld b,60
-        jp ++
-      +:
-        ld b,75
-      ++:
-      call get_random_number  ; Counter is up - get a random number 0-255.
-      cp b                   ; Roll under the spawn chance.
-      jp nc,+++
-        call spawn_minion     ; OK, spawn a minion.
-    +++:
     call process_minions
     call draw_minions
 
