@@ -248,21 +248,24 @@
 ; -----------------------------------------------------------------------------
   init:
   ; Run this function once (on game load/reset). 
-    call clear_vram
     ld hl,vdp_register_init
     call initialize_vdp_registers
+    call clear_vram
     
     ld a,1
     ld b,BORDER_COLOR
     call set_register
     ld a,0
     ld b,32
-    ld hl,sweetie16_palette
+    ld hl,all_black_palette
     call load_cram
     jp +
       sweetie16_palette:
         .db $23 $00 $11 $12 $17 $1B $2E $19 $14 $10 $35 $38 $3D $3F $2A $15
         .db $23 $00 $11 $12 $17 $1B $2E $19 $14 $10 $35 $38 $3D $3F $2A $15
+      all_black_palette:
+        .db $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00
+        .db $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 
     +:
 
     .ifdef TEST_MODE
@@ -342,9 +345,9 @@
     halt
     halt
     di
-    call clear_vram
     ld hl,vdp_register_init
     call initialize_vdp_registers    
+    call clear_vram
 
     ld a,1
     ld b,BORDER_COLOR
@@ -1366,16 +1369,18 @@
     call PSGSFXStop
     call PSGSilenceChannels
     di
-    call clear_vram
     ld hl,vdp_register_init
     call initialize_vdp_registers    
+    call clear_vram
 
     ld a,1
     ld b,BORDER_COLOR
     call set_register
 
-    ld a,DISABLED
-    call set_display
+    ld a,0
+    ld b,32
+    ld hl,sweetie16_palette
+    call load_cram
 
     ld a,MISC_ASSETS_BANK
     ld hl,title_tiles
@@ -1441,16 +1446,13 @@
     call PSGStop
 
     di
-    call clear_vram
     ld hl,vdp_register_init
     call initialize_vdp_registers    
+    call clear_vram
 
     ld a,1
     ld b,BORDER_COLOR
     call set_register
-
-    ld a,DISABLED
-    call set_display
 
     ld a,MISC_ASSETS_BANK
     ld hl,game_over_tiles
@@ -1515,9 +1517,9 @@
     call PSGSFXStop
     call PSGSilenceChannels
     di
-    call clear_vram
     ld hl,vdp_register_init_show_left_column
     call initialize_vdp_registers    
+    call clear_vram
 
     ld a,1
     ld b,BORDER_COLOR
@@ -1540,9 +1542,6 @@
 
     ei
     call wait_for_vblank    
-
-    ld a,ENABLED
-    ;call set_display       ; FIXME: Add proper gfx for minimap!
 
     ld hl,minimap_music
     call PSGPlayNoRepeat
