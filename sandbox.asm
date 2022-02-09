@@ -269,6 +269,18 @@
       jp test_bench
     .endif
 
+    ; Seed the randomizer.
+    ld hl,my_seed
+    ld a,(hl)
+    ld (rnd_seed),a
+    inc hl
+    ld a,(hl)
+    ld (rnd_seed+1),a
+    jp +
+      my_seed:
+      .dbrnd 2, 0, 255
+    +:
+
     call PSGInit
     
     ld a,INITIAL_GAMESTATE
@@ -291,7 +303,7 @@
     add a,a             ; Double it up because jump table is word-sized.
     ld h,0              ; Set up HL as the jump table offset.
     ld l,a
-    ld de,game_state_jump_table ; Point to JT base address (see footer.inc).
+    ld de,game_state_jump_table ; Point to JT base address
     add hl,de           ; Apply offset to base address.
     ld a,(hl)           ; Get LSB from table.
     inc hl              ; Increment pointer.
@@ -301,17 +313,7 @@
   ; ---------------------------------------------------------------------------
   start_new_game: 
     call PSGSilenceChannels
-    ; Seed the randomizer (should eventually move to title screen).
-    ld hl,my_seed
-    ld a,(hl)
-    ld (rnd_seed),a
-    inc hl
-    ld a,(hl)
-    ld (rnd_seed+1),a
-    jp +
-      my_seed:
-      .dbrnd 2, 0, 255
-    +:
+
     ; Score:
     ld hl,score
     call reset_score
