@@ -66,7 +66,7 @@ data/minimap_tiles.inc: data/img/minimap.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/minimap.png -8x8 -palsms -fullpalette -savetiles data/minimap_tiles.inc -exit
 
 data/minimap_tilemap.inc: data/img/minimap.png
-	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/minimap.png -8x8 -palsms -fullpalette -savetilemap data/minimap_tilemap.inc -exit
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/minimap.png -8x8 -palsms -fullpalette -tileoffset 256 -savetilemap data/minimap_tilemap.inc -exit
 
 data/%.psg: data/psg/%.vgm
 	@C:\Users\ANSJ\Documents\PSGlib-nov15\tools\vgm2psg.exe $< $@

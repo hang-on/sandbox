@@ -1525,7 +1525,7 @@
 
     ld a,MISC_ASSETS_BANK
     ld hl,minimap_tiles
-    ld de,SPRITE_BANK_START
+    ld de,BACKGROUND_BANK_START
     ld bc,_sizeof_minimap_tiles
     call load_vram
 
