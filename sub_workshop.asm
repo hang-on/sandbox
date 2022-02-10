@@ -10,6 +10,7 @@
 ; -----------------------------------------------------------------------------
 
   tick_slow_counter:
+    ; Rename: composite_counter? Consists of fine and coarse counter
     ; xxx
     ld a,(hl)                 ; Get counter.
     dec a                     ; Decrement it ("tick it").
@@ -20,8 +21,11 @@
       ld a,(hl)
       cp 0
       jp nz,++
-        ;; Reset counter, set carry
-        ; Add reset
+        ; Reset counter, set carry
+        inc hl
+        ld a,(hl)
+        dec hl
+        ld (hl),a
         scf
         ret
       ++:

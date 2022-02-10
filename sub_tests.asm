@@ -211,14 +211,14 @@
   ld hl,my_slow_counter
   ASSERT_HL_POINTS_TO_STRING 3,_b
 
-  ; Test:
-  ADD_DATA 1, 1, 3
+  ; Test counter reset:
+  ADD_DATA 1, 0, 3
   RESET_SLOW_COUNTER _b, 3
   ld hl,my_slow_counter
   call tick_slow_counter
-  jp +
-  ADD_DATA 0, 0, 3
-  ASSERT_CARRY_RESET
+  ADD_DATA 0, 3, 3
+  ld hl,my_slow_counter
+  ASSERT_HL_POINTS_TO_STRING 3, _b
 
   ; ------- end of tests --------------------------------------------------------
   .equ TEST_SUCCES 1      ; Palette colors.
