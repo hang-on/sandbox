@@ -1,4 +1,129 @@
 
+
+.macro RESET_SLOW_COUNTER ARGS DATA SIZE
+   ld hl,DATA
+   ld de,my_slow_counter
+   ld bc,SIZE
+   ldir
+.endm
+
+.macro ADD_DATA
+  jp +
+    __:
+      .rept NARGS
+        .db \1
+        .shift
+      .endr
+  +:
+.endm
+    ; Test tick 1:
+    ADD_DATA 255, 2
+    RESET_SLOW_COUNTER _b, 2
+    ld hl,my_slow_counter
+    call tick_slow_counter
+    ld hl,my_slow_counter
+    ld a,(hl)
+    ASSERT_A_EQUALS 254
+
+    ; Test reset:
+    ADD_DATA 00, 2
+   RESET_SLOW_COUNTER _b, 2
+   ld hl,my_slow_counter
+   call tick_slow_counter
+   ld hl,my_slow_counter
+   ld a,(hl)
+   ASSERT_A_EQUALS 255
+
+    ; Test reset and dec cycle counter:
+  ADD_DATA 1,2
+   RESET_SLOW_COUNTER _b, 2
+   ld hl,my_slow_counter
+   call tick_slow_counter
+   ld hl,my_slow_counter
+   ld a,(hl)
+   ASSERT_A_EQUALS 0
+   ld a,(my_slow_counter+1)
+   ASSERT_A_EQUALS 1
+
+    ; Test carry set on counter up:
+   ADD_DATA 1, 0, 3
+   RESET_SLOW_COUNTER _b, 3
+   ld hl,my_slow_counter
+   call tick_slow_counter
+   ASSERT_CARRY_SET
+   
+    ; Test carry reset on not counter up:
+  ADD_DATA 1, 1, 3
+   RESET_SLOW_COUNTER _b, 3
+   ld hl,my_slow_counter
+   call tick_slow_counter
+   ASSERT_CARRY_RESET
+
+  ; Test:
+  ADD_DATA 1, 1, 3
+  RESET_SLOW_COUNTER _b, 3
+  ld hl,my_slow_counter
+  call tick_slow_counter
+  ADD_DATA 0, 0, 3
+  ld hl,my_slow_counter
+  ASSERT_HL_POINTS_TO_STRING 3,_b
+
+  ; Test counter reset:
+  ADD_DATA 1, 0, 3
+  RESET_SLOW_COUNTER _b, 3
+  ld hl,my_slow_counter
+  call tick_slow_counter
+  ADD_DATA 0, 3, 3
+  ld hl,my_slow_counter
+  ASSERT_HL_POINTS_TO_STRING 3, _b
+
+  ADD_DATA 1, 0, 3
+  RESET_SLOW_COUNTER _b, 3
+  ADD_DATA 1, 0, 3
+  ld hl,my_slow_counter
+  ASSERT_HL_POINTS_TO_STRING 3, _b
+
+  ; Test new composite counter resetter
+  RESET_COMPOSITE_COUNTER my_slow_counter 3
+  ADD_DATA 0, 3, 3
+  ld hl,my_slow_counter
+  ASSERT_HL_POINTS_TO_STRING 3, _b
+
+
+
+  my_slow_counter dsb 3
+
+
+  tick_slow_counter:
+    ; Rename: composite_counter? Consists of fine and coarse counter
+    ; xxx
+    ld a,(hl)                 ; Get counter.
+    dec a                     ; Decrement it ("tick it").
+    jp nz,+
+      ld (hl),a
+      ; Decrement the cycle counter.
+      inc hl
+      ld a,(hl)
+      cp 0
+      jp nz,++
+        ; Reset counter, set carry
+        inc hl
+        ld a,(hl)
+        dec hl
+        ld (hl),a
+        scf
+        ret
+      ++:
+      dec a
+      ld (hl),a
+      ret
+    +:
+    ld (hl),a                 ;
+    or a                      ; Reset carry. 
+  ret                         ; 
+
+
+
 .macro SET_PLAYER ARGS Y, X, DIRECTION, STATE
   ld (player_y),Y
   ld (player_x),X

@@ -23,7 +23,7 @@
 .include "libraries/sms_constants.asm"
 
 ; Remove comment to enable unit testing
-.equ TEST_MODE
+; .equ TEST_MODE
 .ifdef TEST_MODE
   .equ USE_TEST_KERNEL
 .endif
@@ -137,6 +137,7 @@
   temp_byte db                  ; Temporary variable - byte.
   temp_word db                  ; Temporary variable - word.
   temp_counter dw               ; Temporary counter.
+  temp_composite_counter dsb 3
   ;
   vblank_counter db
   hline_counter db
@@ -1544,12 +1545,14 @@
     ld bc,_sizeof_minimap_tilemap
     call load_vram
 
+    ; Use the temp. composite counter to delay transition to level.
+    RESET_COMPOSITE_COUNTER temp_composite_counter, 1
+
     ld a,ENABLED
     call set_display
 
     ei
     call wait_for_vblank    
-
     ld hl,minimap_music
     call PSGPlayNoRepeat
 
@@ -1584,8 +1587,19 @@
     ; Seed the random number generator
     call get_random_number
 
+    ld hl,temp_composite_counter
+    call tick_composite_counter
+    jp nc,+
+      call FadeOutScreen
+      ld a,INITIALIZE_LEVEL
+      ld (game_state),a
+    +:
+
     call is_button_1_or_2_pressed
     jp nc,+
+      ld a,(temp_composite_counter+1) ; get the coarse value
+      cp 0
+      jp nz,+           ; Delay, so you cannot instaclick the minimap.
       call FadeOutScreen
       ld a,INITIALIZE_LEVEL
       ld (game_state),a

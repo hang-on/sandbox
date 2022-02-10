@@ -495,6 +495,51 @@ ret
     or a                      ; Reset carry flag.
   ret                         ; Return with carry reset.
 
+  .macro RESET_COMPOSITE_COUNTER ARGS VAR, VALUE
+    ld hl,VAR
+    ld (hl),0
+    inc hl
+    ld (hl),VALUE
+    inc hl
+    ld (hl),VALUE
+  .endm
+
+  tick_composite_counter:
+    ; A composite counter consists of two bytes: The fine and the coarse counter.
+    ; When the counter is ticked, the fine counter is decremented. If it 
+    ; reaches 0, then the coarse counter is decremented. When the coarse counter
+    ; reaches 0, it is reset to the specified value, and carry is set.
+    ; The composite counter is a 3-byte variable: ff cc rr, where ff is the fine
+    ; counter, cc is the coarse counter, and rr is the coarse counter reset value.
+    ; In: HL = Pointer to composite counter.
+    ; Out: Carry set/reset depending on counter. 
+    ; Uses: A, HL
+    ld a,(hl)                 ; Get fine counter.
+    dec a                     ; Decrement it ("tick it").
+    jp nz,+
+      ld (hl),a
+      ; Decrement the coarse counter.
+      ; The fine counter will auto overflow to 255 on next tick.
+      inc hl
+      ld a,(hl)
+      cp 0
+      jp nz,++
+        ; Reset coarse counter, exit with carry set.
+        inc hl
+        ld a,(hl)
+        dec hl
+        ld (hl),a
+        scf
+        ret
+      ++:
+      dec a
+      ld (hl),a
+      ret
+    +:
+    ld (hl),a                 ;
+    or a                      ; Reset carry. 
+  ret                         ; 
+
 
 
 .ends

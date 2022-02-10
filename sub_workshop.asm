@@ -1,45 +1,12 @@
 
 .ramsection "Ram section for library being developed" slot 3
 
-  my_slow_counter dsb 3
 .ends
 
 .bank 0 slot 0
 ; -----------------------------------------------------------------------------
 .section "Subroutine workshop" free
 ; -----------------------------------------------------------------------------
-
-  tick_slow_counter:
-    ; Rename: composite_counter? Consists of fine and coarse counter
-    ; xxx
-    ld a,(hl)                 ; Get counter.
-    dec a                     ; Decrement it ("tick it").
-    jp nz,+
-      ld (hl),a
-      ; Decrement the cycle counter.
-      inc hl
-      ld a,(hl)
-      cp 0
-      jp nz,++
-        ; Reset counter, set carry
-        inc hl
-        ld a,(hl)
-        dec hl
-        ld (hl),a
-        scf
-        ret
-      ++:
-      dec a
-      ld (hl),a
-      ret
-    +:
-    ld (hl),a                 ;
-    or a                      ; Reset carry. 
-  ret                         ; 
-
-
-
-
 
   detect_collision:
     ; Axis-aligned bounding box.
