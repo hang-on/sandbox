@@ -505,12 +505,14 @@ ret
   .endm
 
   tick_composite_counter:
-    ; A composite counter consists of two bytes: The fine and the coarse counter.
-    ; When the counter is ticked, the fine counter is decremented. If it 
-    ; reaches 0, then the coarse counter is decremented. When the coarse counter
-    ; reaches 0, it is reset to the specified value, and carry is set.
-    ; The composite counter is a 3-byte variable: ff cc rr, where ff is the fine
-    ; counter, cc is the coarse counter, and rr is the coarse counter reset value.
+    ; A composite counter consists of two counter bytes + one reset byte: 
+    ; The fine and the coarse counter.
+    ; When the composite counter is ticked, the fine counter is decremented.
+    ; If itreaches 0, then the coarse counter is decremented. When the coarse
+    ; counter reaches 0, it is reset to the specified value, and carry is set.
+    ; The composite counter is a 3-byte variable: ff cc rr, where ff is the 
+    ; fine counter, cc is the coarse counter, and rr is the coarse counter 
+    ; reset value.
     ; In: HL = Pointer to composite counter.
     ; Out: Carry set/reset depending on counter. 
     ; Uses: A, HL
