@@ -1,7 +1,7 @@
 
 .ramsection "Ram section for library being developed" slot 3
 
-  my_word_counter dsb 4
+  my_slow_counter dsb 3
 .ends
 
 .bank 0 slot 0
@@ -9,42 +9,29 @@
 .section "Subroutine workshop" free
 ; -----------------------------------------------------------------------------
 
-  tick_word_counter:
-    ; Decrement a counter (word) in ram. Reset the counter when it reaches 0, 
-    ; and return with carry flag set. Counter format in RAM (word): cc rr, 
-    ; where cc is the current counter value and rr is the reset value.
-    ; IN: HL = Pointer to counter (cc cc) + reset value (rr rr). Both LSB.
-    ; OUT: Value in counter is decremented or reset, carry set or reset.
-    ; Uses:
+  tick_slow_counter:
+    ; xxx
     ld a,(hl)                 ; Get counter.
     dec a                     ; Decrement it ("tick it").
-    jp nz,+                   ; Is it 0 now?
+    jp nz,+
+      ld (hl),a
+      ; Decrement the cycle counter.
       inc hl
       ld a,(hl)
       cp 0
       jp nz,++
-        ; Counter is 0000, reset to value and return with carry.
-        push hl
-        pop de
-        dec de
-        inc hl
-        ldi
-        ldi
+        ;; Reset counter, set carry
+        ; Add reset
         scf
         ret
       ++:
       dec a
       ld (hl),a
-      inc hl
-      ld a,(hl)
-      dec hl
-      dec hl
-      ld a,(hl)
       ret
-    +:              
-    ld (hl),a                 ; Else, load the decremented value into counter.
-    or a                      ; Reset carry flag.
-  ret                         ; Return with carry reset.
+    +:
+    ld (hl),a                 ;
+    or a                      ; Reset carry. 
+  ret                         ; 
 
 
 
