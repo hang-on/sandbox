@@ -23,7 +23,7 @@
 .include "libraries/sms_constants.asm"
 
 ; Remove comment to enable unit testing
-;.equ TEST_MODE
+.equ TEST_MODE
 .ifdef TEST_MODE
   .equ USE_TEST_KERNEL
 .endif
@@ -266,9 +266,19 @@
       all_black_palette:
         .db $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00
         .db $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 
+      test_palette:
+        .db $00 $2E $17 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00
+        .db $00 $2E $17 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00
     +:
 
     .ifdef TEST_MODE
+      ld a,0
+      ld b,32
+      ld hl,test_palette
+      call load_cram
+
+      ld a,ENABLED
+      call set_display
       jp test_bench
     .endif
 
@@ -352,9 +362,6 @@
     ld a,1
     ld b,BORDER_COLOR
     call set_register
-
-    ld a,DISABLED
-    call set_display
 
     ld a,(current_level)
     add a,LEVEL_BANK_OFFSET

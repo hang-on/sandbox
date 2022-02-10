@@ -11,7 +11,7 @@ PSGS := data/minimap.psg data/eod.psg
 
 all: $(PSGS) $(TILES) $(TILEMAPS) $(OUTPUT)$(PRJNAME).sms
 
-$(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm libraries/* data/*
+$(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm libraries/* data/* /*
 	@C:\Users\ANSJ\Documents\wla_dx_9.12\wla-z80.exe -o $(PRJNAME).o $(PRJNAME).asm
 	@echo [objects] > linkfile
 	@echo $(PRJNAME).o >> linkfile

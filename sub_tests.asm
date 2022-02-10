@@ -137,25 +137,33 @@
 .section "Test data" free
   ; Put data here.
 
-
 .ends
 
-.macro SET_PLAYER ARGS Y, X, DIRECTION, STATE
-  ld (player_y),Y
-  ld (player_x),X
-  ld (direction),DIRECTION
-  ld (state),STATE
-.endm
+
 
 ; -----------------------------------------------------------------------------
 .section "tests" free
   test_bench:
 
+    ; Test setup:
+    jp +
+    __:
+      .db 12 34 55 66
+    +:
+    ld bc,4
+    ld de,my_word_counter
+    ld hl,_b
+    ldir
+    ld a,(my_word_counter)
+    ASSERT_A_EQUALS 12
 
 
   ; ------- end of tests --------------------------------------------------------
+  .equ TEST_SUCCES 1      ; Palette colors.
+  .equ TEST_FAILED 2
+
   exit_with_succes:
-    ld a,7
+    ld a,TEST_SUCCES
     ld b,BORDER_COLOR
     call set_register
   -:
@@ -163,7 +171,7 @@
   jp -
 
   exit_with_failure:
-    ld a,4
+    ld a,TEST_FAILED
     ld b,BORDER_COLOR
     call set_register
   -:

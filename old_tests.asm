@@ -1,4 +1,11 @@
-    
+
+.macro SET_PLAYER ARGS Y, X, DIRECTION, STATE
+  ld (player_y),Y
+  ld (player_x),X
+  ld (direction),DIRECTION
+  ld (state),STATE
+.endm
+
         ; Test 1: Test timer reset
     jp +
       minion_test_data_a:
