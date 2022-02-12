@@ -1412,6 +1412,13 @@
     ld bc,_sizeof_sprite_tiles
     call load_vram
 
+    ld hl,mockup_dashboard
+    ld a,TRUE
+    ld b,0
+    ld c,_sizeof_mockup_dashboard/2
+    call copy_string_to_nametable
+
+
 
     call refresh_sat_handler
     call refresh_input_ports
