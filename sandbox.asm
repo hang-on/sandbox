@@ -1403,9 +1403,13 @@
     ld bc,_sizeof_title_tilemap
     call load_vram
 
+    call refresh_sat_handler
+    call refresh_input_ports
+
     ei
     call wait_for_vblank    
-
+    call load_sat
+    
     ld a,ENABLED
     call set_display
 
@@ -1475,8 +1479,9 @@
     ld bc,_sizeof_game_over_tilemap
     call load_vram
 
-    ei
     RESET_COUNTER wait_counter, 240
+
+    ei
     call wait_for_vblank    
 
     ld a,ENABLED
@@ -1552,16 +1557,23 @@
     ld bc,_sizeof_minimap_tilemap
     call load_vram
 
+    call refresh_sat_handler    
+    call refresh_input_ports
+
+    ld hl,minimap_music
+    call PSGPlayNoRepeat
+
     ; Use the temp. composite counter to delay transition to level.
     RESET_COMPOSITE_COUNTER temp_composite_counter, 1
+
+
+    ei
+    call wait_for_vblank    
+    call load_sat
 
     ld a,ENABLED
     call set_display
 
-    ei
-    call wait_for_vblank    
-    ld hl,minimap_music
-    call PSGPlayNoRepeat
 
     call FadeInScreen
     call PSGRestoreVolumes
