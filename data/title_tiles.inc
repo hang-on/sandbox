@@ -50,3 +50,11 @@
 .db $00 $FF $00 $00 $00 $FF $00 $00 $00 $FF $00 $00 $00 $FF $00 $00 $FF $00 $00 $FF $FF $00 $00 $FF $FF $00 $00 $FF $FF $00 $00 $FF
 ; Tile index $019
 .db $FF $00 $FF $00 $FF $00 $FF $00 $FF $00 $FF $00 $FF $00 $FF $00 $FF $00 $FF $00 $FF $00 $FF $00 $FF $00 $FF $00 $FF $00 $FF $00
+; Tile index $01A
+.db $FF $00 $3C $C3 $FF $00 $72 $8D $FF $00 $32 $CD $FF $00 $34 $CB $FF $00 $38 $C7 $FF $00 $34 $CB $FF $00 $32 $CD $FF $00 $00 $FF
+; Tile index $01B
+.db $FF $00 $3E $C1 $FF $00 $30 $CF $FF $00 $7C $83 $FF $00 $30 $CF $FF $00 $30 $CF $FF $00 $30 $CF $FF $00 $3E $C1 $FF $00 $00 $FF
+; Tile index $01C
+.db $FF $00 $1C $E3 $FF $00 $32 $CD $FF $00 $30 $CF $FF $00 $1C $E3 $FF $00 $06 $F9 $FF $00 $06 $F9 $FF $00 $3C $C3 $FF $00 $00 $FF
+; Tile index $01D
+.db $FF $00 $18 $E7 $FF $00 $18 $E7 $FF $00 $2C $D3 $FF $00 $2C $D3 $FF $00 $FC $03 $FF $00 $46 $B9 $FF $00 $46 $B9 $FF $00 $00 $FF
