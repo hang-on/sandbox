@@ -479,10 +479,13 @@
       call PSGResume
     ++:
 
+    call refresh_sat_handler
+    call refresh_input_ports
+
     ei
     halt
     halt
-
+    call load_sat
     xor a
     ld (vblank_counter),a
     
@@ -1565,7 +1568,8 @@
 
     ; Use the temp. composite counter to delay transition to level.
     RESET_COMPOSITE_COUNTER temp_composite_counter, 1
-
+    LOAD_BYTES temp_byte,$ff  ; Flag to blink the player horse.
+    RESET_COUNTER temp_counter, 20
 
     ei
     call wait_for_vblank    
@@ -1602,6 +1606,25 @@
     
     call refresh_sat_handler
     call refresh_input_ports
+
+    ld hl,temp_counter
+    call tick_counter
+    jp nc,+
+      ; Flip flag (blink horse).
+      ld a,(temp_byte)
+      cpl
+      ld (temp_byte),a
+    +:
+
+    ld a,(temp_byte)
+    cp $ff
+    jp nz,+
+      ; Flag says draw the horse...
+      ld d,130
+      ld e,20
+      ld a,0
+      call spr_3x3
+    +:
 
     ; Seed the random number generator
     call get_random_number
