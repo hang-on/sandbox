@@ -1381,7 +1381,7 @@
     call PSGSFXStop
     call PSGSilenceChannels
     di
-    ld hl,vdp_register_init
+    ld hl,vdp_register_init_show_left_column
     call initialize_vdp_registers    
     call clear_vram
 
@@ -1396,7 +1396,7 @@
 
     ld a,MISC_ASSETS_BANK
     ld hl,title_tiles
-    ld de,SPRITE_BANK_START
+    ld de,BACKGROUND_BANK_START
     ld bc,_sizeof_title_tiles
     call load_vram
 
@@ -1405,6 +1405,13 @@
     ld de,NAME_TABLE_START
     ld bc,_sizeof_title_tilemap
     call load_vram
+  
+    ld a,LEVEL_BANK_OFFSET  ; Use lvl 0 tiles..
+    ld hl,sprite_tiles
+    ld de,SPRITE_BANK_START
+    ld bc,_sizeof_sprite_tiles
+    call load_vram
+
 
     call refresh_sat_handler
     call refresh_input_ports

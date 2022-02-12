@@ -56,7 +56,7 @@ data/title_tiles.inc: data/img/title.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/title.png -8x8 -palsms -fullpalette -savetiles data/title_tiles.inc -exit
 
 data/title_tilemap.inc: data/img/title.png
-	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/title.png -8x8 -palsms -fullpalette -savetilemap data/title_tilemap.inc -exit
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/title.png -8x8 -palsms -fullpalette -savetilemap data/title_tilemap.inc -tileoffset 256 -exit
 
 data/game_over_tiles.inc: data/img/game_over.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/game_over.png -8x8 -palsms -fullpalette -savetiles data/game_over_tiles.inc -exit
