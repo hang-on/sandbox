@@ -1418,6 +1418,10 @@
     ld c,_sizeof_mockup_dashboard/2
     call copy_string_to_nametable
 
+    RESET_VARIABLES 0, frame, direction, jump_counter, hspeed, vspeed
+    LOAD_BYTES player_y, 87, player_x, 105, state, WALKING
+    LOAD_BYTES player_height, 13, player_width, 13
+    RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
 
 
     call refresh_sat_handler
@@ -1457,6 +1461,51 @@
     
     call refresh_sat_handler
     call refresh_input_ports
+
+    ; Count down to next frame.
+    ld hl,anim_counter
+    call tick_counter
+    jp nc,+
+      ld hl,frame
+      inc (hl)
+    +:
+    ; Reset/loop animation if last frame expires. 
+    ld a,(state)
+    ld hl,state_to_frames_total_table
+    call lookup_byte
+    ld b,a
+    ld a,(frame)
+    cp b
+    jp nz,+
+      xor a
+      ld (frame),a
+    +:
+
+    ; Put the sprite tiles in the SAT buffer. 
+    ld a,(state)
+    ld hl,state_to_frame_table
+    call lookup_word
+    ld a,(frame)
+    call lookup_byte
+    ld b,0
+    push af
+      ;.equ ONE_ROW_OFFSET 64
+      ; Offset to left-facing tiles if necessary.
+      ld a,(direction)
+      ld b,0
+      cp RIGHT
+      jp z,+
+        ld b,ONE_ROW_OFFSET
+      +:
+      ld a,(player_y)
+      ld d,a
+      ld a,(player_x)
+      ld e,a
+    pop af
+    add a,b                           ; Apply offset (0 or ONE_ROW)
+    
+    call spr_2x2
+
 
     ; Seed the random number generator
     call get_random_number
