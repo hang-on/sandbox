@@ -142,6 +142,45 @@
       djnz -
   ret
 
+  copy_string_to_nametable_dev:
+    ; hl = string to copy (source)
+    ; de = destination in vram
+    ; b = length of string (len)
+    ; a = use tiles spritebank? true/false
+    push af
+      push hl
+        ex de,hl
+        call setup_vram_write
+      pop hl
+    pop af
+    cp TRUE
+    jp nz,+
+      ; Use tiles in sprite bank.
+      ld b,c
+      -:
+      ld a,(hl)
+        out (DATA_PORT),a
+        push ix
+        pop ix
+        xor a
+        out (DATA_PORT),a
+        inc hl
+      djnz -
+      ret
+    +:
+      ; Use tiles in background bank 
+      ld a,(hl)
+        out (DATA_PORT),a
+        push ix
+        pop ix
+        ld a,%00000001
+        out (DATA_PORT),a
+        inc hl
+      djnz -
+  ret
+
+
+
 FadeInScreen:
     call PSGSilenceChannels
     halt                   ; wait for Vblank
