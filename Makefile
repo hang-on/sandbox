@@ -3,7 +3,8 @@ OUTPUT := binaries/
 TILES := data/chapter_completed_tiles.inc\
 	data/end_of_demo_tiles.inc data/title_tiles.inc\
 	data/game_over_tiles.inc data/sprite_tiles.inc\
-	data/boss_sprite_tiles.inc data/minimap_tiles.inc
+	data/boss_sprite_tiles.inc data/minimap_tiles.inc\
+	data/misc_sprite_tiles.inc
 TILEMAPS := data/chapter_completed_tilemap.inc\
 	data/end_of_demo_tilemap.inc data/title_tilemap.inc\
 	data/game_over_tilemap.inc data/minimap_tilemap.inc
@@ -18,7 +19,8 @@ $(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm libraries/* data/* /*
 	@C:\Users\ANSJ\Documents\wla_dx_9.12\wlalink.exe -d -v -S linkfile $(OUTPUT)$(PRJNAME).sms
 	@rm *.o linkfile
 
-
+data/misc_sprite_tiles.inc: data/img/misc_sprites.png
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/misc_sprites.png -noremovedupes -8x8 -palsms -fullpalette -savetiles data/misc_sprite_tiles.inc -exit
 
 data/sprite_tiles.inc: data/img/sprites.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/sprites.png -noremovedupes -8x8 -palsms -fullpalette -savetiles data/sprite_tiles.inc -exit

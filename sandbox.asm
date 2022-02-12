@@ -66,6 +66,7 @@
 .equ SFX_BANK 3
 .equ MUSIC_BANK 3
 .equ MISC_ASSETS_BANK 6
+.equ MISC_ASSETS_BANK_II 7
 
 .equ SCROLL_POSITION 152
 .equ LEFT_LIMIT 10
@@ -1539,6 +1540,12 @@
     ld bc,_sizeof_minimap_tiles
     call load_vram
 
+    ld a,MISC_ASSETS_BANK_II
+    ld hl,misc_sprite_tiles
+    ld de,SPRITE_BANK_START
+    ld bc,_sizeof_misc_sprite_tiles
+    call load_vram
+
     ld a,MISC_ASSETS_BANK
     ld hl,minimap_tilemap
     ld de,NAME_TABLE_START
@@ -1710,5 +1717,12 @@
     .include "data/minimap_tilemap.inc"
     __:
 
+.ends
+
+.bank 7 slot 2
+.section "Misc assets II" free
+  misc_sprite_tiles:
+    .include "data/misc_sprite_tiles.inc"
+    __:
 .ends
 
