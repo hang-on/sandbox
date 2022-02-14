@@ -183,6 +183,7 @@
   vblank_finish_low db
   vblank_finish_high db
   odd_frame db
+  frame_counter db
   rnd_seed dw
   game_state db
 
@@ -398,7 +399,8 @@
     LOAD_BYTES metatile_halves, 0, nametable_head, 0
     LOAD_BYTES hscroll_screen, 0, hscroll_column, 0, column_load_trigger, 0
     LOAD_BYTES vblank_finish_high, 0, vblank_finish_low, 255
-    LOAD_BYTES odd_frame, TRUE
+    LOAD_BYTES odd_frame, TRUE, frame_counter, 0
+
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
 
@@ -570,6 +572,8 @@
     ld a,(odd_frame)                ; Get value, either TRUE or FALSE.
     cpl                             ; Invert (TRUE -> FALSE, FALSE -> TRUE).
     ld (odd_frame),a                ; Store value.
+    ld hl,frame_counter
+    inc (hl)
 
     ; Seed the random number generator with button 1.
     call is_button_1_pressed
@@ -1455,6 +1459,9 @@
     ; End of critical vblank routines. ----------------------------------------
 
     ; Begin general updating (UPDATE).
+    ld hl,frame_counter
+    inc (hl)
+
     ld a,MUSIC_BANK
     SELECT_BANK_IN_REGISTER_A
     call PSGFrame
@@ -1521,6 +1528,34 @@
       ld a,START_NEW_GAME
       ld (game_state),a
     +:
+
+    ld a,(frame_counter)
+    ld bc,_sizeof_blink_frames
+    ld hl,blink_frames
+    cpir
+    jp nz,+    
+      ld a,4
+      out (CONTROL_PORT),a
+      ld a,CRAM_WRITE_COMMAND
+      out (CONTROL_PORT),a
+      ld a,$1b
+      out (DATA_PORT),a
+      jp ++
+    +:
+      ld a,4
+      out (CONTROL_PORT),a
+      ld a,CRAM_WRITE_COMMAND
+      out (CONTROL_PORT),a
+      ld a,$17
+      out (DATA_PORT),a
+    ++:
+
+    jp +
+      blink_frames:
+        .db 65 66 100 200 239 240 241
+        __:
+    +:
+
   jp main_loop
 
 
