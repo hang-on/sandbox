@@ -1585,8 +1585,12 @@
 
     RESET_COUNTER wait_counter, 240
 
+    call refresh_sat_handler
+    call refresh_input_ports
+
     ei
     call wait_for_vblank    
+    call load_sat
 
     ld a,ENABLED
     call set_display
