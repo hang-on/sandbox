@@ -1423,6 +1423,9 @@
     LOAD_BYTES player_height, 13, player_width, 13
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
 
+    ld hl,title_music
+    call PSGPlay
+
 
     call refresh_sat_handler
     call refresh_input_ports
@@ -1748,6 +1751,9 @@
 
   end_of_demo_music:
     .incbin "data/eod.psg"
+
+  title_music:
+    .incbin "data/title.psg"
 
 .ends
 

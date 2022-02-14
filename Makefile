@@ -8,11 +8,11 @@ TILES := data/chapter_completed_tiles.inc\
 TILEMAPS := data/chapter_completed_tilemap.inc\
 	data/end_of_demo_tilemap.inc data/title_tilemap.inc\
 	data/game_over_tilemap.inc data/minimap_tilemap.inc
-PSGS := data/minimap.psg data/eod.psg
+PSGS := data/minimap.psg data/eod.psg data/title.psg
 
 all: $(PSGS) $(TILES) $(TILEMAPS) $(OUTPUT)$(PRJNAME).sms
 
-$(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm libraries/* data/* /*
+$(OUTPUT)$(PRJNAME).sms: $(PRJNAME).asm libraries/* data/* *.asm
 	@C:\Users\ANSJ\Documents\wla_dx_9.12\wla-z80.exe -o $(PRJNAME).o $(PRJNAME).asm
 	@echo [objects] > linkfile
 	@echo $(PRJNAME).o >> linkfile
