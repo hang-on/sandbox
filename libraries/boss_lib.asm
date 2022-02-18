@@ -226,7 +226,9 @@
           ; Boss is dead!
           ld hl,boss_dies_sfx
           ld c,SFX_CHANNELS2AND3                  
-          call PSGSFXPlay      
+          call PSGSFXPlay  
+          ld hl,stage_clear_music
+          call PSGPlayNoRepeat    
 
           ld a,BOSS_DEACTIVATED
           ld (boss_state),a
@@ -234,6 +236,8 @@
           ; unock exit
           ld a,FALSE
           ld (exit_locked),a
+          RESET_COUNTER force_end_level_counter, 250
+          LOAD_BYTES is_boss_dead, TRUE
         +:
         ;      
         ;ld a,BOSS_HURTING

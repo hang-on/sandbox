@@ -57,7 +57,7 @@
 
 ; Development dashboard:
 
-.equ FIRST_LEVEL 0
+.equ FIRST_LEVEL 1
 ;.equ MUSIC_OFF          ; Comment to turn music on
 ;.equ DISABLE_MINIONS    ; Comment to enable minions.
 ;.equ DISABLE_SCROLL     ; Comment to scroll levels normally.
@@ -169,6 +169,8 @@
   killbox_width db
   ; ----------------
 
+  force_end_level_counter dw
+  is_boss_dead db
   timer_delay dw
   current_level db
   is_scrolling db
@@ -401,6 +403,7 @@
     LOAD_BYTES vblank_finish_high, 0, vblank_finish_low, 255
     LOAD_BYTES odd_frame, TRUE, frame_counter, 0
 
+    LOAD_BYTES is_boss_dead, FALSE
 
     LOAD_BYTES accept_button_1_input, FALSE, accept_button_2_input, FALSE
 
@@ -1145,6 +1148,18 @@
       djnz -
     +:
 
+    ld a,(is_boss_dead)
+    cp TRUE
+    jp nz,+
+      ld hl,force_end_level_counter
+      call tick_counter
+      jp nc,+
+        call PSGSFXStop
+        call PSGSilenceChannels
+        ld a,FINISH_LEVEL
+        ld (game_state),a
+    +:
+
   end_profile: ; For profiling...
   jp main_loop
 
@@ -1797,6 +1812,8 @@
   boss_music:
     .incbin "data/boss.psg"
 
+  stage_clear_music:
+    .incbin "data/stage_clear.psg"
 
 .ends
 
