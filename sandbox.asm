@@ -1794,6 +1794,10 @@
   title_music:
     .incbin "data/title.psg"
 
+  boss_music:
+    .incbin "data/boss.psg"
+
+
 .ends
 
 ; -----------------------------------------------------------------------------

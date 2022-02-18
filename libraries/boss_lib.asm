@@ -142,6 +142,8 @@
             ; Lock exit
             ld a,TRUE
             ld (exit_locked),a
+            ld hl,boss_music
+            call PSGPlay
     +:
     
     ; The rest is for an activated boss.
