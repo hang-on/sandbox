@@ -1398,7 +1398,7 @@
   initialize_title:
     call PSGStop
     call PSGSFXStop
-    call PSGSilenceChannels
+    ;call PSGSilenceChannels
     di
     ld hl,vdp_register_init_show_left_column
     call initialize_vdp_registers    
@@ -1444,6 +1444,7 @@
 
     ld hl,title_music
     call PSGPlay
+    ;call PSGRestoreVolumes
 
 
     call refresh_sat_handler
