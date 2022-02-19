@@ -227,9 +227,9 @@
           ld hl,boss_dies_sfx
           ld c,SFX_CHANNELS2AND3                  
           call PSGSFXPlay  
-          ld hl,stage_clear_music
-          call PSGPlayNoRepeat    
-
+          ;ld hl,stage_clear_music
+          ;call PSGPlayNoRepeat    
+          call PSGStop
           ld a,BOSS_DEACTIVATED
           ld (boss_state),a
           ADD_TO SCORE_THOUSANDS, 5

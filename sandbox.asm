@@ -57,7 +57,7 @@
 
 ; Development dashboard:
 
-.equ FIRST_LEVEL 1
+.equ FIRST_LEVEL 0
 ;.equ MUSIC_OFF          ; Comment to turn music on
 ;.equ DISABLE_MINIONS    ; Comment to enable minions.
 ;.equ DISABLE_SCROLL     ; Comment to scroll levels normally.
@@ -1812,8 +1812,8 @@
   boss_music:
     .incbin "data/boss.psg"
 
-  stage_clear_music:
-    .incbin "data/stage_clear.psg"
+  ;stage_clear_music:
+    ;.incbin "data/stage_clear.psg"
 
 .ends
 
