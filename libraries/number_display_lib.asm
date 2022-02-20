@@ -115,6 +115,15 @@
       jp -
   ret
   
+  set_score:
+    ; Entry: HL = Pointer to score object.
+    ;        DE = Pointer to ascii string of numbers.
+    ; Exit: None
+    ex de,hl                            ; Switch to destination (DE).
+    ld bc,_sizeof_score_struct          ; Number of digits to reset.
+    ldir                                ; Do it.
+  ret
+
   reset_score:
     ; Entry: HL = Pointer to score object.
     ; Exit: None
@@ -197,43 +206,49 @@
     ei
   ret
 
-  
   compare_scores:
     ; Compare two score items to each other, passed to this func in IX and IY.
     ; If score in IY is equal or higher then score in IX, then set carry. If
     ; not, then reset carry.
     ; Entry: IX, IY = Pointers to score structs to compare.
     ; Uses: AF
-    ld a,(ix+score_struct.ten_thousands)
-    cp (iy+score_struct.ten_thousands)
+
+    ld a,(ix+score_struct.hundred_thousands)
+    cp (iy+score_struct.hundred_thousands)
     jp c,iy_is_equal_or_higher
     jp z,+
     jp ix_is_higher
     +:
-      ld a,(ix+score_struct.thousands)
-      cp (iy+score_struct.thousands)
+      ld a,(ix+score_struct.ten_thousands)
+      cp (iy+score_struct.ten_thousands)
       jp c,iy_is_equal_or_higher
       jp z,+
       jp ix_is_higher
       +:
-        ld a,(ix+score_struct.hundreds)
-        cp (iy+score_struct.hundreds)
+        ld a,(ix+score_struct.thousands)
+        cp (iy+score_struct.thousands)
         jp c,iy_is_equal_or_higher
         jp z,+
         jp ix_is_higher
         +:
-          ld a,(ix+score_struct.tens)
-          cp (iy+score_struct.tens)
+          ld a,(ix+score_struct.hundreds)
+          cp (iy+score_struct.hundreds)
           jp c,iy_is_equal_or_higher
           jp z,+
           jp ix_is_higher
           +:
-            ld a,(ix+score_struct.ones)
-            cp (iy+score_struct.ones)
+            ld a,(ix+score_struct.tens)
+            cp (iy+score_struct.tens)
             jp c,iy_is_equal_or_higher
-            jp z,iy_is_equal_or_higher
+            jp z,+
             jp ix_is_higher
-            ;
+            +:
+              ld a,(ix+score_struct.ones)
+              cp (iy+score_struct.ones)
+              jp c,iy_is_equal_or_higher
+              jp z,iy_is_equal_or_higher
+              jp ix_is_higher
+              ;
     iy_is_equal_or_higher:
       scf
       ret
@@ -242,6 +257,9 @@
       ret
   ret
   ;
+
+
+
   copy_score_and_increment_pointers:
     ; Copy the contents of one score struct to another.
     ; Entry: Two score struct pointers:

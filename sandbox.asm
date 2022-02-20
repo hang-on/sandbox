@@ -301,7 +301,19 @@
     +:
 
     call PSGInit
-    
+
+    ; Score:
+    ld hl,score
+    call reset_score
+
+    ld hl,hiscore
+    ld de,hiscore_init
+    call set_score
+    jp +
+      hiscore_init:
+        .db ASCII_ZERO, ASCII_ZERO, ASCII_ZERO + 5, ASCII_ZERO, ASCII_ZERO, ASCII_ZERO
+    +:
+
     ld a,INITIAL_GAMESTATE
     ld (game_state),a
     
@@ -1041,6 +1053,13 @@
     ld hl,SCORE_ADDRESS
     call safe_draw_number_display
 
+    ; Update the hiscore
+    ld a,_sizeof_score_struct
+    ld ix,hiscore
+    ld hl,HISCORE_ADDRESS
+    call safe_draw_number_display
+
+
     ; Update the timer
     ld hl,timer_delay
     call tick_counter
@@ -1466,6 +1485,19 @@
     LOAD_BYTES player_y, 87, player_x, 105, state, WALKING
     LOAD_BYTES player_height, 13, player_width, 13
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
+
+    ; Update the score
+    ld a,_sizeof_score_struct
+    ld ix,score
+    ld hl,SCORE_ADDRESS
+    call safe_draw_number_display
+
+    ; Update the hiscore
+    ld a,_sizeof_score_struct
+    ld ix,hiscore
+    ld hl,HISCORE_ADDRESS
+    call safe_draw_number_display
+
 
     ld hl,title_music
     call PSGPlay
