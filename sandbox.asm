@@ -1485,6 +1485,8 @@
     LOAD_BYTES player_y, 87, player_x, 105, state, WALKING
     LOAD_BYTES player_height, 13, player_width, 13
     RESET_BLOCK ANIM_COUNTER_RESET, anim_counter, 2
+    LOAD_BYTES temp_byte,TRUE
+    RESET_COUNTER wait_counter, 100
 
     ; Update the score
     ld a,_sizeof_score_struct
@@ -1593,14 +1595,27 @@
     ; Seed the random number generator
     call get_random_number
 
-    call is_button_1_or_2_pressed
-    jp nc,+
-      call FadeOutScreen
-      ld l,0
-      call PSGSetMusicVolumeAttenuation  
-      ld a,START_NEW_GAME
-      ld (game_state),a
+    ld a,(temp_byte)
+    cp TRUE
+    jp nz,+
+      ld hl,wait_counter
+      call tick_counter
+      jp nc,+
+        ld a,FALSE
+        ld (temp_byte),a
     +:
+
+    ld a,(temp_byte)    ; Temp byte is used to lock/unlock controller.
+    cp TRUE
+    jp z,+
+      call is_button_1_or_2_pressed
+      jp nc,+
+        call FadeOutScreen
+        ld l,0
+        call PSGSetMusicVolumeAttenuation  
+        ld a,START_NEW_GAME
+        ld (game_state),a
+      +:
 
     ld a,(frame_counter)
     ld bc,_sizeof_blink_frames
