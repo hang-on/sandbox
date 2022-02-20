@@ -389,6 +389,8 @@
     ld bc,SIZEOF_LEVEL_TILES 
     call load_vram
 
+    LOAD_BYTES pause_flag, 0
+
     RESET_VARIABLES 0, frame, direction, jump_counter, hspeed, vspeed
     LOAD_BYTES player_y, 127, player_x, 60, state, IDLE
     LOAD_BYTES player_height, 13, player_width, 13
@@ -565,6 +567,10 @@
     ld a,SFX_BANK
     SELECT_BANK_IN_REGISTER_A
     call PSGSFXFrame
+
+    ld a,(pause_flag)
+    cp 0
+    jp nz,main_loop
     
     ld a,(current_level)
     add a,4                   ; FIXME: Don't we have an offset const?
