@@ -82,6 +82,7 @@
 .equ JUMPING 3
 .equ JUMP_ATTACKING 4
 .equ HURTING 5
+.equ DEAD 6
 
 .equ ANIM_COUNTER_RESET 4
 .equ PLAYER_WALKING_SPEED 1
@@ -939,30 +940,35 @@
       ld (frame),a
     +:
 
-    ; Put the sprite tiles in the SAT buffer. 
-    ld a,(state)
-    ld hl,state_to_frame_table
-    call lookup_word
-    ld a,(frame)
-    call lookup_byte
-    ld b,0
-    push af
-      .equ ONE_ROW_OFFSET 64
-      ; Offset to left-facing tiles if necessary.
-      ld a,(direction)
-      ld b,0
-      cp RIGHT
-      jp z,+
-        ld b,ONE_ROW_OFFSET
-      +:
-      ld a,(player_y)
-      ld d,a
-      ld a,(player_x)
-      ld e,a
-    pop af
-    add a,b                           ; Apply offset (0 or ONE_ROW)
-    
-    call spr_2x2
+    call draw_player
+    jp _f
+      draw_player:
+        ; Put the sprite tiles in the SAT buffer. 
+        ld a,(state)
+        ld hl,state_to_frame_table
+        call lookup_word
+        ld a,(frame)
+        call lookup_byte
+        ld b,0
+        push af
+          .equ ONE_ROW_OFFSET 64
+          ; Offset to left-facing tiles if necessary.
+          ld a,(direction)
+          ld b,0
+          cp RIGHT
+          jp z,+
+            ld b,ONE_ROW_OFFSET
+          +:
+          ld a,(player_y)
+          ld d,a
+          ld a,(player_x)
+          ld e,a
+        pop af
+        add a,b                           ; Apply offset (0 or ONE_ROW)
+        
+        call spr_2x2
+      ret
+    __:
 
     LOAD_BYTES killbox_y, 0, killbox_x, 0
     ; Add the sword sprite on the relevant player states.
@@ -1070,16 +1076,23 @@
         sub b
         bit 7,a       ; Has health dropped below zero?
         jp z,+
+          ; Player dies.
+          TRANSITION_PLAYER_STATE DEAD
           xor a       ; Reset health to zero.
           ; Player has lost all health:
           ld (health),a
           ld hl,player_hurt_sfx
           ld c,SFX_CHANNELS2AND3                            
           call PSGSFXPlay                
-          ld b,60
+          ld b,80
           -:
             push bc
               halt
+              call load_sat
+              
+              call refresh_sat_handler
+              call draw_player
+
               ld a,SFX_BANK
               SELECT_BANK_IN_REGISTER_A
               call PSGSFXFrame
@@ -1188,6 +1201,10 @@
     .db 19
     __:
 
+  dead_frame_to_index_table:
+    .db 30
+    __:
+
   state_to_frame_table:
     .dw idle_frame_to_index_table
     .dw walking_frame_to_index_table
@@ -1195,6 +1212,7 @@
     .dw jumping_frame_to_index_table
     .dw jump_attacking_frame_to_index_table
     .dw hurting_frame_to_index_table
+    .dw dead_frame_to_index_table
     __:
 
   state_to_frames_total_table:
@@ -1204,6 +1222,7 @@
     .db _sizeof_jumping_frame_to_index_table
     .db _sizeof_jump_attacking_frame_to_index_table
     .db _sizeof_hurting_frame_to_index_table
+    .db _sizeof_dead_frame_to_index_table
 
   jump_counter_to_vspeed_table:
     .db -5, -4, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -2, -2, -1, -1 
