@@ -1325,7 +1325,6 @@
     ; End of critical vblank routines. ----------------------------------------
 
     ; Begin general updating (UPDATE).
-    call PSGStop
     ld a,MUSIC_BANK
     SELECT_BANK_IN_REGISTER_A
     call PSGFrame
@@ -1503,13 +1502,15 @@
 
     ld hl,title_music
     call PSGPlay
-    ;call PSGRestoreVolumes
+    call PSGRestoreVolumes
 
 
     call refresh_sat_handler
     call refresh_input_ports
 
     ei
+    halt
+    halt
     call wait_for_vblank    
     call load_sat
     
@@ -1677,6 +1678,9 @@
     call refresh_input_ports
 
     ei
+    halt
+    halt
+
     call wait_for_vblank    
     call load_sat
 
@@ -1691,10 +1695,7 @@
   jp main_loop
   
   run_game_over:
-    ld a,MISC_ASSETS_BANK
-    SELECT_BANK_IN_REGISTER_A      
-    call wait_for_vblank
-    
+    call wait_for_vblank    
     ; Begin vblank critical code (DRAW) ---------------------------------------
     call load_sat
 
@@ -1719,7 +1720,7 @@
       ld (game_state),a
     +:
   jp main_loop
-
+z
 
   ; ---------------------------------------------------------------------------
   initialize_minimap:
