@@ -47,6 +47,7 @@
 .ramsection "Number display variables" slot 3
   score instanceof score_struct
   hiscore instanceof score_struct
+  score_backup instanceof score_struct
   timer instanceof timer_struct
 .ends
 ; -----------------------------------------------------------------------------
@@ -149,7 +150,6 @@
       .rept _sizeof_timer_struct
         .db ASCII_ZERO+9  ;.asc "9"
       .endr
-
 
   fast_print_score:
     ; Print the digits in a score object to the name table.

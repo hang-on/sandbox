@@ -1327,6 +1327,26 @@
     ld c,_sizeof_mockup_dashboard
     call copy_string_to_nametable
 
+
+    ; For developing, dummy set timer
+    ld hl,timer_data
+    ld de,timer
+    ldi
+    ldi
+    jp +
+      timer_data:
+        .db ASCII_ZERO+5, ASCII_ZERO+6 
+    +:
+    ; For development, dummy set health
+    LOAD_BYTES health, 5
+
+    call draw_health_bar
+
+    ld a,_sizeof_timer_struct
+    ld ix,timer
+    ld hl,TIMER_ADDRESS
+    call safe_draw_number_display
+
     ; Update the score
     ld a,_sizeof_score_struct
     ld ix,score
@@ -1338,8 +1358,6 @@
     ld ix,hiscore
     ld hl,HISCORE_ADDRESS
     call safe_draw_number_display
-
-    call draw_health_bar
 
 
 
