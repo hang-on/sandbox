@@ -1476,6 +1476,8 @@
       call FadeOutScreen      
       ld a,INITIALIZE_TITLE
       ld (game_state),a
+      call PSGStop
+      halt
     +:
   jp main_loop
 
@@ -1541,6 +1543,7 @@
     ld hl,HISCORE_ADDRESS
     call safe_draw_number_display
 
+    call PSGInit
 
     ld hl,title_music
     call PSGPlay
