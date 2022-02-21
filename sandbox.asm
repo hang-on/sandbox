@@ -1053,6 +1053,18 @@
     ld hl,SCORE_ADDRESS
     call safe_draw_number_display
 
+    ld iy,score
+    ld ix,hiscore
+    call compare_scores
+    jp nc,+
+      ; Make hiscore mirror current score.
+      ld hl,score
+      ld de,hiscore
+      ld bc,_sizeof_score_struct
+      ldir
+    +:
+
+
     ; Update the hiscore
     ld a,_sizeof_score_struct
     ld ix,hiscore
