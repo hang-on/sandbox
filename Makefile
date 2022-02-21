@@ -45,7 +45,7 @@ data/chapter_completed_tiles.inc: data/img/chapter_completed.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/chapter_completed.png -8x8 -palsms -fullpalette -savetiles data/chapter_completed_tiles.inc -exit
 
 data/chapter_completed_tilemap.inc: data/img/chapter_completed.png
-	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/chapter_completed.png -8x8 -palsms -fullpalette -savetilemap data/chapter_completed_tilemap.inc -exit
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/chapter_completed.png -8x8 -palsms -fullpalette -savetilemap data/chapter_completed_tilemap.inc -tileoffset 256 -exit
 
 data/end_of_demo_tiles.inc: data/img/end_of_demo.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/end_of_demo.png -8x8 -palsms -fullpalette -savetiles data/end_of_demo_tiles.inc -exit

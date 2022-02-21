@@ -44,7 +44,7 @@
   .equ RUN_GAME_OVER 11
   .equ INITIALIZE_MINIMAP 12
   .equ RUN_MINIMAP 13
-  .equ INITIAL_GAMESTATE INITIALIZE_TITLE
+  .equ INITIAL_GAMESTATE INITIALIZE_CHAPTER_COMPLETED
     game_state_jump_table:
     .dw initialize_level, run_level 
     .dw start_new_game, finish_level 
@@ -1158,45 +1158,47 @@
         +:
         ld (health),a
       ret
+    
+    draw_health_bar:
+      ld hl,$3852
+      call setup_vram_write
+      ld a,(health)
+      cp 0
+      jp z,+
+        ld b,a
+        -:
+          ld a,239
+          out (DATA_PORT),a
+          push ix
+          pop ix
+          ld a,0
+          out (DATA_PORT),a
+          push ix
+          pop ix
+        djnz -
+      +:
+      ; Fill the rest of the bar with empty tiles
+      ld a,(health)
+      ld b,a
+      ld a,HEALTH_MAX
+      sub b
+      cp 0
+      jp z,+
+        ld b,a
+        -:
+          ld a,240
+          out (DATA_PORT),a
+          push ix
+          pop ix
+          ld a,0
+          out (DATA_PORT),a
+          push ix
+          pop ix
+        djnz -
+      +:
+    ret    
     __:
-
-    ; Update the health bar
-    ld hl,$3852
-    call setup_vram_write
-    ld a,(health)
-    cp 0
-    jp z,+
-      ld b,a
-      -:
-        ld a,239
-        out (DATA_PORT),a
-        push ix
-        pop ix
-        ld a,0
-        out (DATA_PORT),a
-        push ix
-        pop ix
-      djnz -
-    +:
-    ; Fill the rest of the bar with empty tiles
-    ld a,(health)
-    ld b,a
-    ld a,HEALTH_MAX
-    sub b
-    cp 0
-    jp z,+
-      ld b,a
-      -:
-        ld a,240
-        out (DATA_PORT),a
-        push ix
-        pop ix
-        ld a,0
-        out (DATA_PORT),a
-        push ix
-        pop ix
-      djnz -
-    +:
+    call draw_health_bar
 
     ld a,(is_boss_dead)
     cp TRUE
@@ -1303,7 +1305,7 @@
 
     ld a,MISC_ASSETS_BANK
     ld hl,chapter_completed_tiles
-    ld de,SPRITE_BANK_START
+    ld de,BACKGROUND_BANK_START
     ld bc,_sizeof_chapter_completed_tiles
     call load_vram
 
@@ -1313,7 +1315,37 @@
     ld bc,_sizeof_chapter_completed_tilemap
     call load_vram
 
+    ld a,LEVEL_BANK_OFFSET  ; Use lvl 0 tiles..
+    ld hl,sprite_tiles
+    ld de,SPRITE_BANK_START
+    ld bc,_sizeof_sprite_tiles
+    call load_vram
+
+    ld hl,mockup_dashboard
+    ld a,TRUE
+    ld b,0
+    ld c,_sizeof_mockup_dashboard
+    call copy_string_to_nametable
+
+    ; Update the score
+    ld a,_sizeof_score_struct
+    ld ix,score
+    ld hl,SCORE_ADDRESS
+    call safe_draw_number_display
+
+    ; Update the hiscore
+    ld a,_sizeof_score_struct
+    ld ix,hiscore
+    ld hl,HISCORE_ADDRESS
+    call safe_draw_number_display
+
+    call draw_health_bar
+
+
+
     ei
+    halt
+    halt
     call wait_for_vblank    
 
     ld a,ENABLED
@@ -1327,8 +1359,6 @@
   jp main_loop
 
   run_chapter_completed:    
-    ld a,MISC_ASSETS_BANK
-    SELECT_BANK_IN_REGISTER_A      
     call wait_for_vblank
     
     ; Begin vblank critical code (DRAW) ---------------------------------------
@@ -1451,8 +1481,8 @@
 
   ; ---------------------------------------------------------------------------
   initialize_title:
-    call PSGStop
-    call PSGSFXStop
+    ;call PSGStop
+    ;call PSGSFXStop
     ;call PSGSilenceChannels
     di
     ld hl,vdp_register_init_show_left_column
@@ -1514,7 +1544,7 @@
 
     ld hl,title_music
     call PSGPlay
-    call PSGRestoreVolumes
+    ;call PSGRestoreVolumes
 
 
     call refresh_sat_handler
@@ -1537,8 +1567,6 @@
   jp main_loop
   
   run_title:
-    ld a,MISC_ASSETS_BANK
-    SELECT_BANK_IN_REGISTER_A      
     call wait_for_vblank
     
     ; Begin vblank critical code (DRAW) ---------------------------------------
