@@ -12,8 +12,10 @@
 .equ BOSS_ATTACKING_RIGHT 27
 .equ BOSS_WALKING_RIGHT_0 21
 .equ BOSS_WALKING_RIGHT_1 24
+
+; Boss stats
 .equ BOSS_SHIELD_MAX 15
-.equ BOSS_LIFE_MAX 22
+.equ BOSS_LIFE_MAX 18
 
 
 .ramsection "Boss ram section" slot 3
