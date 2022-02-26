@@ -1340,7 +1340,7 @@
     ldi
     jp +
       timer_data:
-        .db ASCII_ZERO+5, ASCII_ZERO+6 
+        .db ASCII_ZERO+3, ASCII_ZERO+6 
     +:
     ; For developing, dummy set timer
     ld hl,@score_data
@@ -1452,7 +1452,7 @@
         cp ASCII_ZERO
         jp nz,+
           ; Timer is down to 00.
-          RESET_COUNTER substate_counter, 60
+          RESET_COUNTER substate_counter, 120
           ld hl,substate
           inc (hl)
           jp main_loop
@@ -1482,6 +1482,13 @@
     jp main_loop
 
     @pause_0:
+      ld hl,substate_counter
+      call tick_counter
+      jp nc,+
+        ld a,INITIALIZE_END_OF_DEMO
+        ld (game_state),a
+        jp main_loop
+      +:  
 
     jp main_loop
 
@@ -1495,6 +1502,9 @@
 
   ; ---------------------------------------------------------------------------
   initialize_end_of_demo:
+    ld a,DISABLED
+    call set_display
+
     call PSGStop
 
     di
@@ -1505,9 +1515,6 @@
     ld a,1
     ld b,BORDER_COLOR
     call set_register
-
-    ld a,DISABLED
-    call set_display
 
     ld a,MISC_ASSETS_BANK
     ld hl,end_of_demo_tiles
@@ -1529,10 +1536,18 @@
 
 
     ei
-    call wait_for_vblank    
-
+    halt
+    halt
+    halt
+    halt
     ld a,ENABLED
     call set_display
+    halt
+    halt
+    halt
+    halt
+    call wait_for_vblank    
+
 
     call FadeInScreen
 
@@ -1542,8 +1557,6 @@
   jp main_loop
   
   run_end_of_demo:
-    ld a,MISC_ASSETS_BANK
-    SELECT_BANK_IN_REGISTER_A      
     call wait_for_vblank
     
     ; Begin vblank critical code (DRAW) ---------------------------------------
@@ -1914,6 +1927,8 @@ z
     RESET_COUNTER temp_counter, 20
 
     ei
+    halt
+    halt
     call wait_for_vblank    
     call load_sat
 
