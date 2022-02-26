@@ -1452,6 +1452,7 @@
         cp ASCII_ZERO
         jp nz,+
           ; Timer is down to 00.
+          RESET_COUNTER substate_counter, 60
           ld hl,substate
           inc (hl)
           jp main_loop
@@ -1477,8 +1478,6 @@
       ld hl,SCORE_ADDRESS
       ld ix,score
       call safe_draw_number_display
-
-
 
     jp main_loop
 
