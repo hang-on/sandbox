@@ -1342,6 +1342,18 @@
       timer_data:
         .db ASCII_ZERO+5, ASCII_ZERO+6 
     +:
+    ; For developing, dummy set timer
+    ld hl,@score_data
+    ld de,score
+    ld bc,_sizeof_score_struct
+    ldir
+    jp +
+      @score_data:
+        .db ASCII_ZERO, ASCII_ZERO, ASCII_ZERO+1, ASCII_ZERO+3
+        .db ASCII_ZERO+5, ASCII_ZERO 
+    +:
+
+
     ; For development, dummy set health
     LOAD_BYTES health, 5
 
@@ -1454,15 +1466,24 @@
         ld hl,timer
         call subtract_from_number
       +:
-      ld a,2
+      ld a,_sizeof_timer_struct
       ld hl,TIMER_ADDRESS
       ld ix,timer
       call safe_draw_number_display
 
+      ; Add to score
+      ADD_TO SCORE_TENS, 1
+      ld a,_sizeof_score_struct
+      ld hl,SCORE_ADDRESS
+      ld ix,score
+      call safe_draw_number_display
+
+
+
     jp main_loop
 
     @pause_0:
-      
+
     jp main_loop
 
       ;call is_button_1_or_2_pressed
