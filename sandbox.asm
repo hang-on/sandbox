@@ -144,7 +144,10 @@
   vblank_counter db
   hline_counter db
   pause_flag db
-  ;  
+  ;
+  substate db
+  substate_counter dw
+
   ; Player variables. Note - this order is expected!
   anim_counter dw
   frame db
@@ -1327,7 +1330,9 @@
     ld c,_sizeof_mockup_dashboard
     call copy_string_to_nametable
 
-
+    LOAD_BYTES substate, 0
+    RESET_COUNTER substate_counter, 180
+    
     ; For developing, dummy set timer
     ld hl,timer_data
     ld de,timer
@@ -1395,15 +1400,78 @@
     call refresh_sat_handler
     call refresh_input_ports
 
-    call is_button_1_or_2_pressed
-    jp nc,+
-      call FadeOutScreen
-      ld a,INITIALIZE_END_OF_DEMO
-      ld (game_state),a
-    +:
+    ; Branch depending on substate
+    ld a,(substate)   
+    add a,a             ; Double it up because jump table is word-sized.
+    ld h,0              ; Set up HL as the jump table offset.
+    ld l,a
+    ld de,@substate_jt  ; Point to JT base address
+    add hl,de           ; Apply offset to base address.
+    ld a,(hl)           ; Get LSB from table.
+    inc hl              ; Increment pointer.
+    ld h,(hl)           ; Get MSB from table.
+    ld l,a              ; HL now contains the address of the state handler.
+    jp (hl)             ; Jump to this handler - note, not call!
 
+    @substate_jt:
+      .dw @intro
+      .dw @time_to_score
+      .dw @pause_0
+    
+    @intro:
+      ld hl,substate_counter
+      call tick_counter
+      jp nc,+
+        RESET_COUNTER temp_counter, 10
+        ld hl,substate
+        inc (hl)
+      +:
+    jp main_loop
 
-  jp main_loop
+    
+    @time_to_score:
+      ; Is timer 00?
+      ld hl,timer
+      ld a,(hl)
+      cp ASCII_ZERO
+      jp nz,+
+        inc hl
+        ld a,(hl)
+        cp ASCII_ZERO
+        jp nz,+
+          ; Timer is down to 00.
+          ld hl,substate
+          inc (hl)
+          jp main_loop
+      +:
+
+      ; Dec timer.
+      ld hl,temp_counter
+      call tick_counter
+      jp nc,+
+        ld a,TIMER_ONES
+        ld b,1
+        ld hl,timer
+        call subtract_from_number
+      +:
+      ld a,2
+      ld hl,TIMER_ADDRESS
+      ld ix,timer
+      call safe_draw_number_display
+
+    jp main_loop
+
+    @pause_0:
+      
+    jp main_loop
+
+      ;call is_button_1_or_2_pressed
+      ;jp nc,+
+      ;  call FadeOutScreen
+      ;  ld a,INITIALIZE_END_OF_DEMO
+      ;  ld (game_state),a
+      ;+:
+
 
   ; ---------------------------------------------------------------------------
   initialize_end_of_demo:
@@ -1433,7 +1501,6 @@
     ld bc,_sizeof_end_of_demo_tilemap
     call load_vram
 
-    ; Replace with title tune:
     ld hl,end_of_demo_music
     call PSGPlay
 

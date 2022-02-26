@@ -179,7 +179,7 @@
     ; Print the digits in a number display to the name table.
     ; Entry: A = number of digits 
     ;        HL = VRAM address.
-    ;        IX = Score object.
+    ;        IX = Number object.
     ; Exit: None.
     ; Uses: ?
     ;
