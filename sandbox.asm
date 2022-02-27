@@ -147,6 +147,7 @@
   ;
   substate db
   substate_counter dw
+  ctrl_lock db
 
   ; Player variables. Note - this order is expected!
   anim_counter dw
@@ -1554,6 +1555,9 @@
     RESET_COUNTER temp_counter, 30
     LOAD_BYTES temp_byte, 15
 
+    RESET_COUNTER wait_counter, 75
+    LOAD_BYTES ctrl_lock, TRUE
+
     call refresh_sat_handler
     call refresh_input_ports
 
@@ -1605,13 +1609,27 @@
     call refresh_sat_handler
     call refresh_input_ports
 
-    call is_button_1_or_2_pressed
-    jp nc,+
-      call FadeOutScreen      
-      ld a,INITIALIZE_TITLE
-      ld (game_state),a
-      call PSGStop
-      halt
+    ld a,(ctrl_lock)
+    cp TRUE
+    jp nz,+
+      ld hl,wait_counter
+      call tick_counter
+      jp nc,+
+        ld a,FALSE
+        ld (ctrl_lock),a
+    +:
+
+
+    ld a,(ctrl_lock)
+    cp TRUE
+    jp z,+
+      call is_button_1_or_2_pressed
+      jp nc,+
+        call FadeOutScreen      
+        ld a,INITIALIZE_TITLE
+        ld (game_state),a
+        call PSGStop
+        halt
     +:
   jp main_loop
 
