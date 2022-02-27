@@ -1536,13 +1536,13 @@
     ld b,BORDER_COLOR
     call set_register
 
-    ld a,MISC_ASSETS_BANK
+    ld a,MISC_ASSETS_BANK_II
     ld hl,end_of_demo_tiles
     ld de,BACKGROUND_BANK_START
     ld bc,_sizeof_end_of_demo_tiles
     call load_vram
 
-    ld a,MISC_ASSETS_BANK
+    ld a,MISC_ASSETS_BANK_II
     ld hl,end_of_demo_tilemap
     ld de,NAME_TABLE_START
     ld bc,_sizeof_end_of_demo_tilemap
@@ -2106,13 +2106,6 @@ z
     .include "data/chapter_completed_tilemap.inc"
     __:
 
-  end_of_demo_tiles:
-    .include "data/end_of_demo_tiles.inc"
-    __:
-  end_of_demo_tilemap:
-    .include "data/end_of_demo_tilemap.inc"
-    __:
-
   title_tiles:
     .include "data/title_tiles.inc"
     __:
@@ -2141,5 +2134,13 @@ z
   misc_sprite_tiles:
     .include "data/misc_sprite_tiles.inc"
     __:
+
+  end_of_demo_tiles:
+    .include "data/end_of_demo_tiles.inc"
+    __:
+  end_of_demo_tilemap:
+    .include "data/end_of_demo_tilemap.inc"
+    __:
+
 .ends
 
