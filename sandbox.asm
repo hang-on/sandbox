@@ -1332,7 +1332,7 @@
     call copy_string_to_nametable
 
     LOAD_BYTES substate, 0
-    RESET_COUNTER substate_counter, 180
+    RESET_COUNTER substate_counter, 60
     
     ; For developing, dummy set timer
     ld hl,timer_data
@@ -1376,8 +1376,6 @@
     ld ix,hiscore
     ld hl,HISCORE_ADDRESS
     call safe_draw_number_display
-
-
 
     ei
     halt
@@ -1469,6 +1467,10 @@
           RESET_COUNTER substate_counter, 145
           ld hl,substate
           inc (hl)
+          ld hl,score_tally_music
+          call PSGPlayNoRepeat
+          RESET_COUNTER wait_counter 200
+          LOAD_BYTES ctrl_lock, TRUE
           jp main_loop
       +:
 
@@ -1476,6 +1478,17 @@
       ld hl,temp_counter
       call tick_counter
       jp nc,+
+        ld hl,tick
+        ld c,SFX_CHANNEL2
+        call PSGSFXPlay
+
+        ; Add to score
+        ADD_TO SCORE_TENS, 1
+        ld a,_sizeof_score_struct
+        ld hl,SCORE_ADDRESS
+        ld ix,score
+        call safe_draw_number_display
+
         ld a,TIMER_ONES
         ld b,1
         ld hl,timer
@@ -1486,12 +1499,6 @@
       ld ix,timer
       call safe_draw_number_display
 
-      ; Add to score
-      ADD_TO SCORE_TENS, 1
-      ld a,_sizeof_score_struct
-      ld hl,SCORE_ADDRESS
-      ld ix,score
-      call safe_draw_number_display
 
     jp main_loop
 
@@ -1501,14 +1508,41 @@
       ld a,6
       call spr_3x3      
 
-      ld hl,substate_counter
+    ld a,(ctrl_lock)
+    cp TRUE
+    jp nz,+
+      ld hl,wait_counter
       call tick_counter
       jp nc,+
+        ld a,FALSE
+        ld (ctrl_lock),a
+    +:
+
+
+    ld a,(ctrl_lock)
+    cp TRUE
+    jp z,+
+      call is_button_1_or_2_pressed
+      jp nc,+
+        call FadeOutScreen      
         ld a,INITIALIZE_END_OF_DEMO
         ld (game_state),a
-        call FadeOutScreen
+        call PSGStop
         halt
-      +:  
+        jp main_loop
+    +:
+
+    call PSGGetStatus
+    cp PSG_PLAYING
+    jp z,+
+        call FadeOutScreen      
+        ld a,INITIALIZE_END_OF_DEMO
+        ld (game_state),a
+        call PSGStop
+        halt
+        jp main_loop
+    +:
+
 
     jp main_loop
 
@@ -1555,7 +1589,7 @@
     RESET_COUNTER temp_counter, 30
     LOAD_BYTES temp_byte, 15
 
-    RESET_COUNTER wait_counter, 75
+    RESET_COUNTER wait_counter, 140
     LOAD_BYTES ctrl_lock, TRUE
 
     call refresh_sat_handler
@@ -2085,6 +2119,12 @@ z
 
   ;stage_clear_music:
     ;.incbin "data/stage_clear.psg"
+
+  score_tally_music:
+    .incbin "data/score_tally.psg"
+  
+  tick:
+    .incbin "data/tick.psg"
 
 .ends
 
