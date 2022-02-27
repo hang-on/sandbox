@@ -51,7 +51,7 @@ data/end_of_demo_tiles.inc: data/img/end_of_demo.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/end_of_demo.png -8x8 -palsms -fullpalette -savetiles data/end_of_demo_tiles.inc -exit
 
 data/end_of_demo_tilemap.inc: data/img/end_of_demo.png
-	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/end_of_demo.png -8x8 -palsms -fullpalette -savetilemap data/end_of_demo_tilemap.inc -exit
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/end_of_demo.png -8x8 -palsms -fullpalette -savetilemap data/end_of_demo_tilemap.inc -tileoffset 256 -exit
 
 data/title_tiles.inc: data/img/title.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/title.png -8x8 -palsms -fullpalette -savetiles data/title_tiles.inc -exit

@@ -1521,7 +1521,6 @@
   initialize_end_of_demo:
     ld a,DISABLED
     call set_display
-    halt
 
     call PSGStop
 
@@ -1536,7 +1535,7 @@
 
     ld a,MISC_ASSETS_BANK
     ld hl,end_of_demo_tiles
-    ld de,SPRITE_BANK_START
+    ld de,BACKGROUND_BANK_START
     ld bc,_sizeof_end_of_demo_tiles
     call load_vram
 
@@ -1552,14 +1551,23 @@
     RESET_COUNTER temp_counter, 30
     LOAD_BYTES temp_byte, 15
 
+    call refresh_sat_handler
+    call refresh_input_ports
+
 
     ei
     halt
     halt
     halt
     halt
+    halt
+    halt
+    halt
     ld a,ENABLED
     call set_display
+    halt
+    halt
+    halt
     halt
     halt
     halt
