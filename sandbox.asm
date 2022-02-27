@@ -1505,6 +1505,8 @@
       jp nc,+
         ld a,INITIALIZE_END_OF_DEMO
         ld (game_state),a
+        call FadeOutScreen
+        halt
       +:  
 
     jp main_loop
@@ -1521,13 +1523,14 @@
   initialize_end_of_demo:
     ld a,DISABLED
     call set_display
-
     call PSGStop
+
 
     di
     call clear_vram
-    ld hl,vdp_register_init
+    ld hl,vdp_register_init_show_left_column
     call initialize_vdp_registers    
+
 
     ld a,1
     ld b,BORDER_COLOR
@@ -1557,21 +1560,8 @@
 
     ei
     halt
-    halt
-    halt
-    halt
-    halt
-    halt
-    halt
     ld a,ENABLED
     call set_display
-    halt
-    halt
-    halt
-    halt
-    halt
-    halt
-    halt
     call wait_for_vblank    
 
 
