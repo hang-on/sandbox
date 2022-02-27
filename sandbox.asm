@@ -1317,11 +1317,11 @@
     ld de,NAME_TABLE_START
     ld bc,_sizeof_chapter_completed_tilemap
     call load_vram
-
-    ld a,LEVEL_BANK_OFFSET  ; Use lvl 0 tiles..
-    ld hl,sprite_tiles
+    
+    ld a,MISC_ASSETS_BANK_II
+    ld hl,misc_sprite_tiles
     ld de,SPRITE_BANK_START
-    ld bc,_sizeof_sprite_tiles
+    ld bc,_sizeof_misc_sprite_tiles
     call load_vram
 
     ld hl,mockup_dashboard
@@ -1431,17 +1431,30 @@
       .dw @pause_0
     
     @intro:
+      .equ YPOS 90
+      
+      ld d,YPOS
+      ld e,(256-12)/2
+      ld a,3
+      call spr_3x3      
+
       ld hl,substate_counter
       call tick_counter
       jp nc,+
         RESET_COUNTER temp_counter, 10
         ld hl,substate
         inc (hl)
+        jp main_loop
       +:
+    
     jp main_loop
-
     
     @time_to_score:
+      ld d,YPOS
+      ld e,(256-12)/2
+      ld a,3
+      call spr_3x3      
+
       ; Is timer 00?
       ld hl,timer
       ld a,(hl)
@@ -1452,7 +1465,7 @@
         cp ASCII_ZERO
         jp nz,+
           ; Timer is down to 00.
-          RESET_COUNTER substate_counter, 120
+          RESET_COUNTER substate_counter, 145
           ld hl,substate
           inc (hl)
           jp main_loop
@@ -1482,12 +1495,16 @@
     jp main_loop
 
     @pause_0:
+      ld d,YPOS
+      ld e,(256-12)/2
+      ld a,6
+      call spr_3x3      
+
       ld hl,substate_counter
       call tick_counter
       jp nc,+
         ld a,INITIALIZE_END_OF_DEMO
         ld (game_state),a
-        jp main_loop
       +:  
 
     jp main_loop
@@ -1504,6 +1521,7 @@
   initialize_end_of_demo:
     ld a,DISABLED
     call set_display
+    halt
 
     call PSGStop
 
