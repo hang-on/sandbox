@@ -15,7 +15,7 @@
 
 ; Boss stats
 .equ BOSS_SHIELD_MAX 15
-.equ BOSS_LIFE_MAX 18
+.equ BOSS_LIFE_MAX 16
 
 
 .ramsection "Boss ram section" slot 3

@@ -44,7 +44,7 @@
   .equ RUN_GAME_OVER 11
   .equ INITIALIZE_MINIMAP 12
   .equ RUN_MINIMAP 13
-  .equ INITIAL_GAMESTATE INITIALIZE_CHAPTER_COMPLETED
+  .equ INITIAL_GAMESTATE INITIALIZE_TITLE
     game_state_jump_table:
     .dw initialize_level, run_level 
     .dw start_new_game, finish_level 
@@ -315,7 +315,7 @@
     call set_score
     jp +
       hiscore_init:
-        .db ASCII_ZERO, ASCII_ZERO, ASCII_ZERO + 5, ASCII_ZERO, ASCII_ZERO, ASCII_ZERO
+        .db ASCII_ZERO, ASCII_ZERO+1, ASCII_ZERO + 5, ASCII_ZERO, ASCII_ZERO, ASCII_ZERO
     +:
 
     ld a,INITIAL_GAMESTATE
@@ -1337,8 +1337,8 @@
     ; For developing, dummy set timer
     ld hl,timer_data
     ld de,timer
-    ldi
-    ldi
+    ;ldi
+    ;ldi
     jp +
       timer_data:
         .db ASCII_ZERO+3, ASCII_ZERO+6 
@@ -1347,7 +1347,7 @@
     ld hl,@score_data
     ld de,score
     ld bc,_sizeof_score_struct
-    ldir
+    ;ldir
     jp +
       @score_data:
         .db ASCII_ZERO, ASCII_ZERO, ASCII_ZERO+1, ASCII_ZERO+3
@@ -1356,7 +1356,7 @@
 
 
     ; For development, dummy set health
-    LOAD_BYTES health, 5
+    ;LOAD_BYTES health, 5
 
     call draw_health_bar
 
@@ -1483,7 +1483,7 @@
         call PSGSFXPlay
 
         ; Add to score
-        ADD_TO SCORE_TENS, 1
+        ADD_TO SCORE_TENS, 5
         ld a,_sizeof_score_struct
         ld hl,SCORE_ADDRESS
         ld ix,score
@@ -1499,6 +1499,22 @@
       ld ix,timer
       call safe_draw_number_display
 
+      ld iy,score
+      ld ix,hiscore
+      call compare_scores
+      jp nc,+
+        ; Make hiscore mirror current score.
+        ld hl,score
+        ld de,hiscore
+        ld bc,_sizeof_score_struct
+        ldir
+      +:
+
+      ; Update the hiscore
+      ld a,_sizeof_score_struct
+      ld ix,hiscore
+      ld hl,HISCORE_ADDRESS
+      call safe_draw_number_display
 
     jp main_loop
 
