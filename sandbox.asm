@@ -315,7 +315,7 @@
     call set_score
     jp +
       hiscore_init:
-        .db ASCII_ZERO, ASCII_ZERO+1, ASCII_ZERO + 5, ASCII_ZERO, ASCII_ZERO, ASCII_ZERO
+        .db ASCII_ZERO, ASCII_ZERO+1, ASCII_ZERO, ASCII_ZERO, ASCII_ZERO, ASCII_ZERO
     +:
 
     ld a,INITIAL_GAMESTATE
