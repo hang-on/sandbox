@@ -44,7 +44,9 @@
   .equ RUN_GAME_OVER 11
   .equ INITIALIZE_MINIMAP 12
   .equ RUN_MINIMAP 13
-  .equ INITIAL_GAMESTATE INITIALIZE_TITLE
+  .equ INITIALIZE_SPLASH 14
+  .equ RUN_SPLASH 15
+  .equ INITIAL_GAMESTATE INITIALIZE_SPLASH
     game_state_jump_table:
     .dw initialize_level, run_level 
     .dw start_new_game, finish_level 
@@ -53,6 +55,7 @@
     .dw initialize_title, run_title
     .dw initialize_game_over, run_game_over
     .dw initialize_minimap, run_minimap
+    .dw initialize_splash, run_splash
 .ends
 
 ; Development dashboard:
@@ -2090,6 +2093,76 @@ z
   jp main_loop
 
 
+  initialize_splash:
+    ld a,DISABLED
+    call set_display
+
+    di
+    call clear_vram
+    ld hl,vdp_register_init_show_left_column
+    call initialize_vdp_registers    
+
+
+    ld a,1
+    ld b,BORDER_COLOR
+    call set_register
+
+    ld a,MISC_ASSETS_BANK_II
+    ld hl,splash_tiles
+    ld de,BACKGROUND_BANK_START
+    ld bc,_sizeof_splash_tiles
+    call load_vram
+
+    ld a,MISC_ASSETS_BANK_II
+    ld hl,splash_tilemap
+    ld de,NAME_TABLE_START
+    ld bc,_sizeof_splash_tilemap
+    call load_vram
+
+    ;RESET_COUNTER temp_counter, 30
+    ;LOAD_BYTES temp_byte, 15
+
+    ;RESET_COUNTER wait_counter, 140
+    ;LOAD_BYTES ctrl_lock, TRUE
+
+    call refresh_sat_handler
+
+    ei
+    halt
+    ld a,ENABLED
+    call set_display
+    call wait_for_vblank    
+
+
+    call FadeInScreen
+
+    ld a,RUN_SPLASH
+    ld (game_state),a
+
+  jp main_loop
+  
+  run_splash:
+    call wait_for_vblank
+    
+    ; Begin vblank critical code (DRAW) ---------------------------------------
+    call load_sat
+
+    ; End of critical vblank routines. ----------------------------------------
+
+    ; Begin general updating (UPDATE).
+
+    ld a,MUSIC_BANK
+    SELECT_BANK_IN_REGISTER_A
+    call PSGFrame
+    ld a,SFX_BANK
+    SELECT_BANK_IN_REGISTER_A
+    call PSGSFXFrame
+    
+    call refresh_sat_handler
+    call refresh_input_ports
+
+  jp main_loop
+
 
 
 .ends
@@ -2215,6 +2288,14 @@ z
   end_of_demo_tilemap:
     .include "data/end_of_demo_tilemap.inc"
     __:
+
+  splash_tiles:
+    .include "data/splash_tiles.inc"
+    __:
+  splash_tilemap:
+    .include "data/splash_tilemap.inc"
+    __:
+
 
 .ends
 

@@ -4,10 +4,11 @@ TILES := data/chapter_completed_tiles.inc\
 	data/end_of_demo_tiles.inc data/title_tiles.inc\
 	data/game_over_tiles.inc data/sprite_tiles.inc\
 	data/boss_sprite_tiles.inc data/minimap_tiles.inc\
-	data/misc_sprite_tiles.inc
+	data/misc_sprite_tiles.inc data/splash_tiles.inc
 TILEMAPS := data/chapter_completed_tilemap.inc\
 	data/end_of_demo_tilemap.inc data/title_tilemap.inc\
-	data/game_over_tilemap.inc data/minimap_tilemap.inc
+	data/game_over_tilemap.inc data/minimap_tilemap.inc\
+	data/splash_tilemap.inc
 PSGS := data/minimap.psg data/eod.psg data/title.psg data/boss.psg\
 	data/stage_clear.psg data/score_tally.psg data/tick.psg
 
@@ -70,6 +71,13 @@ data/minimap_tiles.inc: data/img/minimap.png
 
 data/minimap_tilemap.inc: data/img/minimap.png
 	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/minimap.png -8x8 -palsms -fullpalette -tileoffset 256 -savetilemap data/minimap_tilemap.inc -exit
+
+data/splash_tiles.inc: data/img/splash.png
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/splash.png -8x8 -palsms -fullpalette -savetiles data/splash_tiles.inc -exit
+
+data/splash_tilemap.inc: data/img/splash.png
+	@C:\Users\ANSJ\Documents\bmp2tile042\BMP2Tile.exe data/img/splash.png -8x8 -palsms -fullpalette -tileoffset 256 -savetilemap data/splash_tilemap.inc -exit
+
 
 data/%.psg: data/psg/%.vgm
 	@C:\Users\ANSJ\Documents\PSGlib-nov15\tools\vgm2psg.exe $< $@
