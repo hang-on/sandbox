@@ -2102,6 +2102,11 @@ z
     ld hl,vdp_register_init_show_left_column
     call initialize_vdp_registers    
 
+    ld a,0
+    ld b,16
+    ld hl,pal_7
+    call load_cram
+
 
     ld a,1
     ld b,BORDER_COLOR
@@ -2119,8 +2124,9 @@ z
     ld bc,_sizeof_splash_tilemap
     call load_vram
 
+
     ;RESET_COUNTER temp_counter, 30
-    ;LOAD_BYTES temp_byte, 15
+    LOAD_BYTES temp_byte, 0
 
     ;RESET_COUNTER wait_counter, 140
     ;LOAD_BYTES ctrl_lock, TRUE
@@ -2132,9 +2138,6 @@ z
     ld a,ENABLED
     call set_display
     call wait_for_vblank    
-
-
-    call FadeInScreen
 
     ld a,RUN_SPLASH
     ld (game_state),a
@@ -2161,9 +2164,58 @@ z
     call refresh_sat_handler
     call refresh_input_ports
 
+    ld a,(temp_byte)
+    ld hl,pal_table
+    call lookup_word
+    ld a,0
+    ld b,16
+    call load_cram
+
+    ld a,(temp_byte)
+    inc a
+    cp 13
+    jp nz,+
+      ld a,INITIALIZE_TITLE
+      ld (game_state),a
+      ld a,0
+      ld b,32
+      ld hl,all_black_palette
+      call load_cram
+      halt
+      jp main_loop
+
+    +:
+    ld (temp_byte),a
+    halt
+    halt
+    halt
+    halt
+    halt
   jp main_loop
 
-
+  pal_table:
+    .dw pal_7, pal_0, pal_1, pal_2, pal_3, pal_4, pal_5, pal_6
+    .dw pal_7, pal_7, pal_7, pal_7, pal_7
+  pal_0:
+  .db $3f $10 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  pal_1:
+  .db 0 0 $3f $10 0 0 0 0 0 0 0 0 0 0 0 0 
+  pal_2:
+  .db 0 0 0 0 $3f $10 0 0 0 0 0 0 0 0 0 0 
+  pal_3:
+  .db 0 0 0 0 0 0 $3f $10 0 0 0 0 0 0 0 0 
+  pal_4:
+  .db 0 0 0 0 0 0 0 0 $3f $10 0 0 0 0 0 0
+  pal_5:
+  .db 0 0 0 0 0 0 0 0 0 0 $3f $10 0 0 0 0
+  pal_6:
+  .db 0 0 0 0 0 0 0 0 0 0 0 0 $3f $10 0 0
+  pal_7:
+  .db 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+  pal_8:
+  .db $3f $10 $3f $10 $3f $10 $3f $10 $3f $10 0 0 0 0 0 0
+  pal_9:
+  .db 0 0 0 0 0 0 0 0 $3f $10 $3f $10 $3f $10 0 0 
 
 .ends
 
