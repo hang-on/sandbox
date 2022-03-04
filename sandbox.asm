@@ -2135,6 +2135,10 @@ z
 
     ei
     halt
+    call PSGInit
+    ld hl,coin_music
+    call PSGPlayNoRepeat
+    halt
     ld a,ENABLED
     call set_display
     call wait_for_vblank    
@@ -2186,11 +2190,13 @@ z
 
     +:
     ld (temp_byte),a
-    halt
-    halt
-    halt
-    halt
-    halt
+    .rept 6
+      ; Wow, close to release uglyness....
+      ld a,MUSIC_BANK
+      SELECT_BANK_IN_REGISTER_A
+      call PSGFrame
+      halt
+    .endr
   jp main_loop
 
   pal_table:
@@ -2258,8 +2264,8 @@ z
   boss_music:
     .incbin "data/boss.psg"
 
-  ;stage_clear_music:
-    ;.incbin "data/stage_clear.psg"
+  coin_music:
+    .incbin "data/coin.psg"
 
   score_tally_music:
     .incbin "data/score_tally.psg"
@@ -2347,6 +2353,7 @@ z
   splash_tilemap:
     .include "data/splash_tilemap.inc"
     __:
+
 
 
 .ends

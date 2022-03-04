@@ -10,7 +10,7 @@ TILEMAPS := data/chapter_completed_tilemap.inc\
 	data/game_over_tilemap.inc data/minimap_tilemap.inc\
 	data/splash_tilemap.inc
 PSGS := data/minimap.psg data/eod.psg data/title.psg data/boss.psg\
-	data/stage_clear.psg data/score_tally.psg data/tick.psg
+	data/stage_clear.psg data/score_tally.psg data/tick.psg data/coin.psg
 
 all: $(PSGS) $(TILES) $(TILEMAPS) $(OUTPUT)$(PRJNAME).sms
 
