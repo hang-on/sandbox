@@ -46,7 +46,8 @@
   .equ RUN_MINIMAP 13
   .equ INITIALIZE_SPLASH 14
   .equ RUN_SPLASH 15
-  .equ INITIAL_GAMESTATE INITIALIZE_SPLASH
+  ;.equ INITIAL_GAMESTATE INITIALIZE_SPLASH
+  .equ INITIAL_GAMESTATE INITIALIZE_END_OF_DEMO
     game_state_jump_table:
     .dw initialize_level, run_level 
     .dw start_new_game, finish_level 
@@ -1585,6 +1586,17 @@
     ld hl,vdp_register_init_show_left_column
     call initialize_vdp_registers    
 
+   
+    ld a,0
+    ld b,32
+    ld hl,ukraine_palette
+    call load_cram
+    
+    jp +
+    ukraine_palette:
+      .db $23 $00 $11 $12 $17 $1B $34 $0f $14 $10 $35 $38 $3D $3F $2A $15
+      .db $23 $00 $11 $12 $17 $1B $34 $0f $14 $10 $35 $38 $3D $3F $2A $15
+    +:
 
     ld a,1
     ld b,BORDER_COLOR
@@ -1613,7 +1625,7 @@
 
     call refresh_sat_handler
     call refresh_input_ports
-
+    call load_sat
 
     ei
     halt
@@ -1621,8 +1633,7 @@
     call set_display
     call wait_for_vblank    
 
-
-    call FadeInScreen
+    ;call FadeInScreen
 
     ld a,RUN_END_OF_DEMO
     ld (game_state),a
