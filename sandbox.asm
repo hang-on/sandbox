@@ -1624,7 +1624,7 @@
     call PSGPlay
 
     RESET_COUNTER temp_counter, 30
-    LOAD_BYTES temp_byte, 15
+    LOAD_BYTES temp_byte, 15, frame_counter, 0
 
     RESET_COUNTER wait_counter, 140
     LOAD_BYTES ctrl_lock, TRUE
@@ -1654,6 +1654,9 @@
 
     ; End of critical vblank routines. ----------------------------------------
 
+    ld hl,frame_counter
+    inc (hl)
+
     ; Begin general updating (UPDATE).
     ld a,(temp_byte)
     ld l,a
@@ -1678,6 +1681,39 @@
     
     call refresh_sat_handler
     call refresh_input_ports
+
+    ;ld a,96
+    ld a,(frame_counter)
+    ld hl,flag_anim
+    call lookup_byte
+    ld d,30
+    ld e,30
+    call spr_3x4
+
+    jp _f
+      flag_anim:
+      .rept 42
+        .db 96
+      .endr
+      .rept 42
+        .db 100
+      .endr
+      .rept 43
+        .db 104
+      .endr
+      .rept 43
+        .db 108
+      .endr
+      .rept 43
+        .db 112
+      .endr
+      .rept 43
+        .db 116
+      .endr
+
+
+
+    __:
 
     ld a,(ctrl_lock)
     cp TRUE
