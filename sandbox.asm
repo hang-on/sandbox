@@ -46,8 +46,8 @@
   .equ RUN_MINIMAP 13
   .equ INITIALIZE_SPLASH 14
   .equ RUN_SPLASH 15
-  ;.equ INITIAL_GAMESTATE INITIALIZE_SPLASH
-  .equ INITIAL_GAMESTATE INITIALIZE_END_OF_DEMO
+  .equ INITIAL_GAMESTATE INITIALIZE_SPLASH
+  ;.equ INITIAL_GAMESTATE INITIALIZE_END_OF_DEMO
     game_state_jump_table:
     .dw initialize_level, run_level 
     .dw start_new_game, finish_level 
@@ -1686,32 +1686,20 @@
     ld a,(frame_counter)
     ld hl,flag_anim
     call lookup_byte
-    ld d,30
-    ld e,30
+    ld d,143
+    ld e,16
     call spr_3x4
 
     jp _f
       flag_anim:
-      .rept 42
-        .db 96
+      .rept 10
+        .db 96 96 96 96 96
+        .db 100 100 100 100
+        .db 104 104 104 104
+        .db 108 108 108 108 108
+        .db 112 112 112 112
+        .db 116 116 116 116
       .endr
-      .rept 42
-        .db 100
-      .endr
-      .rept 43
-        .db 104
-      .endr
-      .rept 43
-        .db 108
-      .endr
-      .rept 43
-        .db 112
-      .endr
-      .rept 43
-        .db 116
-      .endr
-
-
 
     __:
 
