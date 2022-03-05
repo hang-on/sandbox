@@ -1603,6 +1603,12 @@
     call set_register
 
     ld a,MISC_ASSETS_BANK_II
+    ld hl,misc_sprite_tiles
+    ld de,SPRITE_BANK_START
+    ld bc,_sizeof_misc_sprite_tiles
+    call load_vram
+
+    ld a,MISC_ASSETS_BANK_II
     ld hl,end_of_demo_tiles
     ld de,BACKGROUND_BANK_START
     ld bc,_sizeof_end_of_demo_tiles
@@ -2042,8 +2048,6 @@ z
   jp main_loop
   
   run_minimap:
-    ld a,MISC_ASSETS_BANK
-    SELECT_BANK_IN_REGISTER_A      
     call wait_for_vblank
     
     ; Begin vblank critical code (DRAW) ---------------------------------------
